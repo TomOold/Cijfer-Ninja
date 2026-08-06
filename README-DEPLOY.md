@@ -38,6 +38,14 @@ als een gepepperde HMAC-SHA256-hash opgeslagen en nooit als leesbare tekst.
 
 ## Controleren en opnieuw uitrollen
 
+Het Vercel-project is gekoppeld aan `TomOold/Cijfer-Ninja` op GitHub:
+
+- pushes naar een andere branch maken automatisch een Preview Deployment;
+- een merge naar `main` maakt automatisch een Production Deployment;
+- `main` is de enige productiebranch.
+
+Handmatig uitrollen blijft mogelijk als noodroute:
+
 ```bash
 npm test
 npx vercel deploy --prod --yes
