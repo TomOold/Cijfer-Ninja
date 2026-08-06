@@ -1,0 +1,15 @@
+# Cloudflare Pages config for Number Ninja.
+#
+# The game is static files + Pages Functions (functions/). Saving uses one KV
+# namespace bound as NINJA_KV. Create it and paste its id below:
+#
+#   npx wrangler kv namespace create ninja-kv
+#
+# Then deploy:  npx wrangler pages deploy . --project-name=<your-project>
+
+name = "number-ninja"
+pages_build_output_dir = "."
+
+[[kv_namespaces]]
+binding = "NINJA_KV"        # variable name MUST be exactly this
+id = "2621deb901ae4ac693c7aeb1294500bc"   # infra id, not a secret; swap for your own namespace

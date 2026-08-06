@@ -1,0 +1,14 @@
+{
+  "_comment": "EDIT THIS FILE to change the gear shop. Drop an image into the images/ folder, then add its filename below. The character's name in the game is the filename without the extension (Character1.jpg -> 'Character1', 'Sonic the hero.gif' -> 'Sonic the hero'). Every character costs the same: costPerCharacter coins. To override the price of one character, use the object form {\"file\": \"...\", \"cost\": 350}.",
+  "costPerCharacter": 200,
+  "characters": [
+    "Sonic.gif",
+    "Super Aang.webp",
+    "Aapa.gif",
+    "Pacman.gif",
+    "Mario.gif",
+    "Luigi.gif",
+    "Kirby.gif",
+    "Pikachu.gif",
+  ]
+}

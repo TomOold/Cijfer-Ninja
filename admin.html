@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>Nummers Ninja — Beheer</title>
+<style>
+  :root{ --bg:#0b1030; --card:#161c46; --ink:#f4f6ff; --dim:#9aa3d8; --line:#2c3577;
+    --gold:#ffd23f; --green:#4ade80; --cyan:#38bdf8; --red:#ff6b81; }
+  *{box-sizing:border-box;}
+  body{margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    background:radial-gradient(1000px 600px at 50% -10%, #1a2260, var(--bg)); color:var(--ink); min-height:100vh;}
+  .wrap{max-width:900px; margin:0 auto; padding:22px 16px 60px;}
+  h1{font-size:22px; font-weight:900; letter-spacing:.5px; margin:6px 0 2px;}
+  h1 span{color:var(--gold);}
+  .sub{color:var(--dim); font-size:13px; margin-bottom:20px;}
+  .gate{background:var(--card); border:1px solid var(--line); border-radius:16px; padding:18px; max-width:420px;}
+  .gate label{display:block; font-size:12px; font-weight:800; letter-spacing:.5px; color:var(--dim); margin-bottom:8px; text-transform:uppercase;}
+  .gate input{width:100%; padding:12px 14px; border-radius:12px; border:1px solid var(--line);
+    background:#0d1340; color:var(--ink); font-size:16px; outline:none;}
+  .gate input:focus{border-color:var(--cyan);}
+  .gate button{margin-top:12px; width:100%; padding:12px; border:none; border-radius:12px; cursor:pointer;
+    background:linear-gradient(180deg,#4f7cff,#3457d5); color:#fff; font-weight:900; font-size:15px;}
+  .err{color:var(--red); font-size:13px; font-weight:700; margin-top:10px; min-height:16px;}
+  .tiles{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:12px; margin:8px 0 22px;}
+  .tile{background:var(--card); border:1px solid var(--line); border-radius:16px; padding:16px;}
+  .tile .n{font-size:30px; font-weight:900; line-height:1;}
+  .tile .l{font-size:12px; color:var(--dim); font-weight:700; margin-top:6px;}
+  .tile.good .n{color:var(--green);} .tile.gold .n{color:var(--gold);} .tile.cyan .n{color:var(--cyan);}
+  .secTitle{font-size:12px; font-weight:900; letter-spacing:1.2px; text-transform:uppercase; color:var(--dim); margin:6px 0 10px;}
+  table{width:100%; border-collapse:collapse; background:var(--card); border:1px solid var(--line); border-radius:16px; overflow:hidden;}
+  th,td{padding:10px 12px; text-align:left; font-size:13px; border-bottom:1px solid #202766;}
+  th{font-size:11px; text-transform:uppercase; letter-spacing:.5px; color:var(--dim); font-weight:800;}
+  td.num,th.num{text-align:right; font-variant-numeric:tabular-nums;}
+  tr:last-child td{border-bottom:none;}
+  .name{font-weight:800;}
+  .muted{color:var(--dim); font-size:12px;}
+  .hidden{display:none;}
+  .refresh{background:none; border:1px solid var(--line); color:var(--dim); border-radius:10px;
+    padding:7px 12px; font-weight:800; cursor:pointer; font-size:12px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>NUMMERS<span>NINJA</span> · Beheer</h1>
+  <div class="sub" id="stamp">Platformstatistieken, alleen-lezen.</div>
+
+  <div class="gate" id="gate">
+    <label for="tok">Beheertoken</label>
+    <input id="tok" type="password" placeholder="plak ADMIN_TOKEN" autocomplete="off">
+    <button id="go">Bekijk statistieken</button>
+    <div class="err" id="err"></div>
+  </div>
+
+  <div id="dash" class="hidden">
+    <div class="tiles">
+      <div class="tile"><div class="n" id="tTotal">–</div><div class="l">Namen ooit aangemaakt</div></div>
+      <div class="tile good"><div class="n" id="tActive">–</div><div class="l">Actief (voortgang opgeslagen)</div></div>
+      <div class="tile"><div class="n" id="tNever">–</div><div class="l">Aangemaakt, nooit opgeslagen</div></div>
+      <div class="tile cyan"><div class="n" id="tA7">–</div><div class="l">Actief in de laatste 7 dagen</div></div>
+      <div class="tile cyan"><div class="n" id="tA30">–</div><div class="l">Actief in de laatste 30 dagen</div></div>
+      <div class="tile"><div class="n" id="tN7">–</div><div class="l">Nieuw in de laatste 7 dagen</div></div>
+      <div class="tile gold"><div class="n" id="tSolved">–</div><div class="l">Alle opgeloste sommen</div></div>
+      <div class="tile gold"><div class="n" id="tMax">–</div><div class="l">Hoogste spelerniveau</div></div>
+    </div>
+
+    <div class="secTitle">Recente spelers <button class="refresh" id="refresh">↻ vernieuwen</button></div>
+    <table>
+      <thead><tr><th>Naam</th><th class="num">Niveau</th><th class="num">Munten</th><th class="num">Opgelost</th><th>Laatst gezien</th></tr></thead>
+      <tbody id="rows"></tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+  const $=id=>document.getElementById(id);
+  let TOKEN='';
+  function fmtDate(ms){ if(!ms) return '—'; const d=new Date(ms);
+    return d.toLocaleDateString(undefined,{year:'numeric',month:'short',day:'numeric'}); }
+  function num(n){ return (n==null?'–':Number(n).toLocaleString()); }
+
+  async function load(){
+    $('err').textContent='';
+    try{
+      const r=await fetch('/api/admin',{ headers:{'x-admin-token':TOKEN} });
+      const j=await r.json();
+      if(!j.ok){
+        const msg = j.error==='admin_not_configured' ? 'ADMIN_TOKEN is nog niet ingesteld in het Pages-project.'
+          : j.error==='unauthorized' ? 'Onjuiste token.'
+          : (j.error||'Mislukt.');
+        $('err').textContent=msg;
+        return false;
+      }
+      $('gate').classList.add('hidden');
+      $('dash').classList.remove('hidden');
+      $('tTotal').textContent=num(j.total);
+      $('tActive').textContent=num(j.active);
+      $('tNever').textContent=num(j.neverSaved);
+      $('tA7').textContent=num(j.active7);
+      $('tA30').textContent=num(j.active30);
+      $('tN7').textContent=num(j.new7);
+      $('tSolved').textContent=num(j.totalSolved);
+      $('tMax').textContent=num(j.maxLevel);
+      $('stamp').textContent='Gemaakt op '+new Date(j.generated).toLocaleString('nl-NL');
+      const rows=(j.roster||[]).map(p=>
+        '<tr><td class="name">'+esc(p.name)+'</td><td class="num">'+p.level+'</td>'+
+        '<td class="num">'+num(p.coins)+'</td><td class="num">'+num(p.solved)+'</td>'+
+        '<td class="muted">'+fmtDate(p.updated)+'</td></tr>').join('');
+      $('rows').innerHTML=rows||'<tr><td colspan="5" class="muted">Nog geen actieve spelers.</td></tr>';
+      return true;
+    }catch(e){ $('err').textContent='Netwerkfout.'; return false; }
+  }
+  function esc(s){ return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+  $('go').onclick=()=>{ TOKEN=$('tok').value.trim(); if(TOKEN) load(); };
+  $('tok').addEventListener('keydown',e=>{ if(e.key==='Enter'){ TOKEN=$('tok').value.trim(); if(TOKEN) load(); } });
+  $('refresh') && ($('refresh').onclick=load);
+</script>
+</body>
+</html>

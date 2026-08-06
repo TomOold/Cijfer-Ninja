@@ -1,0 +1,21 @@
+# dependencies
+node_modules/
+package-lock.json
+
+# wrangler / cloudflare local state
+.wrangler/
+.dev.vars
+*.log
+
+# test artifacts (screenshots the e2e run drops)
+x*.png
+*-shot.png
+admin-shot.png
+
+# os junk
+.DS_Store
+Thumbs.db
+
+# never commit secrets
+.env
+*.secret
