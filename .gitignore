@@ -1,6 +1,8 @@
 # dependencies
 node_modules/
 package-lock.json
+.vercel/
+supabase/.temp/
 
 # wrangler / cloudflare local state
 .wrangler/
@@ -18,4 +20,7 @@ Thumbs.db
 
 # never commit secrets
 .env
+.env.*
+!.env.example
 *.secret
+.vercel

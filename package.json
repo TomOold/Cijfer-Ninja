@@ -1,0 +1,12 @@
+{
+  "name": "nummers-ninja",
+  "version": "1.0.0",
+  "private": true,
+  "engines": {
+    "node": "22.x"
+  },
+  "scripts": {
+    "test": "node wbtest.js && node tests/backend.test.mjs",
+    "test:legacy-admin": "node admintest.js"
+  }
+}

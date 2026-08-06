@@ -86,7 +86,7 @@
       const r=await fetch('/api/admin',{ headers:{'x-admin-token':TOKEN} });
       const j=await r.json();
       if(!j.ok){
-        const msg = j.error==='admin_not_configured' ? 'ADMIN_TOKEN is nog niet ingesteld in het Pages-project.'
+        const msg = j.error==='admin_not_configured' ? 'ADMIN_TOKEN is nog niet ingesteld in het Vercel-project.'
           : j.error==='unauthorized' ? 'Onjuiste token.'
           : (j.error||'Mislukt.');
         $('err').textContent=msg;
