@@ -696,7 +696,7 @@ sup{font-size:.6em;}
         <div class="slashFx" id="slashFx"></div>
       </div>
       <div class="foeMid">
-        <div class="foeName" id="foeName">Wriggler</div>
+        <div class="foeName" id="foeName">Kronkel</div>
         <div class="hpTrack"><div class="hpFill" id="foeHpFill"></div></div>
         <div class="foeTele" id="foeTele"></div>
       </div>
@@ -722,7 +722,7 @@ sup{font-size:.6em;}
       <div style="font-size:52px" id="resGlyph">🥷</div>
       <div class="resTitle" id="resTitle">MISSIE VOLTOOID</div>
       <div class="resStats">
-        <div class="rstat"><div class="n" id="resScore">0</div><div class="l">Score</div></div>
+        <div class="rstat"><div class="n" id="resScore">0</div><div class="l">Punten</div></div>
         <div class="rstat"><div class="n" id="resStreak">0</div><div class="l">Beste combo</div></div>
         <div class="rstat"><div class="n" style="color:var(--gold)" id="resCoins">+0</div><div class="l">Munten</div></div>
       </div>
@@ -751,7 +751,7 @@ sup{font-size:.6em;}
     <div class="shopTabs" id="shopTabs">
       <button class="shopTab on" data-cat="characters"><span class="tc">🥷</span>Helden</button>
       <button class="shopTab" data-cat="powerups"><span class="tc">⚡</span>Krachten</button>
-      <button class="shopTab" data-cat="effects"><span class="tc">✨</span>Auras</button>
+      <button class="shopTab" data-cat="effects"><span class="tc">✨</span>Aura's</button>
     </div>
     <div class="shopDesc" id="shopDesc"></div>
     <div class="shopGrid" id="shopGrid"></div>
@@ -783,7 +783,7 @@ sup{font-size:.6em;}
 <div id="freeplay">
   <div class="fpInner">
     <div class="fpBar">
-      <span class="fpScore">SCORE <b id="fpScore">0</b></span>
+      <span class="fpScore">PUNTEN <b id="fpScore">0</b></span>
       <span class="fpLives" id="fpLives">❤️❤️❤️</span>
       <button class="fpQuit" id="fpQuit">✕ Klaar</button>
     </div>
@@ -873,14 +873,14 @@ function numChoices(ans, cands){
 
 /* ---------- generator: order of operations ---------- */
 function genOps(tier){
-  let expr, tip='Multiply and divide first, then add and subtract!';
+  let expr, tip='Vermenigvuldig en deel eerst. Tel daarna op en trek af.';
   if(tier>=4){
     // EXPERT: powers + nested parentheses + bigger numbers, all at once
     const t=ri(1,3);
     if(t===1){ const a=ri(3,9),b=ri(3,7),c=ri(2,5),d=ri(2,9),e=ri(3,8),f=ri(1,e-1); expr=a+'*'+b+'-'+c+'**2+'+d+'*('+e+'-'+f+')'; }
     else if(t===2){ const g=ri(3,6),h=ri(2,4),a=ri(4,9),b=ri(2,6); expr=g+'**2*'+h+'-('+a+'+'+b+')*'+ri(2,4); }
     else { const d=ri(3,8),k=ri(4,9),p=ri(2,3),m=ri(2,9); expr='('+(d*k)+'/'+d+'+'+m+')*'+(p===2?'2**3':'3**2'); }
-    tip='Expert mode! Powers and ( ) first, then × and ÷, then + and −.';
+    tip='Expertniveau: eerst machten en haakjes, daarna × en ÷, en als laatste + en −.';
     const a2=evalExpr(expr), w2=l2r(expr);
     return { topic:'ops', qHTML:'<div class="qBig">'+displayExpr(expr)+' = ?</div>',
       choices:numChoices(a2,[Number.isInteger(w2)?w2:a2+13, a2+ri(2,9), a2-ri(2,9), a2+20].filter(v=>Number.isInteger(v))), tip:tip };
@@ -889,19 +889,19 @@ function genOps(tier){
     const t=ri(1,4);
     if(t===1){ const a=ri(2,9),b=ri(2,9),c=ri(2,9); expr=a+'+'+b+'*'+c; }
     else if(t===2){ let a=ri(2,9),b=ri(2,9),c=ri(2,6),d=ri(2,6); if(a*b<c*d){[a,c]=[c,a];[b,d]=[d,b];} expr=a+'*'+b+'-'+c+'*'+d; }
-    else if(t===3){ const b=ri(4,12),c=ri(1,b-1),a=ri(2,9); expr=a+'*('+b+'-'+c+')'; tip='Parentheses first! Do what is inside ( ) before anything else.'; }
+    else if(t===3){ const b=ri(4,12),c=ri(1,b-1),a=ri(2,9); expr=a+'*('+b+'-'+c+')'; tip='Begin bij de haakjes: reken eerst uit wat tussen ( ) staat.'; }
     else { const d=ri(2,9),k=ri(3,9),m=ri(1,k-1); expr=(d*k)+'/'+d+'-'+m; }
   } else if(tier===2){
     const t=ri(1,4);
-    if(t===1){ const a=ri(2,6),b=ri(3,9),c=ri(1,b-1),d=ri(2,4); expr=a+'*('+b+'-'+c+')*'+d; tip='Parentheses first, then multiply left to right.'; }
+    if(t===1){ const a=ri(2,6),b=ri(3,9),c=ri(1,b-1),d=ri(2,4); expr=a+'*('+b+'-'+c+')*'+d; tip='Reken eerst de haakjes uit en vermenigvuldig daarna van links naar rechts.'; }
     else if(t===2){ const a=ri(10,30),b=ri(2,9),c=ri(2,9),d=ri(2,15); expr=a+'+'+b+'*'+c+'-'+d; }
-    else if(t===3){ const a=ri(2,9),b=ri(2,9),c=ri(2,6); expr='('+a+'+'+b+')*'+c; tip='Parentheses first! Add inside ( ), then multiply.'; }
+    else if(t===3){ const a=ri(2,9),b=ri(2,9),c=ri(2,6); expr='('+a+'+'+b+')*'+c; tip='Tel eerst de getallen tussen de haakjes op. Vermenigvuldig daarna.'; }
     else { const d=ri(2,9),k=ri(2,9),m=ri(2,6),n=ri(2,6); expr=(d*k)+'/'+d+'+'+m+'*'+n; }
   } else {
     const t=ri(1,3);
-    if(t===1){ const b=ri(2,6),a=ri(2,7),c=ri(2,7); expr=b+'**2+'+a+'*'+c; tip='Powers first! 3² means 3 × 3.'; }
-    else if(t===2){ const b=ri(2,6),g=ri(1,4); expr='2**3*('+(b+g)+'-'+b+')'; tip='Powers and parentheses first: 2³ = 8.'; }
-    else { const d=ri(2,6),k=ri(2,6),p=ri(2,3); expr='('+(d*k)+'/'+d+')*'+(p===2?'3**2':'2**3'); tip='Do ( ) first, then the power, then multiply.'; }
+    if(t===1){ const b=ri(2,6),a=ri(2,7),c=ri(2,7); expr=b+'**2+'+a+'*'+c; tip='Begin bij de macht: 3² betekent 3 × 3.'; }
+    else if(t===2){ const b=ri(2,6),g=ri(1,4); expr='2**3*('+(b+g)+'-'+b+')'; tip='Begin bij de macht en de haakjes: 2³ = 8.'; }
+    else { const d=ri(2,6),k=ri(2,6),p=ri(2,3); expr='('+(d*k)+'/'+d+')*'+(p===2?'3**2':'2**3'); tip='Reken eerst de haakjes uit, daarna de macht en vermenigvuldig als laatste.'; }
   }
   const ans = evalExpr(expr);
   const wrong = l2r(expr);
@@ -912,63 +912,63 @@ function genOps(tier){
 
 /* ---------- generator: mystery machine (undoing) ---------- */
 function genMachine(tier){
-  const tip='Undo the machine: work backwards and flip each step. + becomes −, × becomes ÷.';
+  const tip='Draai de machine terug: werk van achter naar voren en keer elke stap om. + wordt − en × wordt ÷.';
   if(tier>=4){
     // EXPERT: three-step machine, ×  then +  then ÷
     const mA=ri(2,6), mC=ri(2,5), mX=ri(2,12);
     let mB=ri(3,20), step2=mX*mA+mB;
     while(step2%mC!==0){ mB++; step2=mX*mA+mB; }   // keep the ÷ clean
     const mR=step2/mC;
-    const mtxt='I multiplied my number by <b>'+mA+'</b>, then added <b>'+mB+'</b>, then divided by <b>'+mC+'</b>, and got <b>'+mR+'</b>.';
+    const mtxt='Ik vermenigvuldigde mijn getal met <b>'+mA+'</b>, telde er <b>'+mB+'</b> bij op en deelde daarna door <b>'+mC+'</b>. De uitkomst was <b>'+mR+'</b>.';
     return { topic:'machine',
-      qHTML:'<div class="qStory">I thought of a number…<br>'+mtxt+'</div><div class="qSub">What was my number? (Expert)</div>',
+      qHTML:'<div class="qStory">Ik bedacht een getal…<br>'+mtxt+'</div><div class="qSub">Welk getal had ik bedacht? (expert)</div>',
       choices:numChoices(mX,[mR*mC-mB, mX+ri(1,4), mX-ri(1,4), (mR-mB)*mC].filter(v=>Number.isInteger(v)&&v>=0)),
-      tip:'Three steps! Undo the LAST first: ×'+mC+', then −'+mB+', then ÷'+mA+'.' };
+      tip:'Drie stappen! Keer de laatste stap als eerste om: ×'+mC+', daarna −'+mB+' en als laatste ÷'+mA+'.' };
   }
   if(tier===1){
     const op=pick(['+','-','*','/']);
     let x,a,r,txt;
-    if(op==='+'){ x=ri(5,80); a=ri(5,40); r=x+a; txt='I added <b>'+a+'</b> to my number and got <b>'+r+'</b>.'; }
-    else if(op==='-'){ a=ri(5,40); x=a+ri(3,50); r=x-a; txt='I subtracted <b>'+a+'</b> from my number and got <b>'+r+'</b>.'; }
-    else if(op==='*'){ a=ri(2,9); x=ri(3,12); r=x*a; txt='I multiplied my number by <b>'+a+'</b> and got <b>'+r+'</b>.'; }
-    else { a=ri(2,9); r=ri(2,12); x=a*r; txt='I divided my number by <b>'+a+'</b> and got <b>'+r+'</b>.'; }
+    if(op==='+'){ x=ri(5,80); a=ri(5,40); r=x+a; txt='Ik telde <b>'+a+'</b> bij mijn getal op en kreeg <b>'+r+'</b>.'; }
+    else if(op==='-'){ a=ri(5,40); x=a+ri(3,50); r=x-a; txt='Ik trok <b>'+a+'</b> van mijn getal af en kreeg <b>'+r+'</b>.'; }
+    else if(op==='*'){ a=ri(2,9); x=ri(3,12); r=x*a; txt='Ik vermenigvuldigde mijn getal met <b>'+a+'</b> en kreeg <b>'+r+'</b>.'; }
+    else { a=ri(2,9); r=ri(2,12); x=a*r; txt='Ik deelde mijn getal door <b>'+a+'</b> en kreeg <b>'+r+'</b>.'; }
     const cands=[ op==='+'? r+a : op==='-'? r-a : op==='*'? r*a : Math.round(r/a), x+ri(1,5), x-ri(1,5) ];
     return { topic:'machine',
-      qHTML:'<div class="qStory">I thought of a number…<br>'+txt+'</div><div class="qSub">What was my number?</div>',
+      qHTML:'<div class="qStory">Ik bedacht een getal…<br>'+txt+'</div><div class="qSub">Welk getal had ik bedacht?</div>',
       choices:numChoices(x,cands), tip:tip };
   }
   // two-step machines
   const mode=pick(tier===2?['MA','AM']:['MA','AM','DS']);
   let x,a,b,r,txt;
   if(mode==='MA'){ a=ri(2,9); b=ri(3,30); x=ri(3,12); r=x*a+b;
-    txt='I multiplied my number by <b>'+a+'</b>, then added <b>'+b+'</b>, and got <b>'+r+'</b>.'; }
+    txt='Ik vermenigvuldigde mijn getal met <b>'+a+'</b>, telde er <b>'+b+'</b> bij op en kreeg <b>'+r+'</b>.'; }
   else if(mode==='AM'){ a=ri(2,6); b=ri(2,20); x=ri(2,12); r=(x+b)*a;
-    txt='I added <b>'+b+'</b> to my number, then multiplied by <b>'+a+'</b>, and got <b>'+r+'</b>.'; }
+    txt='Ik telde <b>'+b+'</b> bij mijn getal op, vermenigvuldigde daarna met <b>'+a+'</b> en kreeg <b>'+r+'</b>.'; }
   else { a=ri(2,6); b=ri(2,15); const q=b+ri(2,15); x=q*a; r=q-b;
-    txt='I divided my number by <b>'+a+'</b>, then subtracted <b>'+b+'</b>, and got <b>'+r+'</b>.'; }
+    txt='Ik deelde mijn getal door <b>'+a+'</b>, trok er daarna <b>'+b+'</b> van af en kreeg <b>'+r+'</b>.'; }
   const wrongOrder = mode==='MA' ? (r%a===0 ? r/a - b : r-b-a)
                    : mode==='AM' ? (r-b)%1===0 && a!==0 && (r-b)%a===0 ? (r-b)/a : r-a-b
                    : (r-b)*a;
   return { topic:'machine',
-    qHTML:'<div class="qStory">I thought of a number…<br>'+txt+'</div><div class="qSub">What was my number?</div>',
-    choices:numChoices(x,[wrongOrder, x+ri(1,4), x-ri(1,4)]), tip:'Undo the LAST step first, then keep working backwards.' };
+    qHTML:'<div class="qStory">Ik bedacht een getal…<br>'+txt+'</div><div class="qSub">Welk getal had ik bedacht?</div>',
+    choices:numChoices(x,[wrongOrder, x+ri(1,4), x-ri(1,4)]), tip:'Keer de laatste stap als eerste om en werk verder terug.' };
 }
 
 /* ---------- generator: equations ---------- */
 function genEquation(tier){
-  let disp, x, tip='Get <b>x</b> alone! Undo + with −, undo × with ÷. Same move on both sides.';
+  let disp, x, tip='Zorg dat <b>x</b> alleen komt te staan. Keer + om met − en × met ÷. Doe aan beide kanten hetzelfde.';
   let cands=[];
   if(tier>=4){
     // EXPERT: variable on BOTH sides
     const t=ri(1,2);
     if(t===1){ const a=ri(4,9), c=ri(2,a-1); x=ri(3,15); const b=ri(2,20); const d=(a-c)*x+b;
       disp=a+'<i>x</i> + '+b+' = '+c+'<i>x</i> + '+d;
-      cands=[d-b, x+ri(2,6), (a-c)]; tip='Move the x\'s to one side: take '+c+'x from both sides first.'; }
+      cands=[d-b, x+ri(2,6), (a-c)]; tip='Breng de x\'en naar één kant: trek eerst '+c+'x van beide kanten af.'; }
     else { const a=ri(3,6), b=ri(2,10); x=b+ri(3,14); const rhs=a*(x-b);
       disp=a+'(<i>x</i> − '+b+') = '+rhs;
-      cands=[rhs/a, x-b, rhs-b]; tip='Divide both sides by '+a+' first, then add '+b+'.'; }
+      cands=[rhs/a, x-b, rhs-b]; tip='Deel eerst beide kanten door '+a+' en tel er daarna '+b+' bij op.'; }
     return { topic:'equation',
-      qHTML:'<div class="qBig">'+disp+'</div><div class="qSub">Find x! (Expert)</div>',
+      qHTML:'<div class="qBig">'+disp+'</div><div class="qSub">Vind x! (expert)</div>',
       choices:numChoices(x,cands), tip:tip };
   }
   if(tier===1){
@@ -982,16 +982,16 @@ function genEquation(tier){
     const a=ri(2,9); x=ri(3,12); const b=ri(2,40);
     if(t===1){ disp=a+'<i>x</i> + '+b+' = '+(a*x+b); cands=[a*x, (a*x+b)-b+a]; }
     else { disp=a+'<i>x</i> − '+b+' = '+(a*x-b); cands=[a*x, x+b]; }
-    tip='Two steps: deal with the + or − first, then divide by the number next to <b>x</b>.';
+    tip='Twee stappen: werk eerst de + of − weg en deel daarna door het getal naast <b>x</b>.';
   } else {
     const t=ri(1,2);
     const a=ri(2,6); x=ri(2,12); const b=ri(2,12);
     if(t===1){ disp=a+'(<i>x</i> + '+b+') = '+(a*(x+b)); cands=[a*(x+b)-b, x+b]; }
     else { x=b+ri(2,12); disp=a+'(<i>x</i> − '+b+') = '+(a*(x-b)); cands=[x-b, a*(x-b)+b]; }
-    tip='Divide both sides by '+a+' first, then undo the ( ).';
+    tip='Deel eerst beide kanten door '+a+' en werk daarna de haakjes weg.';
   }
   return { topic:'equation',
-    qHTML:'<div class="qBig">'+disp+'</div><div class="qSub">Find x!</div>',
+    qHTML:'<div class="qBig">'+disp+'</div><div class="qSub">Vind x!</div>',
     choices:numChoices(x,cands), tip:tip };
 }
 
@@ -1005,33 +1005,33 @@ function genFraction(tier){
     const innerRight=M/d2*n2;              // n2/d2 of M
     const ans=innerRight/d1*n1;            // n1/d1 of that
     return { topic:'fraction',
-      qHTML:'<div class="qBig">'+frHTML(n1,d1)+' of '+frHTML(n2,d2)+' of '+M+' = ?</div><div class="qSub">Expert!</div>',
+      qHTML:'<div class="qBig">'+frHTML(n1,d1)+' van '+frHTML(n2,d2)+' van '+M+' = ?</div><div class="qSub">Expert!</div>',
       choices:numChoices(ans,[innerRight, M/d1, ans+n2, M/d1*n1].filter(v=>Number.isInteger(v)&&v>=0)),
-      tip:'Work in steps: '+frHTML(n2,d2)+' of '+M+' = '+innerRight+'. Then take '+frHTML(n1,d1)+' of '+innerRight+'.' };
+      tip:'Werk in stappen: '+frHTML(n2,d2)+' van '+M+' = '+innerRight+'. Neem daarna '+frHTML(n1,d1)+' van '+innerRight+'.' };
   }
   if(tier===1){
     const d=pick([2,3,4,5,6,8]); const m=d*ri(2,12); const n=ri(1,d-1);
     const ans=m/d*n;
     return { topic:'fraction',
-      qHTML:'<div class="qBig">'+frHTML(n,d)+' of '+m+' = ?</div>',
+      qHTML:'<div class="qBig">'+frHTML(n,d)+' van '+m+' = ?</div>',
       choices:numChoices(ans,[m/d, Math.min(m*n, ans+d*2), ans+n]),
-      tip:'"of" means multiply: divide '+m+' by '+d+' to get one part, then take '+n+' parts.' };
+      tip:'Bij een breuk van een getal deel je '+m+' eerst door '+d+' voor één deel. Neem daarna '+n+' van die delen.' };
   }
   if(tier===2){
     if(ri(0,1)===0){
       const d=pick([2,3,4,5,6]); const n=ri(1,d-1); const k=ri(2,12);
       const whole=d*k; const R=n*k;
       return { topic:'fraction',
-        qHTML:'<div class="qBig">'+R+' is '+frHTML(n,d)+' of ?</div>',
+        qHTML:'<div class="qBig">'+R+' is '+frHTML(n,d)+' van welk getal?</div>',
         choices:numChoices(whole,[Math.round(R*n/d), R+d, whole+d]),
-        tip:'Backwards! If '+R+' is '+n+' parts, one part is '+(R/n)+'. The whole is '+d+' parts.' };
+        tip:'Werk terug! Als '+R+' gelijk is aan '+n+' delen, dan is één deel '+(R/n)+'. Het geheel bestaat uit '+d+' delen.' };
     }
     const base=pick([[1,2],[1,3],[2,3],[1,4],[3,4],[2,5],[1,5],[3,5]]);
     const k=ri(2,8); const n=base[0], d=base[1];
     return { topic:'fraction',
-      qHTML:'<div class="qBig">'+frHTML(n,d)+' = '+frHTML('?',d*k)+'</div><div class="qSub">Make them equivalent!</div>',
+      qHTML:'<div class="qBig">'+frHTML(n,d)+' = '+frHTML('?',d*k)+'</div><div class="qSub">Maak de breuken gelijkwaardig!</div>',
       choices:numChoices(n*k,[n+(d*k-d), n*k+n, d*k-n]),
-      tip:'Whatever you multiply the bottom by, multiply the top by too. Bottom went ×'+k+'.' };
+      tip:'Vermenigvuldig de teller en de noemer met hetzelfde getal. De noemer ging ×'+k+', dus de teller ook.' };
   }
   // tier 3: which fraction is biggest
   const fracs=[]; const seen=new Set();
@@ -1044,9 +1044,9 @@ function genFraction(tier){
   let best=0;
   for(let i=1;i<fracs.length;i++) if(fracs[i][2]>fracs[best][2]) best=i;
   return { topic:'fraction',
-    qHTML:'<div class="qBig">Which fraction is the BIGGEST?</div>',
+    qHTML:'<div class="qBig">Welke breuk is het GROOTST?</div>',
     choices:fracs.map((f,i)=>({h:frHTML(f[0],f[1]), ok:i===best})),
-    tip:'Compare each to ½ and to 1. Same bottom? Bigger top wins. Same top? Smaller bottom wins.' };
+    tip:'Vergelijk elke breuk met ½ en met 1. Dezelfde noemer? Dan is de grootste teller de winnaar. Dezelfde teller? Dan is de kleinste noemer het grootst.' };
 }
 
 /* ---------- generator: GCF / LCM / powers ---------- */
@@ -1056,33 +1056,33 @@ function genFactor(tier){
     const trip=pick([[3,6,9],[4,6,8],[2,5,10],[3,4,6],[6,8,12],[2,3,7],[4,5,10],[3,5,6]]);
     const ans=lcm(lcm(trip[0],trip[1]),trip[2]);
     return { topic:'factor',
-      qHTML:'<div class="qBig">LCM('+trip[0]+', '+trip[1]+', '+trip[2]+') = ?</div><div class="qSub">Expert! Least common multiple of three</div>',
+      qHTML:'<div class="qBig">KGV('+trip[0]+', '+trip[1]+', '+trip[2]+') = ?</div><div class="qSub">Expert! Kleinste gemene veelvoud van drie getallen</div>',
       choices:numChoices(ans,[trip[0]*trip[1]*trip[2], ans+trip[2], ans-trip[0], Math.max(...trip)*2].filter(v=>Number.isInteger(v)&&v>0)),
-      tip:'Find the first number that ALL three count to. Skip-count by the biggest and check the others.' };
+      tip:'Zoek het eerste getal dat in alle drie de tafels voorkomt. Begin bij veelvouden van het grootste getal en controleer de andere twee.' };
   }
   if(tier===1){
     if(ri(0,1)===0){
       const p=pick([[12,20],[15,45],[22,33],[8,12],[10,15],[9,12],[14,21],[18,24],[6,8],[16,24]]);
       const ans=gcd(p[0],p[1]);
       return { topic:'factor',
-        qHTML:'<div class="qBig">GCF('+p[0]+', '+p[1]+') = ?</div><div class="qSub">Greatest common factor</div>',
+        qHTML:'<div class="qBig">GGD('+p[0]+', '+p[1]+') = ?</div><div class="qSub">Grootste gemene deler</div>',
         choices:numChoices(ans,[lcm(p[0],p[1]), Math.min(p[0],p[1]), ans*2]),
-        tip:'GCF = the biggest number that divides into BOTH.' };
+        tip:'De GGD is het grootste getal waardoor je beide getallen zonder rest kunt delen.' };
     }
     const k=ri(3,12); const cube=ri(0,1)===1 && k<=5;
     const ans=cube? k*k*k : k*k;
     return { topic:'factor',
       qHTML:'<div class="qBig">'+k+(cube?'³':'²')+' = ?</div>',
       choices:numChoices(ans,[cube? k*3 : k*2, ans+k, cube? k*k : k*k*k]),
-      tip:k+(cube?'³ means '+k+' × '+k+' × '+k : '² means '+k+' × '+k)+', not '+(cube?k+' × 3':k+' × 2')+'!' };
+      tip:k+(cube?'³ betekent '+k+' × '+k+' × '+k : '² betekent '+k+' × '+k)+', niet '+(cube?k+' × 3':k+' × 2')+'!' };
   }
   if(tier===2){
     const p=pick([[4,6],[6,8],[3,5],[6,9],[8,12],[10,4],[5,7],[12,20],[9,6],[10,15]]);
     const ans=lcm(p[0],p[1]);
     return { topic:'factor',
-      qHTML:'<div class="qBig">LCM('+p[0]+', '+p[1]+') = ?</div><div class="qSub">Least common multiple</div>',
+      qHTML:'<div class="qBig">KGV('+p[0]+', '+p[1]+') = ?</div><div class="qSub">Kleinste gemene veelvoud</div>',
       choices:numChoices(ans,[p[0]*p[1]===ans? gcd(p[0],p[1]) : p[0]*p[1], p[0]+p[1], gcd(p[0],p[1])]),
-      tip:'LCM = the first number BOTH count to. Skip-count by '+Math.max(p[0],p[1])+' and check!' };
+      tip:'Het KGV is het eerste getal dat in beide tafels voorkomt. Tel sprongen van '+Math.max(p[0],p[1])+' en controleer!' };
   }
   const table={
     '45':'3² · 5', '60':'2² · 3 · 5', '72':'2³ · 3²',
@@ -1093,9 +1093,9 @@ function genFactor(tier){
   const wrongs=shuffle(keys.filter(k=>k!==n)).slice(0,3).map(k=>table[k]);
   const choices=shuffle([{h:table[n],ok:true}].concat(wrongs.map(w=>({h:w,ok:false}))));
   return { topic:'factor',
-    qHTML:'<div class="qBig">'+n+' = ?</div><div class="qSub">Pick the prime factorization</div>',
+    qHTML:'<div class="qBig">'+n+' = ?</div><div class="qSub">Kies de ontbinding in priemfactoren</div>',
     choices:choices,
-    tip:'Break it down with a factor tree until every branch is prime. Multiply the picks to check!' };
+    tip:'Maak een factorboom tot elke tak een priemgetal is. Vermenigvuldig de factoren om je antwoord te controleren!' };
 }
 
 /* ---------- generator: shapes ---------- */
@@ -1131,38 +1131,38 @@ function genShape(tier){
     const area=ri(0,1)===0;
     const ans=area? w*h : 2*(w+h);
     return { topic:'shape',
-      qHTML:'<div class="qStory">Find the <b style="color:'+(area?'#22d3ee':'#ffb020')+'">'+(area?'AREA':'PERIMETER')+'</b> of this rectangle.</div>'+rectSVG(w,h,'rect')+
-        '<div class="qSub">'+(area?'square units':'units around the edge')+'</div>',
+      qHTML:'<div class="qStory">Bereken de <b style="color:'+(area?'#22d3ee':'#ffb020')+'">'+(area?'OPPERVLAKTE':'OMTREK')+'</b> van deze rechthoek.</div>'+rectSVG(w,h,'rect')+
+        '<div class="qSub">'+(area?'vierkante eenheden':'eenheden langs de rand')+'</div>',
       choices:numChoices(ans,[area? 2*(w+h) : w*h, w+h, ans+2]),
-      tip:area?'Area = length × width = space INSIDE.':'Perimeter = walk all the way around: add every side. Shortcut: 2 × (l + w).' };
+      tip:area?'Oppervlakte = lengte × breedte: de ruimte BINNEN de vorm.':'Omtrek = helemaal langs de buitenrand: tel alle zijden op. Sneller: 2 × (lengte + breedte).' };
   }
   if(tier===2){
     let w=ri(3,9), h=ri(2,8);
     if((w*h)%2===1) w++;
     const ans=w*h/2;
     return { topic:'shape',
-      qHTML:'<div class="qStory">Find the <b style="color:#a78bfa">AREA</b> of this triangle.</div>'+rectSVG(w,h,'tri')+
-        '<div class="qSub">Hint: it is half of something…</div>',
+      qHTML:'<div class="qStory">Bereken de <b style="color:#a78bfa">OPPERVLAKTE</b> van deze driehoek.</div>'+rectSVG(w,h,'tri')+
+        '<div class="qSub">Hint: het is de helft van iets…</div>',
       choices:numChoices(ans,[w*h, ans+2, w+h]),
-      tip:'A right triangle is HALF a rectangle. Area = (l × w) ÷ 2.' };
+      tip:'Een rechthoekige driehoek is de HELFT van een rechthoek. Oppervlakte = (lengte × breedte) ÷ 2.' };
   }
   if(tier>=4){
     // EXPERT: bigger L-shape and asked for PERIMETER of the L (trickier than area)
     const W=ri(8,12), H=ri(7,11), nw=ri(2,W-4), nh=ri(2,H-4);
     const perim=2*(W+H);   // an L cut from a rectangle keeps the same perimeter as the full rectangle
     return { topic:'shape',
-      qHTML:'<div class="qStory">Find the <b style="color:#ffb020">PERIMETER</b> of this L-shape.</div>'+lShapeSVG(W,H,nw,nh)+
-        '<div class="qSub">Expert! Walk ALL the way around the edge.</div>',
+      qHTML:'<div class="qStory">Bereken de <b style="color:#ffb020">OMTREK</b> van deze L-vorm.</div>'+lShapeSVG(W,H,nw,nh)+
+        '<div class="qSub">Expert! Ga HELEMAAL langs de buitenrand.</div>',
       choices:numChoices(perim,[W*H-nw*nh, W+H, perim+nw, perim-nh].filter(v=>Number.isInteger(v)&&v>0)),
-      tip:'Trick: the notch sides shift but don\'t change the total distance around, so the perimeter equals the big rectangle: 2 × ('+W+' + '+H+').' };
+      tip:'Slimme truc: de inkeping verplaatst twee zijden, maar verandert de totale afstand niet. De omtrek is dus gelijk aan die van de grote rechthoek: 2 × ('+W+' + '+H+').' };
   }
   const W=ri(6,9), H=ri(5,8), nw=ri(2,W-3), nh=ri(2,H-3);
   const ans=W*H-nw*nh;
   return { topic:'shape',
-    qHTML:'<div class="qStory">Find the <b style="color:#4ade80">AREA</b> of this L-shape.</div>'+lShapeSVG(W,H,nw,nh)+
-      '<div class="qSub">A corner piece is missing!</div>',
+    qHTML:'<div class="qStory">Bereken de <b style="color:#4ade80">OPPERVLAKTE</b> van deze L-vorm.</div>'+lShapeSVG(W,H,nw,nh)+
+      '<div class="qSub">Er ontbreekt een hoekstuk!</div>',
     choices:numChoices(ans,[W*H, ans+nw, W*H-nw]),
-    tip:'Big rectangle minus the missing bite: '+W+' × '+H+' − '+nw+' × '+nh+'.' };
+    tip:'Grote rechthoek min het ontbrekende stuk: '+W+' × '+H+' − '+nw+' × '+nh+'.' };
 }
 
 /* ---------- generator: long multiplication ---------- */
@@ -1178,26 +1178,26 @@ function genMultiply(tier){
   return { topic:'multiply',
     qHTML:'<div class="qBig">'+a+' × '+b+' = ?</div>',
     choices:numChoices(ans, cands),
-    tip:'Split the big number by place value: '+ (a>=100? ('('+ (Math.floor(a/100)*100) +' + '+ (a%100) +') × '+b) : ('('+(Math.floor(a/10)*10)+' + '+(a%10)+') × '+b)) +'. Multiply each part, then add.' };
+    tip:'Splits het grote getal op volgens de plaatswaarde: '+ (a>=100? ('('+ (Math.floor(a/100)*100) +' + '+ (a%100) +') × '+b) : ('('+(Math.floor(a/10)*10)+' + '+(a%10)+') × '+b)) +'. Vermenigvuldig elk deel en tel de uitkomsten op.' };
 }
 /* ---------- generator: angle measures ---------- */
 function genAngle(tier){
   let ans, qstory, tip;
   if(tier===1){ const x=ri(20,160); ans=180-x;
-    qstory='Two angles sit on a <b>straight line</b>. One is <b>'+x+'°</b>. How big is the other?';
-    tip='A straight line is 180°. So the other angle = 180 − '+x+'.'; }
+    qstory='Twee hoeken liggen samen op een <b>rechte lijn</b>. Eén hoek is <b>'+x+'°</b>. Hoe groot is de andere?';
+    tip='Een gestrekte hoek is 180°. De andere hoek is dus 180 − '+x+'.'; }
   else if(tier===2){ const x=ri(15,75); ans=90-x;
-    qstory='A <b>right angle</b> (90°) is split into <b>'+x+'°</b> and one more. How big is the other part?';
-    tip='A right angle is 90°. So the other part = 90 − '+x+'.'; }
+    qstory='Een <b>rechte hoek</b> (90°) is verdeeld in <b>'+x+'°</b> en nog een deel. Hoe groot is dat andere deel?';
+    tip='Een rechte hoek is 90°. Het andere deel is dus 90 − '+x+'.'; }
   else if(tier===3){ const a=ri(20,80), b=ri(20,80-0); const bb=Math.min(b,175-a); ans=180-a-bb;
-    qstory='Three angles rest on a <b>straight line</b>: <b>'+a+'°</b>, <b>'+bb+'°</b>, and one more. Find the last one.';
-    tip='They add up to 180°: 180 − '+a+' − '+bb+'.'; }
+    qstory='Drie hoeken liggen samen op een <b>rechte lijn</b>: <b>'+a+'°</b>, <b>'+bb+'°</b> en nog één. Bereken de laatste hoek.';
+    tip='Samen zijn ze 180°: 180 − '+a+' − '+bb+'.'; }
   else { const parts=ri(2,5), one=ri(15,40); const total=pick([90,180]); ans=total-one*(0); // ratio style
     const k=ri(2,4); const unit=Math.floor(total/(k+1)); ans=unit*k;
-    qstory='Angle A is <b>'+k+' times</b> as big as angle B. Together they make <b>'+total+'°</b>. How big is angle A?';
-    tip='B is 1 part, A is '+k+' parts, so '+(k+1)+' parts = '+total+'°. One part = '+Math.floor(total/(k+1))+'.'; }
+    qstory='Hoek A is <b>'+k+' keer</b> zo groot als hoek B. Samen zijn ze <b>'+total+'°</b>. Hoe groot is hoek A?';
+    tip:'B is 1 deel en A is '+k+' delen. Dus '+(k+1)+' delen = '+total+'°. Eén deel is '+Math.floor(total/(k+1))+'.'; }
   return { topic:'angle',
-    qHTML:'<div class="qStory">'+qstory+'</div><div class="qSub">degrees</div>',
+    qHTML:'<div class="qStory">'+qstory+'</div><div class="qSub">graden</div>',
     choices:numChoices(ans,[ans+ri(5,20), ans-ri(5,20), 180-ans, 90]),
     tip:tip };
 }
@@ -1211,7 +1211,7 @@ function genCompare(tier){
     else if(t===2){ const a=ri(3,9); la=a*4+a*3; ra=a*7; left=a+' · 4 + '+a+' · 3'; right=a+' · 7'; }  // equal
     else { const a=ri(20,60); la=a+a; ra=2*a; left=a+' + '+a; right='2 · '+a; }                       // equal
     val = la<ra?'<' : la>ra?'>' : '=';
-    tip='Look for the pattern, no need to multiply it all out! Which side is really bigger?';
+    tip='Zoek het patroon; je hoeft niet alles uit te rekenen. Welke kant is echt groter?';
   } else {
     // compare two fractions
     isFrac=true;
@@ -1221,12 +1221,12 @@ function genCompare(tier){
     ln=A[0]; ld=A[1]; rn=B[0]; rd=B[1];
     la=A[0]/A[1]; ra=B[0]/B[1];
     val = la<ra?'<' : la>ra?'>' : '=';
-    tip='Give them the same bottom number (common denominator), then compare the tops. Or compare each to ½.';
+    tip='Maak de noemers gelijk en vergelijk daarna de tellers. Je kunt beide breuken ook met ½ vergelijken.';
   }
   const disp = isFrac ? (frHTML(ln,ld)+' &nbsp;⬜&nbsp; '+frHTML(rn,rd)) : (left+' &nbsp;⬜&nbsp; '+right);
-  const opts=shuffle([{h:'&lt;',ok:val==='<'},{h:'=',ok:val==='='},{h:'&gt;',ok:val==='>'},{h:'Cannot tell',ok:false}]);
+  const opts=shuffle([{h:'&lt;',ok:val==='<'},{h:'=',ok:val==='='},{h:'&gt;',ok:val==='>'},{h:'Niet te bepalen',ok:false}]);
   return { topic:'compare',
-    qHTML:'<div class="qBig">'+disp+'</div><div class="qSub">Put the right sign in the box</div>',
+    qHTML:'<div class="qBig">'+disp+'</div><div class="qSub">Zet het juiste teken in het vakje</div>',
     choices:opts, tip:tip };
 }
 
@@ -1279,204 +1279,204 @@ function genMix(tier){ return GENS[pick(Object.keys(GENS))](tier); }
    ========================================================= */
 const TIPS={
   groep4:'Werk rustig in stapjes. Splits grote getallen en gebruik de tafels die je al kent.',
-  ops:'Multiply and divide first, then add and subtract. Parentheses and powers go before everything!',
-  machine:'Work backwards and flip each step: + becomes −, × becomes ÷.',
-  equation:'Get x alone. Undo + with −, undo × with ÷, same move on both sides.',
-  fraction:'Divide by the bottom number, multiply by the top number.',
-  factor:'GCF = biggest number that fits into both. LCM = first number both count to.',
-  shape:'Area = space inside (multiply). Perimeter = walk around the edge (add).',
-  multiply:'Split the big number by place value, multiply each part, then add.',
-  angle:'A straight line is 180°, a right angle is 90°. Angles on them add up to that.',
-  compare:'Look for the pattern instead of computing. For fractions, use a common bottom or compare to ½.'
+  ops:'Eerst vermenigvuldigen en delen, daarna optellen en aftrekken. Haakjes en machten gaan vóór alles!',
+  machine:'Werk achteruit en keer elke stap om: + wordt − en × wordt ÷.',
+  equation:'Zorg dat x alleen komt te staan. Keer + om met − en × met ÷. Doe aan beide kanten hetzelfde.',
+  fraction:'Deel door de noemer en vermenigvuldig met de teller.',
+  factor:'GGD is de grootste deler van beide getallen. KGV is het eerste veelvoud dat ze delen.',
+  shape:'Oppervlakte is de ruimte binnenin; omtrek is de afstand rondom de rand.',
+  multiply:'Splits het grote getal op volgens de plaatswaarde, vermenigvuldig elk deel en tel de uitkomsten op.',
+  angle:'Een gestrekte hoek is 180° en een rechte hoek is 90°. De hoeken samen vormen dat totaal.',
+  compare:'Zoek het patroon zonder alles uit te rekenen. Maak bij breuken de noemers gelijk of vergelijk met ½.'
 };
 const WB=[
-{n:'Lesson 1', qs:[
-  ['e','11 · 11 − 10 · 12','11*11-10*12','ops','11·11 = 121, and 10·12 is its neighbor pair (11 minus 1)·(11 plus 1) = exactly one less: 120. Answer: just 1!'],
-  ['e','15 · (4 − 3) · 12','15*(4-3)*12','ops','Peek inside ( ) first: 4 − 3 = 1. Now it is just 15 · 12. The parentheses did the hard work!'],
-  ['e','72 ÷ (9 − 1)','72/(9-1)','ops','Inside first: 9 − 1 = 8. Then ask: 8 times WHAT makes 72?'],
-  ['s','The Chaudhuri family went to Greece! They spent 4 nights in Mykonos (€100 a night), 2 nights in Santorini (€120 a night), and 8 nights in Crete (€80 a night). How much did the hotels cost in all, in euros?',1280,'4*100+2*120+8*80','ops','Cost for each island = nights × price. Then add all three.'],
-  ['s','What is {2/5} of 25?',10,'25/5*2','fraction'],
-  ['s','What is {5/8} of 88?',55,'88/8*5','fraction'],
+{n:'Les 1', qs:[
+  ['e','11 · 11 − 10 · 12','11*11-10*12','ops','11·11 = 121. En 10·12 is (11 − 1)·(11 + 1), precies één minder: 120. Het antwoord is dus 1!'],
+  ['e','15 · (4 − 3) · 12','15*(4-3)*12','ops','Kijk eerst in de haakjes: 4 − 3 = 1. Nu blijft 15 · 12 over.'],
+  ['e','72 ÷ (9 − 1)','72/(9-1)','ops','Eerst de haakjes: 9 − 1 = 8. Vraag daarna: 8 keer welk getal is 72?'],
+  ['s','De familie Chaudhuri ging naar Griekenland! Ze verbleven 4 nachten op Mykonos (€100 per nacht), 2 nachten op Santorini (€120 per nacht) en 8 nachten op Kreta (€80 per nacht). Hoeveel kostten de hotels samen?',1280,'4*100+2*120+8*80','ops','Kosten per eiland = aantal nachten × prijs per nacht. Tel daarna de drie bedragen op.'],
+  ['s','Hoeveel is {2/5} van 25?',10,'25/5*2','fraction'],
+  ['s','Hoeveel is {5/8} van 88?',55,'88/8*5','fraction'],
   ['b','<i>x</i> − 47 = 387',434,'387+47','equation'],
   ['b','5 · <i>x</i> = 35',7,'35/5','equation'],
   ['b','56 ÷ <i>x</i> = 7',8,'56/7','equation'],
-  ['s','A rectangle is 10 units long and 4 units wide. What is its PERIMETER?',28,'2*(10+4)','shape','Perimeter = walk around all four sides: 10+4+10+4.'],
-  ['s','I thought of a number. I divided it by 6 and got 11. What was my number?',66,'11*6','machine'],
-  ['e','90 + 70 − 50 + 30 − 10','90+70-50+30-10','ops','Pair friendly numbers: 90 − 50 = 40 and 70 − 10 = 60. Then 40 + 60 + 30. Easy!']
+  ['s','Een rechthoek is 10 eenheden lang en 4 eenheden breed. Wat is de OMTREK?',28,'2*(10+4)','shape','Ga langs alle vier de zijden: 10 + 4 + 10 + 4.'],
+  ['s','Ik bedacht een getal. Ik deelde het door 6 en kreeg 11. Welk getal had ik bedacht?',66,'11*6','machine'],
+  ['e','90 + 70 − 50 + 30 − 10','90+70-50+30-10','ops','Maak handige paren: 90 − 50 = 40 en 70 − 10 = 60. Tel daarna 40 + 60 + 30 op.']
 ]},
-{n:'Lesson 2', qs:[
-  ['e','(13 + 7) · 8 − 6 · 5','(13+7)*8-6*5','ops','13 + 7 = 20, a friendly number! 20 · 8 = 160, then take away 6 · 5 = 30.'],
-  ['e','13 + 7 · 8 − 6 · 5','13+7*8-6*5','ops','The · chunks go first: 7·8 and 6·5.'],
-  ['s','What is my number if it is greater than 147 but less than 165, and its units digit is 5?',155,0,'machine','Which numbers between 147 and 165 end in 5?'],
-  ['s','The Chandra telescope found 2500 galaxies. That is {1/4} of what the Hubble telescope has seen. How many galaxies has Hubble seen?',10000,'2500*4','fraction','2500 is ONE part out of 4. The whole is 4 parts.'],
-  ['e','354 + (63 + 46)','354+(63+46)','ops','354 + 46 = 400 first (they snap together!), then add 63.'],
-  ['e','647 − (247 − 38)','647-(247-38)','ops','Take away 247, then GIVE BACK the 38: 647 − 247 = 400, plus 38.'],
-  ['s','I thought of a number. I subtracted 14, then added 36, and got 45. What was my number?',23,'45-36+14','machine'],
-  ['s','I thought of a number. I multiplied it by 8, then added 17, and got 57. What was my number?',5,'(57-17)/8','machine'],
-  ['s','The Yutu-2 moon rover makes 120 watts of power. It uses {7/10} of its power to drive. How many watts are LEFT over?',36,'120/10*3','fraction','If 7/10 is used, 3/10 is left.'],
-  ['s','Curiosity the rover uses {4/5} of its electricity for its robot arm. The 46 watts left over is {1/5} of the total. How many watts does it make in all?',230,'46*5','fraction'],
-  ['e','5600 ÷ 70','5600/70','ops','Chop one zero off BOTH numbers: 560 ÷ 7. Same answer, way easier!'],
-  ['s','Use the digits 0, 2, 5 and 7 exactly once each. What is the GREATEST 4-digit number you can make?',7520,0,'machine','Biggest digit goes in the biggest place!']
+{n:'Les 2', qs:[
+  ['e','(13 + 7) · 8 − 6 · 5','(13+7)*8-6*5','ops','13 + 7 = 20, een handig rond getal. 20 · 8 = 160. Trek daarna 6 · 5 = 30 af.'],
+  ['e','13 + 7 · 8 − 6 · 5','13+7*8-6*5','ops','De keersommen gaan eerst: 7·8 en 6·5.'],
+  ['s','Welk getal is groter dan 147 en kleiner dan 165, met een 5 op de plek van de eenheden?',155,0,'machine','Welke getallen tussen 147 en 165 eindigen op een 5?'],
+  ['s','De Chandra-telescoop vond 2500 sterrenstelsels. Dat is {1/4} van het aantal dat de Hubble-telescoop heeft gezien. Hoeveel sterrenstelsels heeft Hubble gezien?',10000,'2500*4','fraction','2500 is één van de vier gelijke delen. Het geheel bestaat uit vier delen.'],
+  ['e','354 + (63 + 46)','354+(63+46)','ops','Tel eerst 354 + 46 = 400. Tel daar daarna 63 bij op.'],
+  ['e','647 − (247 − 38)','647-(247-38)','ops','Trek 247 af en tel de 38 daarna weer terug: 647 − 247 = 400, plus 38.'],
+  ['s','Ik bedacht een getal. Ik trok er 14 van af, telde er daarna 36 bij op en kreeg 45. Welk getal had ik bedacht?',23,'45-36+14','machine'],
+  ['s','Ik bedacht een getal. Ik vermenigvuldigde het met 8, telde er daarna 17 bij op en kreeg 57. Welk getal had ik bedacht?',5,'(57-17)/8','machine'],
+  ['s','De maanwagen Yutu-2 maakt 120 watt aan vermogen. Hij gebruikt {7/10} om te rijden. Hoeveel watt blijft er OVER?',36,'120/10*3','fraction','Als {7/10} wordt gebruikt, blijft {3/10} over.'],
+  ['s','De maanwagen Curiosity gebruikt {4/5} van zijn stroom voor de robotarm. De 46 watt die overblijft is {1/5} van het totaal. Hoeveel watt maakt hij in totaal?',230,'46*5','fraction'],
+  ['e','5600 ÷ 70','5600/70','ops','Haal bij beide getallen één nul weg: 560 ÷ 7. De uitkomst blijft hetzelfde.'],
+  ['s','Gebruik de cijfers 0, 2, 5 en 7 elk precies één keer. Wat is het GROOTSTE getal van vier cijfers dat je kunt maken?',7520,0,'machine','Zet het grootste cijfer op de plek met de grootste waarde.']
 ]},
-{n:'Lesson 6', qs:[
-  ['s','A black mamba is HALF the length of a king cobra. Together the two snakes are 24 feet long. How long is the king cobra?',16,'24/3*2','equation','Mamba = 1 part, cobra = 2 parts. 3 parts = 24 feet.'],
-  ['s','Angle A is 4 times as big as angle B. Together they make 150°. How many degrees is angle A?',120,'150/5*4','equation','B = 1 part, A = 4 parts. 5 parts = 150°.'],
-  ['s','A moose weighs twice as much as an elk. A moose and TWO elks together weigh 1600 pounds. How much does the moose weigh?',800,'1600/4*2','equation','Moose = 2 parts, each elk = 1 part. 4 parts total.'],
-  ['e','(7 · 40 + 20) ÷ 3 − 15 + 2 · (10 · 5)','(7*40+20)/3-15+2*(10*5)','ops','Spot the friendly number: 7 · 40 + 20 = 300, and 300 ÷ 3 = 100.'],
-  ['e','(20 · 8) · 3 − 45 ÷ 5 − 7 · (30 − 6 · 5)','(20*8)*3-45/5-7*(30-6*5)','ops','Careful: 30 − 6·5 = 0. Anything times 0 is 0!'],
-  ['c','Compare WITHOUT computing:<br>7 · 4 + 7 · 3 ⬜ 7 · 7',['=','<','>','Cannot tell'],0,'compare','Seven 4s plus seven 3s = seven 7s. That is the distributive property!'],
-  ['e','(456 + 675) − 456','(456+675)-456','ops','Adding 456 then taking 456 away, they cancel!'],
-  ['e','163 · 7 − 63 · 7','163*7-63*7','ops','That is (163 − 63) sevens = 100 sevens.'],
+{n:'Les 6', qs:[
+  ['s','Een zwarte mamba is HALF zo lang als een koningscobra. Samen zijn de slangen 24 meter lang. Hoe lang is de koningscobra?',16,'24/3*2','equation','Mamba = 1 deel, cobra = 2 delen. 3 delen = 24 meter.'],
+  ['s','Hoek A is 4 keer zo groot als hoek B. Samen zijn ze 150°. Hoeveel graden is hoek A?',120,'150/5*4','equation','B = 1 deel en A = 4 delen. 5 delen = 150°.'],
+  ['s','Een eland weegt twee keer zoveel als een hert. Eén eland en TWEE herten wegen samen 1600 kilo. Hoeveel weegt de eland?',800,'1600/4*2','equation','De eland is 2 delen en elk hert is 1 deel. Samen zijn dat 4 delen.'],
+  ['e','(7 · 40 + 20) ÷ 3 − 15 + 2 · (10 · 5)','(7*40+20)/3-15+2*(10*5)','ops','Zie het handige getal: 7 · 40 + 20 = 300 en 300 ÷ 3 = 100.'],
+  ['e','(20 · 8) · 3 − 45 ÷ 5 − 7 · (30 − 6 · 5)','(20*8)*3-45/5-7*(30-6*5)','ops','Let op: 30 − 6·5 = 0. Elk getal keer 0 is 0!'],
+  ['c','Vergelijk ZONDER uit te rekenen:<br>7 · 4 + 7 · 3 ⬜ 7 · 7',['=','<','>','Niet te bepalen'],0,'compare','Zeven keer 4 plus zeven keer 3 is samen zeven keer 7.'],
+  ['e','(456 + 675) − 456','(456+675)-456','ops','Je telt 456 erbij en trekt daarna 456 eraf. Die stappen heffen elkaar op.'],
+  ['e','163 · 7 − 63 · 7','163*7-63*7','ops','Dit zijn (163 − 63) zevens: 100 keer 7.'],
   ['e','86 · 76 + 24 · 86','86*76+24*86','ops','86 · (76 + 24) = 86 · 100.'],
   ['e','16 · 52 + 84 · 52','16*52+84*52','ops','(16 + 84) · 52 = 100 · 52.'],
-  ['s','At a marine reserve, {2/5} of the sea turtles are hatchlings and {1/5} are juveniles. The rest are adults. The biologists release 20 adults, which is HALF of all the adults. How many turtles are at the reserve?',100,'20*2*5/2','fraction','Adults are 2/5 of the total. Half the adults = 20, so adults = 40.'],
-  ['s','How many factors does 19 have?',2,0,'factor','19 is prime, only 1 and 19 fit into it.']
+  ['s','In een zeeschildpaddenopvang is {2/5} een pasgeboren schildpad en {1/5} een jong. De rest is volwassen. De verzorgers laten 20 volwassen schildpadden vrij; dat is de HELFT van alle volwassenen. Hoeveel schildpadden zijn er?',100,'20*2*5/2','fraction','De volwassenen zijn {2/5} van het totaal. De helft is 20, dus er zijn 40 volwassenen.'],
+  ['s','Hoeveel delers heeft 19?',2,0,'factor','19 is een priemgetal. Alleen 1 en 19 delen het zonder rest.']
 ]},
-{n:'Lesson 7', qs:[
-  ['c','Which of these numbers is PRIME?',['113','91','555','123'],0,'factor','A prime has exactly 2 factors: 1 and itself. 91 = 7·13, 555 = 5·111, 123 = 3·41.'],
-  ['c','Which of these is NOT prime?',['91','13','23','101'],0,'factor','91 = 7 · 13. Sneaky!'],
-  ['c','Which is the prime factorization of 120?',['2³ · 3 · 5','2² · 3 · 5','2 · 3² · 5','2³ · 5'],0,'factor','120 = 8 · 15 = 2·2·2 · 3·5.'],
-  ['b','GCF(24, 18)',6,0,'factor'],
-  ['b','GCF(16, 24)',8,0,'factor'],
-  ['b','240 = 4 · (<i>x</i> + 50)',10,'240/4-50','equation','Divide both sides by 4 first: x + 50 = 60.'],
-  ['b','110 + 2<i>x</i> = <i>x</i> + 114',4,'114-110','equation','Take one x off both sides: 110 + x = 114.'],
+{n:'Les 7', qs:[
+  ['c','Welk van deze getallen is een PRIEMGETAL?',['113','91','555','123'],0,'factor','Een priemgetal heeft precies twee delers: 1 en zichzelf. 91 = 7·13, 555 = 5·111 en 123 = 3·41.'],
+  ['c','Welk getal is GEEN priemgetal?',['91','13','23','101'],0,'factor','91 = 7 · 13. Die is gemeen!'],
+  ['c','Wat is de ontbinding van 120 in priemfactoren?',['2³ · 3 · 5','2² · 3 · 5','2 · 3² · 5','2³ · 5'],0,'factor','120 = 8 · 15 = 2·2·2 · 3·5.'],
+  ['b','GGD(24, 18)',6,0,'factor'],
+  ['b','GGD(16, 24)',8,0,'factor'],
+  ['b','240 = 4 · (<i>x</i> + 50)',10,'240/4-50','equation','Deel eerst beide kanten door 4: x + 50 = 60.'],
+  ['b','110 + 2<i>x</i> = <i>x</i> + 114',4,'114-110','equation','Haal aan beide kanten één x weg: 110 + x = 114.'],
   ['b','870 − 2<i>x</i> = 530',170,'(870-530)/2','equation'],
-  ['s','A human hair grows {1/2} inch every month. How many months does it take to grow 3 inches?',6,'3*2','fraction','Each inch takes 2 months.'],
-  ['s','A head has 1,000,000 hair follicles. If {1/10} of them fall out, how many are LEFT?',900000,'1000000/10*9','fraction'],
-  ['s','Each eye has 6 million cone cells. {1/3} of them see green light. How many cones see OTHER colors?',4000000,'6000000/3*2','fraction'],
-  ['c','Aviva\'s rectangle: width 6 in, area 96 sq in. Dev\'s rectangle: width 8 in, area 120 sq in. Whose rectangle is LONGER, and by how much?',['Aviva\'s, by 1 inch','Dev\'s, by 1 inch','Aviva\'s, by 2 inches','They are the same'],0,'shape','Length = area ÷ width. 96÷6 = 16 and 120÷8 = 15.']
+  ['s','Een mensenhaar groeit elke maand {1/2} centimeter. Hoeveel maanden duurt het om 3 centimeter te groeien?',6,'3*2','fraction','Voor elke centimeter zijn twee maanden nodig.'],
+  ['s','Een hoofd heeft 1.000.000 haarzakjes. Als {1/10} uitvalt, hoeveel blijven er OVER?',900000,'1000000/10*9','fraction'],
+  ['s','Elk oog heeft 6 miljoen kegeltjes. {1/3} daarvan ziet groen licht. Hoeveel kegeltjes zien ANDERE kleuren?',4000000,'6000000/3*2','fraction'],
+  ['c','De rechthoek van Aviva is 6 cm breed en heeft een oppervlakte van 96 cm². Die van Dev is 8 cm breed en heeft een oppervlakte van 120 cm². Welke rechthoek is LANGER en hoeveel?',['Die van Aviva, 1 cm langer','Die van Dev, 1 cm langer','Die van Aviva, 2 cm langer','Ze zijn even lang'],0,'shape','Lengte = oppervlakte ÷ breedte. 96÷6 = 16 en 120÷8 = 15.']
 ]},
-{n:'Lesson 8', qs:[
-  ['e','(3 + 7)²','(3+7)**2','ops','Inside first: 3 + 7 = 10. And 10² = 100. Two seconds!'],
-  ['e','4³ + 3²','4**3+3**2','factor','4³ = 4·4·4 = 64 and 3² = 9.'],
-  ['e','7 · 4²','7*4**2','ops','Power first: 4² = 16, then multiply.'],
-  ['e','(2 · 1)⁵','(2*1)**5','factor','Inside first: 2·1 = 2. Then 2⁵ = 32.'],
-  ['b','GCF(21, 49)',7,0,'factor'],
+{n:'Les 8', qs:[
+  ['e','(3 + 7)²','(3+7)**2','ops','Eerst de haakjes: 3 + 7 = 10. Daarna 10² = 100.'],
+  ['e','4³ + 3²','4**3+3**2','factor','4³ = 4·4·4 = 64 en 3² = 9.'],
+  ['e','7 · 4²','7*4**2','ops','Eerst de macht: 4² = 16. Vermenigvuldig daarna met 7.'],
+  ['e','(2 · 1)⁵','(2*1)**5','factor','Eerst de haakjes: 2·1 = 2. Daarna 2⁵ = 32.'],
+  ['b','GGD(21, 49)',7,0,'factor'],
   ['e','875 · 71 + 125 · 71','875*71+125*71','ops','(875 + 125) · 71 = 1000 · 71.'],
   ['b','5<i>k</i> + 7 = 32.&nbsp; k = ?',5,'(32-7)/5','equation'],
-  ['b','(<i>a</i> − 3) ÷ 8 = 9.&nbsp; a = ?',75,'9*8+3','equation','Undo the ÷8 first: a − 3 = 72.'],
-  ['e','(55 + 65) − 51 · 2','(55+65)-51*2','ops','55 + 65 = 120. And 51 · 2 = 102. So 120 − 102.'],
-  ['s','The first floor of a double-decker bus has {1/4} as many passengers as the second floor. There are 60 passengers in all. How many ride on the SECOND floor?',48,'60/5*4','fraction','Second floor = 4 parts, first floor = 1 part. 5 parts = 60.'],
-  ['s','A straight line measures 180°. If ∠NLM is 30°, how many degrees is ∠KLN, the rest of the line?',150,'180-30','shape'],
-  ['c','Factor 32 completely, using exponents.',['2⁵','2⁴','2³ · 3','5²'],0,'factor','32 = 2·2·2·2·2.']
+  ['b','(<i>a</i> − 3) ÷ 8 = 9.&nbsp; a = ?',75,'9*8+3','equation','Keer eerst ÷8 om: a − 3 = 72.'],
+  ['e','(55 + 65) − 51 · 2','(55+65)-51*2','ops','55 + 65 = 120 en 51 · 2 = 102. Bereken daarna 120 − 102.'],
+  ['s','Op de benedenverdieping van een dubbeldekker zit {1/4} van het aantal passagiers op de bovenverdieping. Er zijn samen 60 passagiers. Hoeveel zitten er BOVEN?',48,'60/5*4','fraction','Boven = 4 delen en beneden = 1 deel. 5 delen = 60.'],
+  ['s','Een gestrekte hoek is 180°. Als ∠NLM 30° is, hoeveel graden is ∠KLN, de rest van de hoek?',150,'180-30','shape'],
+  ['c','Ontbind 32 helemaal in priemfactoren. Gebruik machten.',['2⁵','2⁴','2³ · 3','5²'],0,'factor','32 = 2·2·2·2·2.']
 ]},
-{n:'Lesson 9', qs:[
+{n:'Les 9', qs:[
   ['b','4<i>y</i> = 160',40,'160/4','equation'],
   ['b','<i>y</i> ÷ 2 + 11 = 18',14,'(18-11)*2','equation'],
   ['b','7 + 8<i>y</i> = 71',8,'(71-7)/8','equation'],
-  ['e','43 · 8 + 57 · 8','43*8+57*8','ops','(43 + 57) eights = 100 eights.'],
+  ['e','43 · 8 + 57 · 8','43*8+57*8','ops','(43 + 57) keer 8 = 100 keer 8.'],
   ['e','320 ÷ 5 + 110 ÷ 5 + 70 ÷ 5','320/5+110/5+70/5','ops','(320 + 110 + 70) ÷ 5 = 500 ÷ 5.'],
-  ['b','GCF(56, 14)',14,0,'factor','14 fits into 56 exactly, so 14 is the GCF!'],
-  ['b','GCF(45, 27)',9,0,'factor'],
-  ['s','Garik played 3 times as many chess games yesterday as today. He played 12 games in all. How many did he play TODAY?',3,'12/4','equation','Today = 1 part, yesterday = 3 parts. 4 parts = 12.'],
-  ['s','64 players enter a chess tournament. {1/2} are knocked out on day one. Then {3/4} of the REST are knocked out on day two. How many players are left for day three?',8,'64/2/4','fraction','After day one: 32. Three quarters of 32 leave, one quarter stays.'],
-  ['c','Fraction snake! {2/⬜} = {1/2}. What goes in the box?',['4','2','6','8'],0,'fraction','Top went 1→2 (×2), so bottom goes 2→4.'],
-  ['c','{3/20} + {7/20} = ?',['1/2','1/4','10/40','7/20'],0,'fraction','Add the tops, keep the bottom: 10/20 = 1/2.'],
-  ['s','How many different 3-digit numbers can you make using the digits 6, 9 and 3, each exactly once?',6,'3*2*1','machine','3 choices for the first digit, 2 for the second, 1 left.']
+  ['b','GGD(56, 14)',14,0,'factor','14 deelt 56 zonder rest, dus 14 is de GGD.'],
+  ['b','GGD(45, 27)',9,0,'factor'],
+  ['s','Garik speelde gisteren 3 keer zoveel schaakpartijen als vandaag. Samen speelde hij 12 partijen. Hoeveel speelde hij er VANDAAG?',3,'12/4','equation','Vandaag = 1 deel en gisteren = 3 delen. 4 delen = 12.'],
+  ['s','Aan een schaaktoernooi doen 64 spelers mee. Op dag één valt {1/2} af. Op dag twee valt {3/4} van de REST af. Hoeveel spelers zijn er nog op dag drie?',8,'64/2/4','fraction','Na dag één zijn er 32 over. Drie kwart valt af, dus één kwart blijft.'],
+  ['c','Breukenslang! {2/⬜} = {1/2}. Welk getal hoort in het vakje?',['4','2','6','8'],0,'fraction','De teller ging van 1 naar 2 (×2), dus de noemer gaat van 2 naar 4.'],
+  ['c','{3/20} + {7/20} = ?',['1/2','1/4','10/40','7/20'],0,'fraction','Tel de tellers op en houd de noemer gelijk: 10/20 = 1/2.'],
+  ['s','Hoeveel verschillende getallen van drie cijfers kun je maken met 6, 9 en 3, als je elk cijfer precies één keer gebruikt?',6,'3*2*1','machine','Voor het eerste cijfer zijn er 3 keuzes, voor het tweede 2 en daarna blijft er 1 over.']
 ]},
-{n:'Lesson 10', qs:[
-  ['b','GCF(12, 20)',4,0,'factor'],
-  ['b','LCM(12, 20)',60,0,'factor','Skip-count by 20: 20, 40, 60… stop when 12 fits too.'],
-  ['b','LCM(22, 33)',66,0,'factor'],
-  ['s','What is {2/5} of 50?',20,'50/5*2','fraction'],
-  ['s','50 is {2/5} of what number?',125,'50/2*5','fraction','Backwards! 50 is 2 parts, so 1 part is 25. The whole is 5 parts.'],
-  ['s','A forest has 800 oak trees. {2/5} are red oaks and the rest are white oaks. {3/8} of the red oaks and {1/6} of the white oaks are sick. HOW MANY trees are sick?',200,'800/5*2/8*3+800/5*3/6','fraction','Red: 320, sick red: 120. White: 480, sick white: 80.'],
-  ['s','A baobab tree grows {1/5} inch each year. How many inches will it grow in 50 years?',10,'50/5','fraction'],
+{n:'Les 10', qs:[
+  ['b','GGD(12, 20)',4,0,'factor'],
+  ['b','KGV(12, 20)',60,0,'factor','Tel verder in sprongen van 20: 20, 40, 60… Stop zodra 12 ook een deler is.'],
+  ['b','KGV(22, 33)',66,0,'factor'],
+  ['s','Hoeveel is {2/5} van 50?',20,'50/5*2','fraction'],
+  ['s','50 is {2/5} van welk getal?',125,'50/2*5','fraction','Werk terug! 50 is 2 delen, dus 1 deel is 25. Het geheel bestaat uit 5 delen.'],
+  ['s','In een bos staan 800 eiken. {2/5} zijn rode eiken en de rest zijn witte eiken. Van de rode eiken is {3/8} ziek en van de witte eiken {1/6}. HOEVEEL bomen zijn ziek?',200,'800/5*2/8*3+800/5*3/6','fraction','Rood: 320, daarvan ziek: 120. Wit: 480, daarvan ziek: 80.'],
+  ['s','Een baobab groeit elk jaar {1/5} centimeter. Hoeveel centimeter groeit hij in 50 jaar?',10,'50/5','fraction'],
   ['e','28 · 80 + 22 · 80','28*80+22*80','ops','(28 + 22) · 80 = 50 · 80.'],
   ['b','2<i>x</i> + 10 = 90',40,'(90-10)/2','equation'],
-  ['b','2 · (<i>x</i> + 10) = 90',35,'90/2-10','equation','Divide both sides by 2 first: x + 10 = 45.'],
+  ['b','2 · (<i>x</i> + 10) = 90',35,'90/2-10','equation','Deel eerst beide kanten door 2: x + 10 = 45.'],
   ['b','4 · (<i>x</i> + 15) = 100',10,'100/4-15','equation'],
-  ['s','A eucalyptus grows 1 inch every week. It is 10 feet tall now. How many WEEKS until it reaches 15 feet? (12 inches = 1 foot)',60,'5*12','machine','It needs 5 more feet = 60 more inches.'],
-  ['e','635 · 4','635*4','multiply','Split it: 600 · 4 = 2400 and 35 · 4 = 140. Add them!']
+  ['s','Een eucalyptus groeit elke week 1 centimeter. Hij is nu 120 centimeter hoog. Hoeveel WEKEN duurt het voor hij 180 centimeter hoog is?',60,'5*12','machine','Hij moet nog 60 centimeter groeien.'],
+  ['e','635 · 4','635*4','multiply','Splits: 600 · 4 = 2400 en 35 · 4 = 140. Tel de uitkomsten op.']
 ]},
-{n:'Lesson 11', qs:[
-  ['c','{1/4} = {⬜/16}. What goes on top?',['4','13','8','3'],0,'fraction','Bottom went 4→16 (×4), so the top goes 1→4.'],
-  ['s','What is {3/5} of 15?',9,'15/5*3','fraction'],
-  ['s','24 is {2/3} of what number?',36,'24/2*3','fraction'],
-  ['s','Sir Arthur has HALF as many Arabian horses as Shire horses, 42 horses in all. How many Shire horses does he have?',28,'42/3*2','equation'],
+{n:'Les 11', qs:[
+  ['c','{1/4} = {⬜/16}. Welk getal hoort boven de streep?',['4','13','8','3'],0,'fraction','De noemer ging van 4 naar 16 (×4), dus de teller gaat van 1 naar 4.'],
+  ['s','Hoeveel is {3/5} van 15?',9,'15/5*3','fraction'],
+  ['s','24 is {2/3} van welk getal?',36,'24/2*3','fraction'],
+  ['s','Ridder Arthur heeft HALF zoveel Arabische paarden als trekpaarden. Samen heeft hij 42 paarden. Hoeveel trekpaarden heeft hij?',28,'42/3*2','equation'],
   ['b','2<i>x</i> + 7 = 57',25,'(57-7)/2','equation'],
   ['b','2 · (<i>x</i> + 7) = 70',28,'70/2-7','equation'],
   ['b','3 · (<i>x</i> − 7) = 60',27,'60/3+7','equation'],
-  ['c','Simplify: 7 · (a + 3)',['7a + 21','7a + 3','7a + 10','a + 21'],0,'equation','Multiply BOTH things inside: 7·a and 7·3.'],
-  ['c','What is the PRIME factorization of 81?',['3⁴','9²','3³','2⁴'],0,'factor','9² equals 81, but 9 is not prime! Keep breaking it down: 81 = 3·3·3·3.'],
-  ['s','Jumpy mined {1/4} as many gems as Hoppy. Hoppy mined 60 MORE gems than Jumpy. How many gems did they mine in all?',100,'60/3*4+60/3','equation','The difference (60) is 3 parts. So 1 part = 20.'],
-  ['e','832 · 5 − 824 · 5','832*5-824*5','ops','(832 − 824) fives = 8 fives.'],
-  ['e','480 ÷ 8 + 5 · 6 − 16','480/8+5*6-16','ops','48 ÷ 8 = 6, so 480 ÷ 8 = 60. Then 60 + 30 − 16.'],
-  ['e','183 · 6','183*6','multiply','Split it: 180 · 6 = 1080 and 3 · 6 = 18.']
+  ['c','Vereenvoudig: 7 · (a + 3)',['7a + 21','7a + 3','7a + 10','a + 21'],0,'equation','Vermenigvuldig BEIDE delen in de haakjes: 7·a en 7·3.'],
+  ['c','Wat is de ontbinding van 81 in PRIEMFACTOREN?',['3⁴','9²','3³','2⁴'],0,'factor','9² is wel 81, maar 9 is geen priemgetal. Ontbind verder: 81 = 3·3·3·3.'],
+  ['s','Jumpy vond {1/4} van het aantal edelstenen van Hoppy. Hoppy vond 60 stenen MEER dan Jumpy. Hoeveel stenen vonden ze samen?',100,'60/3*4+60/3','equation','Het verschil van 60 is 3 delen. Eén deel is dus 20.'],
+  ['e','832 · 5 − 824 · 5','832*5-824*5','ops','Dit is (832 − 824) keer 5: 8 keer 5.'],
+  ['e','480 ÷ 8 + 5 · 6 − 16','480/8+5*6-16','ops','48 ÷ 8 = 6, dus 480 ÷ 8 = 60. Daarna 60 + 30 − 16.'],
+  ['e','183 · 6','183*6','multiply','Splits: 180 · 6 = 1080 en 3 · 6 = 18.']
 ]},
-{n:'Lesson 12', qs:[
-  ['s','A tree spirit wants to share glowing flowers evenly among 5 fairies OR 6 fairies with none left over. What is the SMALLEST number of flowers that works?',30,'5*6','factor','You need the LCM of 5 and 6.'],
-  ['s','50 knights walk through a magic gate. Every 10th knight gets fire power. Every 15th knight gets healing power. Which knight gets BOTH powers?',30,0,'factor','The first number that both 10 and 15 count to, the LCM.'],
-  ['b','3<i>x</i> − (27 + 39) = 18',28,'(18+27+39)/3','equation','First: 27 + 39 = 66. So 3x − 66 = 18.'],
-  ['b','(50 + 7<i>x</i>) + 3<i>x</i> = 70',2,'(70-50)/10','equation','7x + 3x makes 10x. So 50 + 10x = 70.'],
-  ['e','(36 ÷ 6) · 2³','(36/6)*2**3','ops','Parentheses, then the power: 6 · 8.'],
-  ['e','2³ · (10 − 2²)','2**3*(10-2**2)','ops','Inside the parentheses: 10 − 4 = 6. Then 8 · 6.'],
-  ['s','Sir Max and Sir Jack have 86 swords together, and Sir Max has 36 MORE than Sir Jack. How many swords must Max give Jack so they have the same number?',18,'36/2','equation','To make it even, Max gives away HALF of the extra.'],
-  ['s','A witch turns {1/5} of her 35 marbles into gold and {2/5} into silver. How many marbles are NEITHER gold nor silver?',14,'35-35/5-35/5*2','fraction'],
-  ['c','100 wizard teachers: {9/20} ride unicorns, {1/20} ride a pegasus, and the rest ride alicorns. What PART of the teachers ride alicorns?',['1/2','9/20','1/4','1/10'],0,'fraction','9/20 + 1/20 = 10/20. The rest is 10/20 = 1/2.'],
+{n:'Les 12', qs:[
+  ['s','Een boomgeest wil lichtgevende bloemen eerlijk verdelen over 5 OF 6 feeën, zonder iets over te houden. Wat is het KLEINSTE aantal bloemen waarmee dat kan?',30,'5*6','factor','Je zoekt het KGV van 5 en 6.'],
+  ['s','Vijftig ridders lopen door een magische poort. Elke 10e ridder krijgt vuurkracht en elke 15e ridder geneeskracht. Welke ridder krijgt BEIDE krachten?',30,0,'factor','Zoek het eerste getal dat in de tafel van 10 én 15 voorkomt: het KGV.'],
+  ['b','3<i>x</i> − (27 + 39) = 18',28,'(18+27+39)/3','equation','Eerst: 27 + 39 = 66. Dan krijg je 3x − 66 = 18.'],
+  ['b','(50 + 7<i>x</i>) + 3<i>x</i> = 70',2,'(70-50)/10','equation','7x + 3x is 10x. Dan krijg je 50 + 10x = 70.'],
+  ['e','(36 ÷ 6) · 2³','(36/6)*2**3','ops','Eerst de haakjes, daarna de macht: 6 · 8.'],
+  ['e','2³ · (10 − 2²)','2**3*(10-2**2)','ops','In de haakjes: 10 − 4 = 6. Daarna 8 · 6.'],
+  ['s','Ridder Max en ridder Jack hebben samen 86 zwaarden. Max heeft er 36 MEER dan Jack. Hoeveel zwaarden moet Max aan Jack geven zodat ze er evenveel hebben?',18,'36/2','equation','Max geeft de HELFT van het verschil weg. Dan hebben ze evenveel.'],
+  ['s','Een heks verandert {1/5} van haar 35 knikkers in goud en {2/5} in zilver. Hoeveel knikkers zijn NIET goud en NIET zilver?',14,'35-35/5-35/5*2','fraction'],
+  ['c','Er zijn 100 tovenaarsleraren. {9/20} rijdt op een eenhoorn, {1/20} op een pegasus en de rest op een alicorn. Welk DEEL rijdt op een alicorn?',['1/2','9/20','1/4','1/10'],0,'fraction','9/20 + 1/20 = 10/20. De rest is 10/20 = 1/2.'],
   ['e','41 · 28 + 28 · 59','41*28+28*59','ops','(41 + 59) · 28 = 100 · 28.'],
-  ['s','What is 1{1/3} of 90?',120,'90+90/3','fraction','One whole 90 plus one third of 90.'],
-  ['e','246 · 7','246*7','multiply','Split it: 200 · 7 = 1400 and 46 · 7 = 322.'],
-  ['c','14 of the 56 magic crystals in a cave glow. What PART of the crystals glow?',['1/4','1/3','1/2','1/6'],0,'fraction','14/56, divide top and bottom by 14.']
+  ['s','Hoeveel is 1{1/3} van 90?',120,'90+90/3','fraction','Eén keer 90 plus een derde van 90.'],
+  ['e','246 · 7','246*7','multiply','Splits: 200 · 7 = 1400 en 46 · 7 = 322.'],
+  ['c','In een grot gloeien 14 van de 56 magische kristallen. Welk DEEL van de kristallen gloeit?',['1/4','1/3','1/2','1/6'],0,'fraction','14/56. Deel de teller en de noemer door 14.']
 ]},
-{n:'Lesson 13', qs:[
-  ['s','A lake is 200 ft wide. Two boats start on opposite sides and move toward each other, one at 40 ft per minute, the other at 30 ft per minute. How far apart are they after 1 minute?',130,'200-40-30','ops','Together they close 70 ft every minute.'],
-  ['s','Skyswift the dragon flies 120 miles per hour. How far can Skyswift fly in 1{1/2} hours?',180,'120+120/2','fraction','One full hour plus half an hour.'],
-  ['s','Zephyr the wizard runs 10 miles at 2 miles per SECOND. How many seconds does the run take?',5,'10/2','ops'],
-  ['c','{1/2} = {⬜/24}. What goes on top?',['12','13','2','6'],0,'fraction','Bottom went 2→24 (×12), so the top goes 1→12.'],
-  ['s','{2/3} of x is 24. What is x?',36,'24/2*3','fraction'],
-  ['s','{2/5} of x is 10. What is x?',25,'10/2*5','fraction'],
-  ['s','The Queen gives 60 crystals to 4 fairies. Mary gets {1/3} of them, Stella gets {1/5}, and Elli gets {1/4} of what REMAINS. How many crystals does Cris get?',21,'60-20-12-7','fraction','Mary: 20, Stella: 12. That leaves 28, and Elli takes a quarter of it.'],
-  ['b','2 + 4<i>x</i> + 6 = 18 + 3<i>x</i>',10,'18-8','equation','Take 3x from both sides: 8 + x = 18.'],
+{n:'Les 13', qs:[
+  ['s','Een meer is 200 meter breed. Twee boten vertrekken vanaf tegenovergestelde kanten en varen naar elkaar toe. De ene vaart 40 meter per minuut en de andere 30 meter. Hoe ver liggen ze na 1 minuut uit elkaar?',130,'200-40-30','ops','Samen maken ze de afstand elke minuut 70 meter kleiner.'],
+  ['s','De draak Hemelvleugel vliegt 120 kilometer per uur. Hoe ver vliegt hij in 1{1/2} uur?',180,'120+120/2','fraction','Eén heel uur plus een half uur.'],
+  ['s','Tovenaar Zephyr rent 10 meter met een snelheid van 2 meter per SECONDE. Hoeveel seconden duurt dat?',5,'10/2','ops'],
+  ['c','{1/2} = {⬜/24}. Welk getal hoort boven de streep?',['12','13','2','6'],0,'fraction','De noemer ging van 2 naar 24 (×12), dus de teller gaat van 1 naar 12.'],
+  ['s','{2/3} van x is 24. Hoeveel is x?',36,'24/2*3','fraction'],
+  ['s','{2/5} van x is 10. Hoeveel is x?',25,'10/2*5','fraction'],
+  ['s','De koningin geeft 60 kristallen aan 4 feeën. Mary krijgt {1/3}, Stella krijgt {1/5} en Elli krijgt {1/4} van wat OVERBLIJFT. Hoeveel kristallen krijgt Cris?',21,'60-20-12-7','fraction','Mary krijgt 20 en Stella 12. Er blijven 28 over; Elli krijgt daar een kwart van.'],
+  ['b','2 + 4<i>x</i> + 6 = 18 + 3<i>x</i>',10,'18-8','equation','Trek aan beide kanten 3x af: 8 + x = 18.'],
   ['b','3 · (<i>x</i> − 10) = 12',14,'12/3+10','equation'],
-  ['s','48 knights play chess or the flute. 28 play chess and 22 play the flute. How many knights play BOTH?',2,'28+22-48','equation','28 + 22 = 50, but there are only 48 knights. The overlap counts twice!'],
+  ['s','Van 48 ridders spelen er 28 schaak en 22 fluit. Hoeveel ridders doen BEIDE?',2,'28+22-48','equation','28 + 22 = 50, maar er zijn maar 48 ridders. Wie beide doet, is twee keer geteld.'],
   ['e','36 · 96 + 36 · 3 + 36','36*96+36*3+36','ops','36 · (96 + 3 + 1) = 36 · 100.'],
-  ['s','Use each digit 0, 1, 5 and 8 once. What is the SMALLEST 4-digit number? (It cannot start with 0!)',1058,0,'machine','Smallest non-zero digit first, then 0, then the rest going up.'],
-  ['s','A unicorn grazes on magic flowers every 10 days and drinks from the waterfall every 45 days. She did both today. In how many days will she do BOTH on the same day again?',90,0,'factor','LCM of 10 and 45.']
+  ['s','Gebruik de cijfers 0, 1, 5 en 8 elk één keer. Wat is het KLEINSTE getal van vier cijfers? Het mag niet met 0 beginnen.',1058,0,'machine','Zet eerst het kleinste cijfer dat niet nul is, daarna 0 en vervolgens de andere cijfers van klein naar groot.'],
+  ['s','Een eenhoorn eet elke 10 dagen magische bloemen en drinkt elke 45 dagen bij de waterval. Vandaag deed ze beide. Over hoeveel dagen doet ze BEIDE weer op dezelfde dag?',90,0,'factor','Zoek het KGV van 10 en 45.']
 ]},
-{n:'Lesson 14', qs:[
-  ['s','A mermaid fills {5/6} of the king\'s well, takes a break, then fills {2/3} of the REST. She still needs 4 more buckets to finish. How many buckets does the whole well hold?',72,'4*3*6','fraction','After the break, 1/6 was left. She did 2/3 of it, so 1/3 of 1/6 = 1/18 of the well = 4 buckets.'],
-  ['s','A gnome steals {3/5} of the wizards\' enchanted stones. The wizards throw {1/2} of what is LEFT into a well, and have 12 stones remaining. How many stones did they start with?',60,'12*2*5/2','fraction','After the gnome: 2/5 left. Half of that = 1/5 of the start = 12.'],
-  ['b','{7/x} = {14/16}.&nbsp; x = ?',8,'16/2','fraction','Top went 7→14 (×2), so the bottom went x→16 the same way.'],
-  ['b','{21/28} = {3/x}.&nbsp; x = ?',4,'28/7','fraction','Top went 21→3 (÷7), so bottom goes 28→4.'],
-  ['e','240 ÷ 6 · 7','240/6*7','ops','Left to right: 240 ÷ 6 = 40, then 40 · 7 = 280.'],
-  ['e','21 · 20 ÷ 7','21*20/7','ops','Do 21 ÷ 7 = 3 FIRST, then 3 · 20 = 60. You may reorder · and ÷!'],
-  ['c','Simplify: (a + 20) − (a − 20)',['40','0','2a','20'],0,'equation','a − a = 0, and 20 − (−20)… careful: minus a minus makes a plus!'],
-  ['c','12 capes: 1 is gold, 2 are silver, and the rest are bronze. What FRACTION of the capes are bronze?',['3/4','2/3','1/2','1/4'],0,'fraction','9 of 12 are bronze. 9/12 = 3/4.'],
-  ['c','14 ÷ 3 = ?',['4 R 2','4 R 1','3 R 2','5 R 1'],0,'ops','3 · 4 = 12, and 2 left over.'],
-  ['b','LCM(14, 21)',42,0,'factor'],
-  ['e','547 · 2','547*2','multiply','Split it: 500 · 2 = 1000 and 47 · 2 = 94.'],
-  ['s','Cruncher the troll eats 36 shiny stones in 9 minutes. How many stones can he eat in 12 minutes?',48,'36/9*12','machine','First find stones per minute.'],
-  ['s','A goblin pranks 12 people in 4 minutes. How many people can he prank in 8 minutes?',24,'12/4*8','machine']
+{n:'Les 14', qs:[
+  ['s','Een zeemeermin vult {5/6} van de waterput van de koning. Na een pauze vult ze {2/3} van de REST. Ze heeft nog 4 emmers nodig. Hoeveel emmers passen er in de hele put?',72,'4*3*6','fraction','Na de pauze was {1/6} over. Daarvan bleef {1/3} over: {1/18} van de hele put is 4 emmers.'],
+  ['s','Een kabouter steelt {3/5} van de betoverde stenen van de tovenaars. De tovenaars gooien {1/2} van wat OVER is in een put en houden 12 stenen. Met hoeveel stenen begonnen ze?',60,'12*2*5/2','fraction','Na de diefstal was {2/5} over. De helft daarvan is {1/5} van het begin en dat is 12.'],
+  ['b','{7/x} = {14/16}.&nbsp; x = ?',8,'16/2','fraction','De teller ging van 7 naar 14 (×2), dus de noemer ging op dezelfde manier van x naar 16.'],
+  ['b','{21/28} = {3/x}.&nbsp; x = ?',4,'28/7','fraction','De teller ging van 21 naar 3 (÷7), dus de noemer gaat van 28 naar 4.'],
+  ['e','240 ÷ 6 · 7','240/6*7','ops','Werk van links naar rechts: 240 ÷ 6 = 40 en daarna 40 · 7 = 280.'],
+  ['e','21 · 20 ÷ 7','21*20/7','ops','Bereken eerst 21 ÷ 7 = 3 en daarna 3 · 20 = 60. Bij keer en deel mag je handig herschikken.'],
+  ['c','Vereenvoudig: (a + 20) − (a − 20)',['40','0','2a','20'],0,'equation','a − a = 0. Let op: min een negatief getal wordt plus.'],
+  ['c','Van 12 mantels is er 1 goud, zijn er 2 zilver en is de rest brons. Welke BREUK van de mantels is brons?',['3/4','2/3','1/2','1/4'],0,'fraction','9 van de 12 zijn brons. 9/12 = 3/4.'],
+  ['c','14 ÷ 3 = ?',['4 rest 2','4 rest 1','3 rest 2','5 rest 1'],0,'ops','3 · 4 = 12 en er blijven 2 over.'],
+  ['b','KGV(14, 21)',42,0,'factor'],
+  ['e','547 · 2','547*2','multiply','Splits: 500 · 2 = 1000 en 47 · 2 = 94.'],
+  ['s','Trol Kraken eet 36 glimmende stenen in 9 minuten. Hoeveel eet hij er in 12 minuten?',48,'36/9*12','machine','Bereken eerst hoeveel stenen hij per minuut eet.'],
+  ['s','Een kobold haalt in 4 minuten een grap uit met 12 mensen. Met hoeveel mensen kan hij in 8 minuten een grap uithalen?',24,'12/4*8','machine']
 ]},
-{n:'Lesson 15', qs:[
-  ['s','A smoothie needs 1 part milk and 4 parts blueberries. To make 15 ounces of smoothie, how many ounces of MILK go in?',3,'15/5','fraction','1 + 4 = 5 equal parts.'],
-  ['s','A chemist mixes 3 times as much water as acid to make 44 liters of solution. How many liters of ACID does she use?',11,'44/4','equation','Acid = 1 part, water = 3 parts.'],
-  ['s','x is {5/8} of 40. What is x?',25,'40/8*5','fraction'],
-  ['s','{5/8} of x is 40. What is x?',64,'40/5*8','fraction','Backwards! 40 is 5 parts, so one part is 8.'],
-  ['c','Which is bigger: {5/6} or {2/3}?',['5/6','2/3','They are equal','Cannot tell'],0,'fraction','Make the bottoms match: 2/3 = 4/6, and 5/6 > 4/6.'],
-  ['c','What is the LCD (least common denominator) of {5/8} and {7/12}?',['24','96','8','12'],0,'factor','The LCD is the LCM of the bottoms: LCM(8, 12).'],
-  ['s','A rhombus has 4 equal sides, each 6{1/4} cm long. What is its perimeter in cm?',25,'25','shape','Four quarters make one whole: 6+6+6+6 and 4 quarters.'],
-  ['e','320 ÷ 4 + 40 · 3 + 3 · 10²','320/4+40*3+3*10**2','ops','10² = 100. So it is 80 + 120 + 300.'],
-  ['e','10 · 2³ + (90 − 6 · 7)','10*2**3+(90-6*7)','ops','2³ = 8, so 10 · 8 = 80. Inside ( ): 90 − 42 = 48.'],
+{n:'Les 15', qs:[
+  ['s','Een smoothie bestaat uit 1 deel melk en 4 delen blauwe bessen. Voor 15 deciliter smoothie: hoeveel deciliter MELK heb je nodig?',3,'15/5','fraction','1 + 4 = 5 gelijke delen.'],
+  ['s','Een scheikundige mengt 3 keer zoveel water als zuur en maakt 44 liter vloeistof. Hoeveel liter ZUUR gebruikt ze?',11,'44/4','equation','Zuur = 1 deel en water = 3 delen.'],
+  ['s','x is {5/8} van 40. Hoeveel is x?',25,'40/8*5','fraction'],
+  ['s','{5/8} van x is 40. Hoeveel is x?',64,'40/5*8','fraction','Werk terug! 40 is 5 delen, dus één deel is 8.'],
+  ['c','Welke breuk is groter: {5/6} of {2/3}?',['5/6','2/3','Ze zijn even groot','Niet te bepalen'],0,'fraction','Maak de noemers gelijk: 2/3 = 4/6 en 5/6 > 4/6.'],
+  ['c','Wat is de kleinste gemeenschappelijke noemer van {5/8} en {7/12}?',['24','96','8','12'],0,'factor','Zoek het KGV van de noemers: KGV(8, 12).'],
+  ['s','Een ruit heeft 4 gelijke zijden van elk 6{1/4} cm. Wat is de omtrek in centimeters?',25,'25','shape','Vier kwarten vormen één geheel: 6+6+6+6 en vier kwarten.'],
+  ['e','320 ÷ 4 + 40 · 3 + 3 · 10²','320/4+40*3+3*10**2','ops','10² = 100. De som wordt dus 80 + 120 + 300.'],
+  ['e','10 · 2³ + (90 − 6 · 7)','10*2**3+(90-6*7)','ops','2³ = 8, dus 10 · 8 = 80. In de haakjes: 90 − 42 = 48.'],
   ['b','17 + <i>x</i> = 36',19,'36-17','equation'],
-  ['b','<i>x</i> · 12 = 11 · 48',44,'11*48/12','equation','11 · 48 = 528. Then divide by 12.'],
-  ['s','Ethan did homework for 2 hours. He spent {1/3} of the time on math, then {1/4} of the REST reading. How many MINUTES did he read?',20,'(120-120/3)/4','fraction','2 hours = 120 minutes. Math took 40, leaving 80.'],
-  ['c','Bea is {7/9} of the minimum skydiving age and Clara is {2/3} of it. TRUE or FALSE: Bea is older than Clara.',['True','False','They are the same age','Cannot tell'],0,'fraction','Same bottoms: 7/9 vs 6/9.']
+  ['b','<i>x</i> · 12 = 11 · 48',44,'11*48/12','equation','11 · 48 = 528. Deel daarna door 12.'],
+  ['s','Ethan maakte 2 uur huiswerk. Hij besteedde {1/3} van de tijd aan rekenen en daarna {1/4} van de REST aan lezen. Hoeveel MINUTEN las hij?',20,'(120-120/3)/4','fraction','2 uur = 120 minuten. Rekenen duurde 40 minuten, dus er bleven 80 minuten over.'],
+  ['c','Bea is {7/9} van de minimumleeftijd voor parachutespringen en Clara is {2/3} daarvan. WAAR of NIET WAAR: Bea is ouder dan Clara.',['Waar','Niet waar','Ze zijn even oud','Niet te bepalen'],0,'fraction','Maak de noemers gelijk: 7/9 tegenover 6/9.']
 ]},
-{n:'Lesson 16', qs:[
-  ['s','400 kids chose the jungle gym, that is {1/2} of everyone surveyed. How many 4th graders were surveyed?',800,'400*2','fraction'],
-  ['s','Of 800 kids: {1/2} chose the jungle gym, {1/4} chose bikes, {1/10} chose camping, and the rest chose sports. HOW MANY chose sports?',120,'800-400-200-80','fraction','Jungle gym: 400, bikes: 200, camping: 80.'],
-  ['c','Simplify: {14/21}',['2/3','7/21','1/2','3/4'],0,'fraction','Divide top and bottom by 7.'],
-  ['c','Simplify: {48/96}',['1/2','1/3','2/3','4/9'],0,'fraction','48 is exactly half of 96.'],
-  ['c','{2/7} + {3/7} − {4/7} = ?',['1/7','1/21','9/7','0'],0,'fraction','Same bottoms: just do 2 + 3 − 4 on top.'],
+{n:'Les 16', qs:[
+  ['s','400 kinderen kozen het klimrek. Dat is {1/2} van alle ondervraagde kinderen. Hoeveel kinderen zijn er ondervraagd?',800,'400*2','fraction'],
+  ['s','Van 800 kinderen koos {1/2} het klimrek, {1/4} de fiets, {1/10} kamperen en de rest sport. HOEVEEL kinderen kozen sport?',120,'800-400-200-80','fraction','Klimrek: 400, fiets: 200, kamperen: 80.'],
+  ['c','Vereenvoudig: {14/21}',['2/3','7/21','1/2','3/4'],0,'fraction','Deel de teller en de noemer door 7.'],
+  ['c','Vereenvoudig: {48/96}',['1/2','1/3','2/3','4/9'],0,'fraction','48 is precies de helft van 96.'],
+  ['c','{2/7} + {3/7} − {4/7} = ?',['1/7','1/21','9/7','0'],0,'fraction','De noemers zijn gelijk. Bereken boven de streep 2 + 3 − 4.'],
   ['c','{7/12} + {5/12} − {1/12} = ?',['11/12','13/12','1','11/36'],0,'fraction'],
-  ['s','{1/4} of what number is 28?',112,'28*4','fraction'],
-  ['s','{4/7} of what number is 28?',49,'28/4*7','fraction'],
-  ['s','Angie spent {4/5} of her money, then lost {2/3} of what was LEFT. Now she has $10. How many dollars did she LOSE?',20,'10*2','fraction','The $10 is 1/3 of what was left, so she lost 2/3, which is $20.'],
-  ['s','Angie started with $150. She spent {4/5} of it. How many dollars did she SPEND?',120,'150/5*4','fraction'],
-  ['c','{5/6} − x = {1/6}.&nbsp; x = ?',['2/3','1/2','1/3','5/6'],0,'fraction','5/6 − 4/6 = 1/6, and 4/6 simplifies to 2/3.'],
-  ['s','Twin hikers walk at 2{1/2} miles per hour. How many miles do they cover in 2 hours?',5,'2*2+1','fraction','Two 2½s make 5.']
+  ['s','{1/4} van welk getal is 28?',112,'28*4','fraction'],
+  ['s','{4/7} van welk getal is 28?',49,'28/4*7','fraction'],
+  ['s','Angie gaf {4/5} van haar geld uit en verloor daarna {2/3} van wat OVER was. Nu heeft ze €10. Hoeveel euro VERLOOR ze?',20,'10*2','fraction','De €10 is {1/3} van wat over was. Ze verloor {2/3}, dus €20.'],
+  ['s','Angie begon met €150 en gaf daarvan {4/5} uit. Hoeveel euro GAF ze UIT?',120,'150/5*4','fraction'],
+  ['c','{5/6} − x = {1/6}.&nbsp; x = ?',['2/3','1/2','1/3','5/6'],0,'fraction','5/6 − 4/6 = 1/6 en 4/6 vereenvoudigt tot 2/3.'],
+  ['s','Een tweeling wandelt 2{1/2} kilometer per uur. Hoeveel kilometer leggen ze in 2 uur af?',5,'2*2+1','fraction','Twee keer 2½ is 5.']
 ]}
 ];
 
@@ -1498,7 +1498,7 @@ function wbBuild(t){
   // 'b' and 's'
   ans=t[2]; topic=t[4]; tip=t[5]||TIPS[topic];
   cls=(type==='b')?'qBig':'qStory';
-  const sub=(type==='b')?'<div class="qSub">Solve it!</div>':'';
+  const sub=(type==='b')?'<div class="qSub">Los de som op!</div>':'';
   return { topic:topic, qHTML:'<div class="'+cls+'">'+frTok(t[1])+'</div>'+sub,
     choices:numChoices(ans,[ans+ri(1,Math.max(3,Math.round(ans*0.15)+1)), ans-ri(1,Math.max(3,Math.round(ans*0.15)+1)), ans*2, Math.floor(ans/2)]), tip:tip, wb:true };
 }
@@ -1542,11 +1542,11 @@ const TOPICNAMES={groep4:'Groep 4 Basis', ops:'Rekenvolgorde', machine:'Getallen
 const TOPICCOLORS={groep4:'#ffd23f', ops:'#ff5c8a', machine:'#ffb020', equation:'#22d3ee', fraction:'#a78bfa', factor:'#4ade80', shape:'#ff9d5c', multiply:'#e879f9', angle:'#2dd4bf', compare:'#60a5fa'};
 const RANKS=['Beginner','Leerling','Gezel','Bronzen ninja','Zilveren ninja','Gouden ninja','Schaduwmeester','Grootmeester','REKENLEGENDE'];
 const BOSSES=[
-  {face:'👹', name:'COUNT CHAOS',       tint:'#ff4d5e', taunt:"You'll never out-count me!",   charge:"Chaos is winding up a hit…", strike:'CHAOS SMASH!',   win:'Count Chaos crumbles into confetti!'},
-  {face:'🐙', name:'THE FRACTIONATOR',  tint:'#a855f7', taunt:"I'll split you into little pieces!", charge:'Tentacles rising…',   strike:'INK SPLASH!',    win:'The Fractionator dissolves away!'},
-  {face:'🤖', name:'LORD DIVISOR',      tint:'#38bdf8', taunt:'Computing your defeat… 100%.',  charge:'Charging laser…',      strike:'DIVIDE BEAM!',   win:'Lord Divisor powers down. Beep… boop… off.'},
-  {face:'🐲', name:'PROFESSOR MINUS',   tint:'#f59e0b', taunt:'I subtract all your hope!',     charge:'Winding his tail back…', strike:'MINUS TAIL WHIP!', win:'Professor Minus is beaten. Add that to the win column!'},
-  {face:'👽', name:'ZERO THE UNKNOWN',  tint:'#4ade80', taunt:'Solve for X? X = your doom!',   charge:'Reality is glitching…', strike:'UNKNOWN BLAST!', win:'Zero the Unknown fades into nothing!'}
+  {face:'👹', name:'GRAAF GETALLENCHAOS', tint:'#ff4d5e', taunt:'Jij kunt nooit sneller tellen dan ik!', charge:'Chaos maakt zich klaar…', strike:'CHAOSKLAP!', win:'Graaf Getallenchaos spat uiteen in confetti!'},
+  {face:'🐙', name:'DE BREUKENBEUKER', tint:'#a855f7', taunt:'Ik hak alles in piepkleine stukjes!', charge:'De tentakels komen omhoog…', strike:'INKTSPETTER!', win:'De Breukenbeuker lost helemaal op!'},
+  {face:'🤖', name:'LORD DELER', tint:'#38bdf8', taunt:'Jouw nederlaag wordt berekend… 100%.', charge:'De laser wordt opgeladen…', strike:'DEELSTRAAL!', win:'Lord Deler valt uit. Piep… boep… klaar.'},
+  {face:'🐲', name:'PROFESSOR MIN', tint:'#f59e0b', taunt:'Ik trek al jouw moed ervan af!', charge:'Zijn staart zwaait naar achteren…', strike:'MINSTAARTZWEEP!', win:'Professor Min is verslagen. Tel die overwinning erbij op!'},
+  {face:'👽', name:'NUL DE ONBEKENDE', tint:'#4ade80', taunt:'Los x maar op… x is jouw ondergang!', charge:'De werkelijkheid begint te haperen…', strike:'ONBEKENDE KNAL!', win:'Nul de Onbekende verdwijnt in het niets!'}
 ];
 /* Starter emoji skins (free / cheap). Image characters load from characters.json. */
 const EMOJI_SKINS=[
@@ -1564,17 +1564,17 @@ let CHAR_COST=200;
 
 /* Power-ups = consumables he buys and uses. Effects = cosmetic auras (buy once, equip). */
 const POWERUPS=[
-  {id:'freehint',   name:'Free Trick',   icon:'🥷', cost:40,  per:5, desc:'5 Ninja Tricks with NO skill penalty. Use them on ANY 5 questions you like. Your skill still goes up when you solve them.'},
-  {id:'fiftyfifty', name:'50 / 50',      icon:'✂️', cost:60,  per:5, desc:'5 charges. Zaps two wrong answers off any question. Tap it on any 5 problems of your choosing.'},
-  {id:'coinsx2',    name:'2× Coin Boost',icon:'💰', cost:80,  per:3, desc:'3 missions at double coins. Auto-used when you start a mission.'},
-  {id:'freeplay',   name:'Free Play',    icon:'🕹️', cost:100, per:1, desc:'A pure-fun arcade break, no math. Munch dots, dodge ghosts. Launch it from the home screen.'}
+  {id:'freehint', name:'Gratis ninjatruc', icon:'🥷', cost:40, per:5, desc:'Vijf hints zonder verlies van vaardigheid. Je kiest zelf bij welke sommen je ze gebruikt.'},
+  {id:'fiftyfifty', name:'50 / 50', icon:'✂️', cost:60, per:5, desc:'Vijf keer hulp waarbij twee foute antwoorden verdwijnen.'},
+  {id:'coinsx2', name:'2× muntenboost', icon:'💰', cost:80, per:3, desc:'Drie missies met dubbele munten. Wordt automatisch gebruikt bij de start.'},
+  {id:'freeplay', name:'Vrij spelen', icon:'🕹️', cost:100, per:1, desc:'Een korte spelpauze zonder sommen. Eet stippen en ontwijk spoken.'}
 ];
 const EFFECTS=[
-  {id:'none',    name:'No Aura',      icon:'⚪', cost:0},
-  {id:'glow',    name:'Neon Glow',    icon:'🔵', cost:40},
-  {id:'sparkle', name:'Sparkle',      icon:'✨', cost:60},
-  {id:'fire',    name:'Fire Aura',    icon:'🔥', cost:80},
-  {id:'rainbow', name:'Rainbow Aura', icon:'🌈', cost:100}
+  {id:'none', name:'Geen aura', icon:'⚪', cost:0},
+  {id:'glow', name:'Neongloed', icon:'🔵', cost:40},
+  {id:'sparkle', name:'Sterrenstof', icon:'✨', cost:60},
+  {id:'fire', name:'Vuuraura', icon:'🔥', cost:80},
+  {id:'rainbow', name:'Regenboogaura', icon:'🌈', cost:100}
 ];
 function powerupById(id){ return POWERUPS.find(p=>p.id===id); }
 function allSkins(){ return EMOJI_SKINS.concat(IMG_SKINS); }
@@ -1644,7 +1644,7 @@ function beltLadder(v){
 function beltPanelHTML(mastery, forKid){
   const topics=Object.keys(GENS).filter(t=>mastery[t]!==undefined && (forKid? mastery[t]>0 : true));
   if(!topics.length){
-    return '<div class="parEmpty">'+(forKid?'Answer questions to start earning belts! 🥋':'No belts earned yet. Play a few problems and belts appear here.')+'</div>';
+    return '<div class="parEmpty">'+(forKid?'Beantwoord sommen om banden te verdienen! 🥋':'Nog geen banden verdiend. Speel een paar sommen en de banden verschijnen hier.')+'</div>';
   }
   topics.sort((a,b)=>mastery[b]-mastery[a]);
   let html='';
@@ -1652,13 +1652,13 @@ function beltPanelHTML(mastery, forKid){
     html+='<div class="beltRow"><div class="mTop"><span class="mName">'+(TOPICNAMES[t]||t)+'</span>'+
       '<span class="mLvl" style="color:'+L.color+'">'+L.name+'</span></div>'+beltLadder(v)+'</div>';
   });
-  html+='<div class="beltKey">White → Yellow → Orange → Green → Blue → Black. Lit blocks = belts earned.</div>';
+  html+='<div class="beltKey">Wit → geel → oranje → groen → blauw → zwart. Gekleurde vakjes zijn verdiende banden.</div>';
   const best=topics[0], worst=topics[topics.length-1];
   if(forKid){
-    html+='<div class="callout">Your sharpest skill: <b>'+(TOPICNAMES[best]||best)+'</b>, '+masteryLevel(mastery[best]).name+'! Train more to reach Black Belt. 🥋</div>';
+    html+='<div class="callout">Jouw sterkste onderdeel: <b>'+(TOPICNAMES[best]||best)+'</b>, '+masteryLevel(mastery[best]).name+'! Blijf oefenen voor de zwarte band. 🥋</div>';
   } else if(best!==worst){
-    html+='<div class="callout">Sharpest: <b>'+(TOPICNAMES[best]||best)+'</b> ('+masteryLevel(mastery[best]).name+'). '+
-      'Working up: <span class="weak">'+(TOPICNAMES[worst]||worst)+'</span> ('+masteryLevel(mastery[worst]).name+').</div>';
+    html+='<div class="callout">Sterkst: <b>'+(TOPICNAMES[best]||best)+'</b> ('+masteryLevel(mastery[best]).name+'). '+
+      'Nog oefenen: <span class="weak">'+(TOPICNAMES[worst]||worst)+'</span> ('+masteryLevel(mastery[worst]).name+').</div>';
   }
   return html;
 }
@@ -1667,7 +1667,7 @@ function bumpMastery(topic, delta){
   m[topic]=Math.max(0, Math.min(100, Math.round(((m[topic]||0)+delta)*10)/10));
 }
 function levelKey(idx){ return idx<BOOKS.length ? 'B'+(idx+1) : 'C'+(idx-BOOKS.length+1); }
-function levelName(idx){ return idx<BOOKS.length ? BOOKS[idx].name : 'Challenge '+(idx-BOOKS.length+1); }
+function levelName(idx){ return idx<BOOKS.length ? BOOKS[idx].name : 'Uitdaging '+(idx-BOOKS.length+1); }
 function levelsDone(){ let n=0; while(S.progress.story[levelKey(n)]) n++; return n; }
 // per-topic lifetime learning stats for the parent report
 function recordSolve(topic, wrongs, tutors){
@@ -1714,9 +1714,9 @@ function setSyncStatus(kind){
   if(!SYNC.name){ dot.classList.remove('on'); return; }
   dot.classList.add('on');
   dot.classList.remove('saving','offline');
-  if(kind==='saving'){ dot.classList.add('saving'); txt.textContent='Saving…'; }
-  else if(kind==='offline'){ dot.classList.add('offline'); txt.textContent='Offline, not saved'; }
-  else{ txt.textContent='Saved'; }
+  if(kind==='saving'){ dot.classList.add('saving'); txt.textContent='Opslaan…'; }
+  else if(kind==='offline'){ dot.classList.add('offline'); txt.textContent='Offline, niet opgeslagen'; }
+  else{ txt.textContent='Opgeslagen'; }
 }
 async function apiPost(payload){
   const res=await fetch(SYNC.base,{ method:'POST', headers:{'content-type':'application/json'}, body:JSON.stringify(payload) });
@@ -1895,7 +1895,7 @@ function renderHome(){
   $('homeAvatar').innerHTML=skinHTML(S.skin);
   applyAura($('homeAvatar'), S.effect);
   $('homeRank').textContent=rankFor(S.level);
-  $('homeLvl').textContent='Level '+S.level+' · '+S.xp+' XP';
+  $('homeLvl').textContent='Niveau '+S.level+' · '+S.xp+' XP';
   $('homeXpFill').style.width=Math.min(100, S.xp/xpNeed(S.level)*100)+'%';
   $('homeCoins').textContent=S.coins;
   const fp=S.inventory.freeplay||0;
@@ -1918,7 +1918,7 @@ function bookSolvedCount(bi){
 function renderLevels(){
   const g=$('levelPath'); g.innerHTML='';
   let booksDone=0; for(let i=0;i<BOOKS.length;i++) if(S.progress.story['B'+(i+1)]) booksDone++;
-  $('wbProg').textContent='· '+booksDone+'/'+BOOKS.length+' completed';
+  $('wbProg').textContent='· '+booksDone+'/'+BOOKS.length+' voltooid';
   const allBooksDone=booksDone===BOOKS.length;
   // count how many challenge levels to show (all done + 1 next), only once every workbook is finished
   let chalDone=0; while(S.progress.story['C'+(chalDone+1)]) chalDone++;
@@ -1938,11 +1938,11 @@ function renderLevels(){
     b.className='lvl '+state+(isChal?' chal':'');
     let stars;
     if(rec) stars='★'.repeat(rec.stars)+'<span style="opacity:.25">'+'★'.repeat(3-rec.stars)+'</span>';
-    else if(!isChal){ const sc=bookSolvedCount(i), tot=bookQs(i).length; stars=sc>0 ? sc+'/'+tot : 'PLAY'; }
-    else if(state==='next') stars='GO!';
+    else if(!isChal){ const sc=bookSolvedCount(i), tot=bookQs(i).length; stars=sc>0 ? sc+'/'+tot : 'SPEEL'; }
+    else if(state==='next') stars='START!';
     else stars='🔒';
     b.innerHTML='<div class="ln">'+(isChal?'∞':(i+1))+'</div>'+
-      '<div class="ll">'+(isChal?'Challenge '+(i-BOOKS.length+1):BOOKS[i].sub)+'</div>'+
+      '<div class="ll">'+(isChal?'Uitdaging '+(i-BOOKS.length+1):BOOKS[i].sub)+'</div>'+
       '<div class="lstars">'+stars+'</div>';
     if(state!=='locked') b.onclick=()=>{ sClick(); startLevel(i); };
     g.appendChild(b);
@@ -2044,9 +2044,9 @@ function updateHUD(){
 }
 /* ---------------- monsters & boss battle ---------------- */
 const MONSTERS=[
-  {e:'🐛',n:'Wriggler'},{e:'🦠',n:'Germ'},{e:'👾',n:'Glitchling'},{e:'🦇',n:'Batty'},
-  {e:'🕷️',n:'Creepo'},{e:'🐍',n:'Hisser'},{e:'🦂',n:'Pincher'},{e:'👻',n:'Boo'},
-  {e:'🧟',n:'Zombo'},{e:'🦖',n:'Chompz'},{e:'🐙',n:'Inkling'},{e:'🦑',n:'Squigg'}
+  {e:'🐛',n:'Kronkel'},{e:'🦠',n:'Kiem'},{e:'👾',n:'Haperling'},{e:'🦇',n:'Fladder'},
+  {e:'🕷️',n:'Kriebela'},{e:'🐍',n:'Sisser'},{e:'🦂',n:'Knijper'},{e:'👻',n:'Boe'},
+  {e:'🧟',n:'Zombo'},{e:'🦖',n:'Happert'},{e:'🐙',n:'Inktje'},{e:'🦑',n:'Wriemel'}
 ];
 const MON_HP=3, BOSS_HP=3, BOSS_HEAL_CAP=5;
 function renderFoe(){
@@ -2072,7 +2072,7 @@ function renderTelegraph(){
   const tl=$('foeTele'); if(!tl) return;
   const bb=$('battleBar');
   if(S.foeCharged){
-    const msg = S.foeType==='boss' ? (BOSSES[S.bossIdx].charge||'Winding up an attack…') : (S.foeName+' is about to strike!');
+    const msg = S.foeType==='boss' ? (BOSSES[S.bossIdx].charge||'Maakt zich klaar voor een aanval…') : (S.foeName+' staat op het punt aan te vallen!');
     tl.textContent='⚡ '+msg; tl.classList.add('on'); bb.classList.add('charged');
   } else {
     tl.classList.remove('on'); tl.textContent=''; bb.classList.remove('charged');
@@ -2125,7 +2125,7 @@ function foeStrike(){   // a correct answer lands a hit
   const spr=$('foeSprite'); spr.classList.remove('hit'); void spr.offsetWidth; spr.classList.add('hit');
   slash();
   const crit = S.streak>=6 && !S.bossMode;   // hot streak = bigger hit
-  const dmg = crit?'-1 CRIT!':'-1';
+  const dmg = crit?'-1 VOLTREFFER!':'-1';
   const f=foeFloat(dmg, S.foeType==='boss'?'#ffb020':'#4ade80'); if(crit&&f) f.classList.add('crit');
   // answering interrupts the wind-up
   S.foeCharge=0; S.foeCharged=false;
@@ -2152,7 +2152,7 @@ function foeDie(then){
 function foeAttack(){
   if(!S.foeCharged) return;
   S.foeCharged=false; S.foeCharge=0;
-  const strikeName = S.foeType==='boss' ? (BOSSES[S.bossIdx].strike||'HIT!') : (S.foeName.toUpperCase()+' HITS!');
+  const strikeName = S.foeType==='boss' ? (BOSSES[S.bossIdx].strike||'RAAK!') : (S.foeName.toUpperCase()+' SLAAT TOE!');
   comboFlash('⚡ '+strikeName);
   slash(); shakeScreen(true); dangerFlash(); sAlarm();
   const hearts=$('shieldHearts').querySelectorAll('.shHeart');
@@ -2162,7 +2162,7 @@ function foeAttack(){
     setTimeout(()=>renderShield(), 480);
   }
   if(S.shield<=0){
-    setTimeout(()=>{ comboFlash('🛡️ SHIELD RECHARGED!'); S.shield=S.shieldMax; renderShield();
+    setTimeout(()=>{ comboFlash('🛡️ SCHILD OPGELADEN!'); S.shield=S.shieldMax; renderShield();
       tone(523,.1,'triangle',0,.1); tone(784,.14,'triangle',.1,.1); }, 900);
   }
   renderTelegraph();
@@ -2200,12 +2200,12 @@ function startBoss(isLevel){
   const goNext=()=>renderQuestion(S.mode==='story'?GENS[pick(S.levelTopics)](tierNow()):undefined);
   // stage 1: warning, stage 2: the boss reveal
   $('ovCard').className='ovCard boss';
-  overlay('<div class="warnBig">⚠️ WARNING'+who+' ⚠️</div><div class="ovSub" style="margin-top:12px">This just got serious…<br>The BOSS MONSTER is here. Be careful!</div>', 1500, ()=>{
+  overlay('<div class="warnBig">⚠️ WAARSCHUWING'+who+' ⚠️</div><div class="ovSub" style="margin-top:12px">Nu wordt het spannend…<br>Het EINDMONSTER is er. Pas goed op!</div>', 1500, ()=>{
     dangerFlash(); sBossHit();
     $('ovCard').className='ovCard boss';
     overlay('<div class="ovGlyph">'+b.face+'</div><div class="ovBig">'+b.name+'</div>'+
       '<div class="bossTaunt">“'+b.taunt+'”</div>'+
-      '<div class="ovSub">'+(isLevel?'guards the level exit!':'blocks your path!')+'<br>Right answers HURT it. Wrong answers HEAL it.<br>Drain its health to win!</div>', 2600, ()=>{ $('ovCard').className='ovCard'; goNext(); });
+      '<div class="ovSub">'+(isLevel?'bewaakt de uitgang van dit niveau!':'blokkeert jouw pad!')+'<br>Goede antwoorden doen schade. Foute antwoorden maken hem sterker.<br>Maak zijn levensbalk leeg om te winnen!</div>', 2600, ()=>{ $('ovCard').className='ovCard'; goNext(); });
   });
 }
 // same skill, fresh numbers, used after a tutorial; keeps the learning chain
@@ -2226,12 +2226,12 @@ function renderQuestion(forcedQ){
   S.current=q; S.answered=false; S.qStart=performance.now(); S.qWrongs=0;
   S.hintUsed=false; S.hintFree=false; S.fiftyUsed=false; S.picks=[];
   const chip=$('topicchip');
-  chip.textContent=(S.bossMode?'🔥 BOSS · ':'')+(TOPICNAMES[q.topic]||'Math');
+  chip.textContent=(S.bossMode?'🔥 EIND_BAAS · ':'')+(TOPICNAMES[q.topic]||'Rekenen');
   chip.style.setProperty('--wc',TOPICCOLORS[q.topic]||'#9aa3d8');
   $('qcard').innerHTML=q.qHTML;
   $('qcard').style.animation='none'; void $('qcard').offsetWidth; $('qcard').style.animation='';
   const hb=$('btnHint'); hb.className='hintBtn';
-  hb.textContent=S.inventory.freehint>0 ? '🥷 Free Trick (×'+S.inventory.freehint+')' : '🥷 Ninja Trick?';
+  hb.textContent=S.inventory.freehint>0 ? '🥷 Gratis ninjatruc (×'+S.inventory.freehint+')' : '🥷 Ninjatruc?';
   $('btnNeedHelp').className='needHelp hidden';   // only appears once he's tried
   renderPowerTray();
   const wrap=$('answers'); wrap.innerHTML='';
@@ -2267,12 +2267,12 @@ $('btnHint').onclick=()=>{
   const q=S.current;
   // a Free Hint token removes the skill penalty
   if(S.inventory.freehint>0){ S.inventory.freehint--; S.hintFree=true; }
-  const label=S.hintFree ? '<b>🥷 FREE NINJA TRICK:</b> ' : '<b>🥷 NINJA TRICK:</b> ';
-  $('tipbar').innerHTML=label+(q.tip||'Look for the EASY road: friendly numbers that make 10, 100, or 1000, or things that cancel out.');
+  const label=S.hintFree ? '<b>🥷 GRATIS NINJATRUC:</b> ' : '<b>🥷 NINJATRUC:</b> ';
+  $('tipbar').innerHTML=label+(q.tip||'Zoek de makkelijke route: handige getallen die samen 10, 100 of 1000 maken, of stappen die elkaar opheffen.');
   $('tipbar').classList.add('trick');
   $('tipbar').classList.add('on');
   const hb=$('btnHint'); hb.classList.add('used');
-  hb.textContent=S.hintFree ? '🥷 Trick revealed!' : '🥷 Trick shown';
+  hb.textContent=S.hintFree ? '🥷 Truc onthuld!' : '🥷 Truc bekeken';
   maybeShowNeedHelp();
   scheduleSave();
 };
@@ -2293,16 +2293,16 @@ $('btnNeedHelp').onclick=()=>{
   nh.push({ topic:t, q:text, qHTML:q.qHTML, tip:q.tip||'', tier:tierNow(),
     picks:(S.picks||[]).slice(), correct:(q.choices.find(c=>c.ok)||{}).h||'',
     wbId:q.wbId||'', qNum:qn, at:Date.now(),
-    where:(S.mode==='story'?levelName(S.levelIdx):'Practice Arena') });
+    where:(S.mode==='story'?levelName(S.levelIdx):'Oefenarena') });
   while(nh.length>60) nh.shift();
   // NO penalty: skill, streak and score are untouched when he asks for help.
   // count it as attempted so the level can still finish, but NOT solved / not first-try
   if(S.mode==='story' && !S.bossMode){ S.runAnswered++; S.levelPos++; }
   else if(S.mode==='arena'){ S.solved++; }
   sWrong();
-  comboFlash('FLAGGED FOR HELP 🙋');
+  comboFlash('HULP GEVRAAGD 🙋');
   $('tipbar').classList.remove('trick');
-  $('tipbar').innerHTML="<b>Totally okay"+(S.name?', '+S.name:'')+".</b> I marked this one so a grown-up can show you how. Onward! 💪";
+  $('tipbar').innerHTML='<b>Helemaal niet erg'+(S.name?', '+S.name:'')+'.</b> Ik heb deze som gemarkeerd, zodat een volwassene hem met je kan oefenen. Op naar de volgende! 💪';
   $('tipbar').classList.add('on');
   updateHUD(); scheduleSave();
   if(S.mode==='arena' && S.solved>=MISSION_TARGET) setTimeout(endRun,1600);
@@ -2437,6 +2437,101 @@ const CHECKS={
     {q:'To compare <b>2/3</b> and <b>3/4</b>, the smart move is…', a:['make the bottoms match','add them','compare the tops only'], ok:0, why:'Common denominator, then compare tops.'}
   ]
 };
+
+/* Zorgvuldig geschreven Nederlandse uitleg en controlevragen. */
+Object.assign(TUTOR,{
+  ops:[
+    {t:'De juiste rekenvolgorde',h:'Bij een lange som werk je in deze volgorde:<br>1️⃣ Haakjes<br>2️⃣ Machten<br>3️⃣ Keer en deel<br>4️⃣ Plus en min'+
+      '<div class="ex">3 + 4 · 5<br><span class="no">Niet: 7 · 5 = 35</span><br><span class="ok">Wel: 3 + 20 = 23</span></div>Een keersom gaat dus vóór een plussom.'},
+    {t:'Omcirkel de voorrangsommen',h:'Omcirkel eerst alle keer- en deelsommen. Reken die kleine stukken uit. Doe daarna de plus- en minsommen van links naar rechts.'+
+      '<div class="ex">20 − 2·6 + 4<br>Eerst: <span class="big">2·6 = 12</span><br><span class="ok">20 − 12 + 4 = 12</span></div>Staan er haakjes? Die gaan altijd eerst.'}
+  ],
+  machine:[
+    {t:'Draai de getallenmachine om',h:'Zoek het begingetal door <span class="big">achteruit</span> te werken. Keer elke stap om: + wordt − en × wordt ÷.'+
+      '<div class="ex">? → ×3 → +4 → 19<br>19 − 4 = 15<br>15 ÷ 3 = <span class="ok">5</span></div>Draai de laatste stap als eerste om.'},
+    {t:'Spoel de film terug',h:'Doe alsof de machine een filmpje is. Bij terugspoelen gebeurt alles in omgekeerde volgorde. Tel je vooruit 7 op, dan trek je achteruit 7 af.'+
+      '<div class="ex">? → ×5 → −2 → 18<br>18 + 2 = 20<br>20 ÷ 5 = <span class="ok">4</span></div>Controleer door daarna weer vooruit te rekenen.'}
+  ],
+  equation:[
+    {t:'De weegschaal blijft in balans',h:'Een vergelijking is als een weegschaal. Wat je links doet, doe je ook rechts. Zo blijft alles in evenwicht.'+
+      '<div class="ex">2x + 7 = 57<br>Aan beide kanten −7: 2x = 50<br>Aan beide kanten ÷2: x = <span class="ok">25</span></div>'},
+    {t:'Pak x stap voor stap uit',h:'x zit als een cadeautje ingepakt. Maak de <span class="big">laatste bewerking eerst</span> ongedaan.'+
+      '<div class="ex">3x − 5 = 16<br>Eerst +5: 3x = 21<br>Daarna ÷3: x = <span class="ok">7</span></div>'}
+  ],
+  fraction:[
+    {t:'Een breuk van een getal',h:'Bij <span class="big">3/4 van 16</span> deel je eerst door de noemer en vermenigvuldig je daarna met de teller.'+
+      '<div class="ex">16 ÷ 4 = 4<br>3 × 4 = <span class="ok">12</span></div>De noemer maakt gelijke delen; de teller zegt hoeveel delen je neemt.'},
+    {t:'De pizzatruc',h:'Stel je een pizza voor. De noemer zegt in hoeveel gelijke stukken je hem snijdt. De teller zegt hoeveel stukken je pakt.'+
+      '<div class="ex">2/5 van 20 koekjes<br>5 bordjes met elk 4 koekjes<br>2 bordjes = <span class="ok">8 koekjes</span></div>Bij dezelfde teller is de breuk met de kleinste noemer het grootst.'}
+  ],
+  factor:[
+    {t:'GGD en KGV',h:'De <span class="big">GGD</span> is de grootste deler die twee getallen delen. Het <span class="big">KGV</span> is het kleinste getal dat in beide tafels voorkomt.'+
+      '<div class="ex">Delers van 12: 1,2,3,4,6,12<br>Delers van 20: 1,2,4,5,10,20<br>GGD = <span class="ok">4</span></div>'},
+    {t:'Veelvouden ontmoeten elkaar',h:'Tel verder in sprongen van beide getallen. Het eerste ontmoetingspunt is het KGV.'+
+      '<div class="ex">6: 6,12,18,<span class="ok">24</span><br>8: 8,16,<span class="ok">24</span><br>KGV = 24</div>Een macht als 2³ betekent 2·2·2, niet 2·3.'}
+  ],
+  shape:[
+    {t:'Oppervlakte of omtrek?',h:'<span class="big">Oppervlakte</span> is de ruimte binnenin: lengte × breedte. <span class="big">Omtrek</span> is de afstand langs de rand: tel alle zijden op.'+
+      '<div class="ex">Rechthoek 6 bij 4<br>Oppervlakte = <span class="ok">24</span><br>Omtrek = <span class="ok">20</span></div>'},
+    {t:'Verven of een hek bouwen?',h:'Wil je de vloer verven? Dan zoek je de oppervlakte. Wil je een hek langs de rand? Dan zoek je de omtrek.'+
+      '<div class="ex">Bij een L-vorm:<br>oppervlakte grote rechthoek<br>− oppervlakte ontbrekend stuk</div>Twijfel je? Tel de vakjes in het rooster.'}
+  ],
+  multiply:[
+    {t:'Splits het grote getal',h:'Splits een groot getal op in honderdtallen, tientallen en eenheden. Vermenigvuldig elk deel en tel de uitkomsten op.'+
+      '<div class="ex">243 × 6<br>200×6 + 40×6 + 3×6<br>1200 + 240 + 18 = <span class="ok">1458</span></div>'},
+    {t:'Gebruik handige getallen',h:'Rond tijdelijk af naar een makkelijk getal. Haal daarna weg wat je te veel hebt gerekend.'+
+      '<div class="ex">28 × 7<br>30×7 − 2×7<br>210 − 14 = <span class="ok">196</span></div>'}
+  ],
+  angle:[
+    {t:'Gestrekte en rechte hoeken',h:'Een gestrekte hoek is <span class="big">180°</span>. Een rechte hoek is <span class="big">90°</span>.'+
+      '<div class="ex">Eén hoek is 110° op een rechte lijn.<br>De andere is 180 − 110 = <span class="ok">70°</span></div>'},
+    {t:'Verdeel het totaal in delen',h:'Is hoek A twee keer zo groot als hoek B? Dan is B één deel en A twee delen.'+
+      '<div class="ex">Samen 90°: 3 delen = 90°<br>1 deel = 30°<br>A = <span class="ok">60°</span></div>'}
+  ],
+  compare:[
+    {t:'Vergelijk zonder alles uit te rekenen',h:'Zoek een patroon. Bij 22·99 en 22·89 is het eerste getal gelijk. Omdat 99 groter is dan 89, is de eerste som groter.'},
+    {t:'Maak de noemers gelijk',h:'Maak bij breuken eerst de noemers gelijk en vergelijk daarna de tellers.'+
+      '<div class="ex">3/5 en 5/8<br>24/40 en 25/40<br>Dus 3/5 is <span class="ok">kleiner</span>.</div>'}
+  ]
+});
+Object.assign(CHECKS,{
+  ops:[
+    {q:'Wat reken je bij <b>2 + 5 · 3</b> EERST uit?',a:['5 · 3','2 + 5','alles van links naar rechts'],ok:0,why:'Vermenigvuldigen gaat vóór optellen.'},
+    {q:'Welk deel gaat bij <b>10 − 2 · 4</b> eerst?',a:['2 · 4','10 − 2','geen van beide'],ok:0,why:'Keer en deel gaan vóór plus en min.'}
+  ],
+  machine:[
+    {q:'De machine deed <b>+ 4</b>. Wat doe je als je terugwerkt?',a:['4 aftrekken','nog eens 4 optellen','vermenigvuldigen met 4'],ok:0,why:'Achteruit wordt + een −.'},
+    {q:'De machine deed <b>× 5</b>. Hoe draai je die stap om?',a:['delen door 5','nog eens keer 5','5 aftrekken'],ok:0,why:'Achteruit wordt × een ÷.'}
+  ],
+  equation:[
+    {q:'Wat maak je bij <b>2x + 7 = 57</b> EERST ongedaan?',a:['aan beide kanten 7 eraf','meteen delen door 2','7 erbij tellen'],ok:0,why:'Werk eerst de +7 weg.'},
+    {q:'Welke laag pak je bij <b>3x − 5 = 16</b> eerst uit?',a:['de −5','de ×3','de x'],ok:0,why:'Maak de laatste bewerking als eerste ongedaan.'}
+  ],
+  fraction:[
+    {q:'Wat doe je bij <b>3/4 van 16</b> EERST?',a:['16 delen door 4','16 keer 3','3 + 4'],ok:0,why:'Deel door de noemer om één deel te vinden.'},
+    {q:'Welke breuk is groter?',a:['1/4','1/8','ze zijn even groot'],ok:0,why:'Meer stukken betekent dat elk stuk kleiner is.'}
+  ],
+  factor:[
+    {q:'De GGD is de ___ deler van beide getallen.',a:['grootste','kleinste','eerste'],ok:0,why:'GGD betekent grootste gemene deler.'},
+    {q:'Wat betekent <b>2³</b>?',a:['2 · 2 · 2','2 · 3','2 + 2 + 2'],ok:0,why:'De kleine 3 zegt hoeveel tweeën je vermenigvuldigt.'}
+  ],
+  shape:[
+    {q:'Wat is OPPERVLAKTE?',a:['de ruimte binnenin','de afstand langs de rand','de langste zijde'],ok:0,why:'Voor oppervlakte vermenigvuldig je de zijden.'},
+    {q:'Hoe vind je de OMTREK?',a:['alle zijden optellen','de zijden vermenigvuldigen','de hoeken tellen'],ok:0,why:'Omtrek is de hele afstand rondom.'}
+  ],
+  multiply:[
+    {q:'Hoe splits je <b>243</b> handig?',a:['200 + 40 + 3','24 + 3','243 + 6'],ok:0,why:'Splits op volgens de plaatswaarde.'},
+    {q:'Met welke handige som begin je bij <b>28 × 7</b>?',a:['30 × 7','20 × 7','28 × 10'],ok:0,why:'Reken met 30 en haal daarna 2 × 7 weg.'}
+  ],
+  angle:[
+    {q:'Hoeveel graden is een <b>gestrekte hoek</b>?',a:['180°','90°','360°'],ok:0,why:'Een halve draai is 180°.'},
+    {q:'Op een rechte lijn is één hoek 120°. Hoe groot is de andere?',a:['60°','120°','240°'],ok:0,why:'180 − 120 = 60.'}
+  ],
+  compare:[
+    {q:'Wat is groter: <b>15 · 8</b> of <b>15 · 6</b>?',a:['15 · 8','15 · 6','even groot'],ok:0,why:'Bij hetzelfde eerste getal is ×8 groter dan ×6.'},
+    {q:'Hoe vergelijk je <b>2/3</b> en <b>3/4</b> handig?',a:['de noemers gelijk maken','de breuken optellen','alleen de tellers bekijken'],ok:0,why:'Maak de noemers gelijk en vergelijk de tellers.'}
+  ]
+});
 function showTutor(topic){
   const lessons=TUTOR[topic]||TUTOR.ops;
   const idx=S.chainTutors % lessons.length;
@@ -2467,7 +2562,7 @@ function showTutor(topic){
         $('btnTutorGo').style.display='';
       } else {
         b.classList.add('wrong'); b.disabled=true;
-        $('checkMsg').textContent='Not quite, read the example above 👆 then try again.';
+        $('checkMsg').textContent='Nog niet helemaal. Lees het voorbeeld hierboven 👆 en probeer opnieuw.';
         $('checkMsg').className='checkMsg bad';
         sWrong();
       }
@@ -2524,7 +2619,7 @@ function answer(i,btn){
     if(hinted){
       // used a hint: score doesn't go up; small coin reward so it still feels ok
       S.streak=0; pts=0; coinGain=1;
-      comboFlash('GOOD USE OF THE HINT!');
+      comboFlash('SLIM DE HINT GEBRUIKT!');
     } else if(!struggled && !variant){
       S.streak++;
       S.bestStreak=Math.max(S.bestStreak,S.streak);
@@ -2535,11 +2630,11 @@ function answer(i,btn){
       if(S.streak>0 && S.streak%3===0) comboFlash('COMBO ×'+mult+'!');
     } else if(variant){
       pts=5*tier; coinGain=1;
-      comboFlash('NICE! NOW THE REAL ONE!');
+      comboFlash('GOED! NU DE ECHTE SOM!');
     } else {
       S.streak=1;
       pts=5*tier; coinGain=1;
-      comboFlash((S.name?S.name.toUpperCase()+', ':'')+'YOU GOT IT!');
+      comboFlash((S.name?S.name.toUpperCase()+', ':'')+'JE HEBT HEM!');
     }
     S.score+=pts;
     addCoins(coinGain);
@@ -2551,7 +2646,7 @@ function answer(i,btn){
     // first problem solved this login = welcome-back bonus
     if(!S.sessionFirstDone && !variant){
       S.sessionFirstDone=true;
-      comboFlash('DAILY BONUS +10! 🪙');
+      comboFlash('DAGBONUS +10! 🪙');
       setTimeout(()=>grantCoins(10), 500);
     }
     updateHUD();
@@ -2582,7 +2677,7 @@ function answer(i,btn){
         gainXP(50);
         confetti(); sBossDown();
         $('ovCard').className='ovCard';
-        overlay('<div class="ovGlyph">🏆</div><div class="ovBig">AREA CLEARED!</div><div class="bossTaunt">'+b.win+'</div><div class="ovSub">+25 coins · +50 XP<br>Unstoppable'+(S.name?', '+S.name:'')+'!</div>', 2400,
+        overlay('<div class="ovGlyph">🏆</div><div class="ovBig">GEBIED VRIJ!</div><div class="bossTaunt">'+b.win+'</div><div class="ovSub">+25 munten · +50 XP<br>Niet te stoppen'+(S.name?', '+S.name:'')+'!</div>', 2400,
           S.solved>=MISSION_TARGET? endRun : ()=>{ spawnMonster(); nextQuestion(); });
         return;
       }
@@ -2606,10 +2701,10 @@ function answer(i,btn){
     document.querySelectorAll('.ans').forEach((b,j)=>{ if(q.choices[j].ok) b.classList.add('reveal'); });
     foeHealUp();
     sWrong();
-    comboFlash('💬 '+(BOSSES[S.bossIdx].taunt||'Is that all?'));
+    comboFlash('💬 '+(BOSSES[S.bossIdx].taunt||'Is dat alles?'));
     if(S.foeCharged) setTimeout(foeAttack, 500);   // it lands the hit it was winding up
     $('tipbar').classList.remove('trick');
-    $('tipbar').innerHTML='<b>The boss fed on that! ❤️+1.</b> Hit it again, '+(S.name||'ninja')+'! The right answer was highlighted.';
+    $('tipbar').innerHTML='<b>De eindbaas werd sterker! ❤️+1.</b> Val opnieuw aan, '+(S.name||'ninja')+'! Het goede antwoord is gemarkeerd.';
     $('tipbar').classList.add('on');
     updateHUD();
     setTimeout(nextQuestion, 1900);
@@ -2627,7 +2722,7 @@ function answer(i,btn){
     updateHUD();
     if(S.qWrongs===1){
       $('tipbar').classList.remove('trick');
-      $('tipbar').innerHTML='<b>SO CLOSE'+(S.name?', '+S.name:'')+'!</b> Trick: '+(q.tip||'Take another look, you can do this!')+' Try again! 💪';
+      $('tipbar').innerHTML='<b>BIJNA'+(S.name?', '+S.name:'')+'!</b> Truc: '+(q.tip||'Kijk nog eens goed. Je kunt dit!')+' Probeer opnieuw! 💪';
       $('tipbar').classList.add('on');
       $('btnHint').classList.add('used');
       maybeShowNeedHelp();
@@ -2644,7 +2739,7 @@ function gainXP(n){
     grantCoins(20);
     confetti(); sLevel();
     $('ovCard').className='ovCard';
-    overlay('<div class="ovGlyph">'+skinHTML(S.skin)+'</div><div class="ovBig">LEVEL '+S.level+'!</div><div class="ovSub">Rank: '+rankFor(S.level)+'<br>+20 coins!</div>', 2000, null);
+    overlay('<div class="ovGlyph">'+skinHTML(S.skin)+'</div><div class="ovBig">NIVEAU '+S.level+'!</div><div class="ovSub">Rang: '+rankFor(S.level)+'<br>+20 munten!</div>', 2000, null);
     scheduleSave();
   }
   updateHUD();
@@ -2667,9 +2762,9 @@ function levelComplete(){
   confetti(); sBossDown();
   const starTxt='★'.repeat(stars)+'<span style="opacity:.25">'+'★'.repeat(3-stars)+'</span>';
   $('ovCard').className='ovCard';
-  overlay('<div class="ovGlyph">🏆</div><div class="ovBig">'+levelName(S.levelIdx).toUpperCase()+' COMPLETE!</div>'+
+  overlay('<div class="ovGlyph">🏆</div><div class="ovBig">'+levelName(S.levelIdx).toUpperCase()+' VOLTOOID!</div>'+
     '<div style="font-size:34px; color:var(--gold); margin-top:6px">'+starTxt+'</div>'+
-    '<div class="ovSub">+'+bonus+' coins · +60 XP</div>', 2600, endRun);
+    '<div class="ovSub">+'+bonus+' munten · +60 XP</div>', 2600, endRun);
   scheduleSave();
 }
 let ovTimer=null;
@@ -2682,10 +2777,10 @@ function overlay(html, ms, then){
 
 /* ---------------- journey map ---------------- */
 const MAPTHEMES=[
-  {name:'Forest Trail',   bg:'radial-gradient(900px 600px at 50% 0,#2e6b34,#0c2a14)', node:'🌲'},
-  {name:'River Run',      bg:'radial-gradient(900px 600px at 50% 0,#1f5f86,#08223a)', node:'🌊'},
-  {name:'Candy Kingdom',  bg:'radial-gradient(900px 600px at 50% 0,#7a1e63,#2a0f2a)', node:'🍭'},
-  {name:'Cosmic Gauntlet',bg:'radial-gradient(900px 600px at 50% 0,#3a1a6e,#0b1030)', node:'⭐'}
+  {name:'Bospad', bg:'radial-gradient(900px 600px at 50% 0,#2e6b34,#0c2a14)', node:'🌲'},
+  {name:'Riviertocht', bg:'radial-gradient(900px 600px at 50% 0,#1f5f86,#08223a)', node:'🌊'},
+  {name:'Snoeprijk', bg:'radial-gradient(900px 600px at 50% 0,#7a1e63,#2a0f2a)', node:'🍭'},
+  {name:'Ruimteproef',bg:'radial-gradient(900px 600px at 50% 0,#3a1a6e,#0b1030)', node:'⭐'}
 ];
 function journeyTheme(){ return MAPTHEMES[Math.min(S.levelIdx, MAPTHEMES.length-1)]; }
 // how many "stops" this level maps to, and which one he's on
@@ -2733,8 +2828,8 @@ function buildJourney(){
   const remaining=Math.max(0, total-cur);
   const pct=Math.round(S.levelPos/Math.max(1,S.levelLen)*100);
   $('jrnySub').innerHTML = cur>=total
-    ? 'The BOSS is right ahead, '+(S.name||'ninja')+'! One more push! 👊'
-    : "You're <b>"+pct+"%</b> through! <b>"+remaining+'</b> stop'+(remaining===1?'':'s')+' to the boss 👹';
+    ? 'De EIND_BAAS staat vlak voor je, '+(S.name||'ninja')+'! Nog één keer alles geven! 👊'
+    : 'Je bent al <b>'+pct+'%</b> op weg! Nog <b>'+remaining+'</b> stap'+(remaining===1?'':'pen')+' tot de eindbaas 👹';
   // center the current stop
   setTimeout(()=>{ const sc=$('jrnyScroll'); sc.scrollTop=Math.max(0, pp.y-sc.clientHeight/2); }, 30);
 }
@@ -2742,10 +2837,10 @@ function showJourney(then, ms, pickStart){
   jrnyThen=then||null;
   buildJourney();
   if(pickStart){
-    $('jrnySub').innerHTML = "Tap your glowing step 👇 to begin, "+(S.name||'ninja')+"!";
-    const go=$('jrnyGo'); if(go) go.textContent='TAP TO START ▶';
+    $('jrnySub').innerHTML = 'Tik op de lichtgevende stap 👇 om te beginnen, '+(S.name||'ninja')+'!';
+    const go=$('jrnyGo'); if(go) go.textContent='TIK OM TE STARTEN ▶';
   } else {
-    const go=$('jrnyGo'); if(go) go.textContent='GO ▶';
+    const go=$('jrnyGo'); if(go) go.textContent='VERDER ▶';
   }
   $('journey').classList.add('on');
   tone(523,.12,'triangle',0,.09); tone(784,.16,'triangle',.1,.09);
@@ -2774,16 +2869,16 @@ function endRun(){
     const finished=S.levelPos>=S.levelLen;
     $('resTitle').innerHTML=finished
       ? levelName(S.levelIdx).toUpperCase()+' ✔'+(rec?' <span style="color:var(--gold)">'+'★'.repeat(rec.stars)+'</span>':'')
-      : 'GOOD TRAINING!';
-    $('btnAgain').textContent=finished ? '⚡ NEXT LEVEL' : '⚡ TRY AGAIN';
+      : 'GOED GEOEFEND!';
+    $('btnAgain').textContent=finished ? '⚡ VOLGEND NIVEAU' : '⚡ OPNIEUW';
   } else {
-    $('resTitle').textContent=S.solved>=MISSION_TARGET?'MISSION COMPLETE!':S.solved>=5?'GREAT TRAINING!':'GOOD WARM-UP!';
-    $('btnAgain').textContent='⚡ PLAY AGAIN';
+    $('resTitle').textContent=S.solved>=MISSION_TARGET?'MISSIE VOLTOOID!':S.solved>=5?'TOP GEOEFEND!':'GOEDE WARMING-UP!';
+    $('btnAgain').textContent='⚡ NOG EEN KEER';
   }
   $('resScore').textContent=S.score;
   $('resStreak').textContent=S.bestStreak;
   $('resCoins').textContent='+'+S.runCoins;
-  let rep='<div class="repTitle">NINJA SKILL REPORT</div>';
+  let rep='<div class="repTitle">NINJA-VAARDIGHEDEN</div>';
   Object.keys(acc).forEach(t=>{
     const a=acc[t]; const pct=Math.round(a.ok/a.n*100);
     rep+='<div class="repRow"><div class="rl">'+(TOPICNAMES[t]||t)+'</div>'+
@@ -2807,9 +2902,9 @@ function endRun(){
 /* ---------------- shop ---------------- */
 let shopCat='characters';
 const SHOP_DESC={
-  characters:'Pick who you play as. Tap one you own to equip it.',
-  powerups:'Boosters you buy and use during a mission. Stock up!',
-  effects:'Cosmetic auras for your character. Buy once, then tap to wear.'
+  characters:'Kies met welk personage je speelt. Tik op een personage dat je bezit om het te kiezen.',
+  powerups:'Koop krachten die je tijdens een missie kunt gebruiken.',
+  effects:'Kies een mooie aura voor je personage. Je koopt hem één keer en kunt hem daarna altijd dragen.'
 };
 function buy(cost, ok){
   if(S.coins<cost) return false;
@@ -2830,7 +2925,7 @@ function renderShop(cat){
       const b=document.createElement('button');
       b.className='sItem'+(owned?' owned':'')+(equipped?' active':'');
       b.innerHTML='<div class="sGlyph">'+glyph+'</div><div class="sName">'+a.name+'</div>'+
-        '<div class="sCost">'+(owned? (equipped?'EQUIPPED':'OWNED, tap!') : a.cost+' coins')+'</div>';
+        '<div class="sCost">'+(owned? (equipped?'GEKOZEN':'IN BEZIT, tik!') : a.cost+' munten')+'</div>';
       b.onclick=()=>{ if(owned){ S.skin=a.id; sClick(); renderShop(); renderHome(); scheduleSave(); }
         else if(!buy(a.cost, ()=>{ S.owned.push(a.id); S.skin=a.id; })) nope(b); };
       g.appendChild(b);
@@ -2841,8 +2936,8 @@ function renderShop(cat){
       const b=document.createElement('button');
       b.className='sItem owned';
       b.innerHTML='<div class="sGlyph">'+pu.icon+'</div><div class="sName">'+pu.name+'</div>'+
-        '<div class="sCost">'+pu.cost+' coins · +'+(pu.per||1)+' use'+((pu.per||1)>1?'s':'')+'</div>'+
-        (have?'<div class="sQty">You have '+have+' left</div>':'')+
+        '<div class="sCost">'+pu.cost+' munten · +'+(pu.per||1)+' keer gebruiken</div>'+
+        (have?'<div class="sQty">Je hebt er nog '+have+'</div>':'')+
         '<div class="sDesc">'+pu.desc+'</div>';
       b.onclick=()=>{ if(!buy(pu.cost, ()=>{ S.inventory[pu.id]=(S.inventory[pu.id]||0)+(pu.per||1); if(pu.id==='freeplay') renderHome(); })) nope(b); };
       g.appendChild(b);
@@ -2854,7 +2949,7 @@ function renderShop(cat){
       b.className='sItem'+(owned?' owned':'')+(equipped?' active':'');
       const prev=fx.id==='none'?'⚪':'<span class="fxPrev fx-'+fx.id+'" style="display:inline-block;width:40px;height:40px;border-radius:50%;background:#1a2260;">'+'</span>';
       b.innerHTML='<div class="sGlyph">'+prev+'</div><div class="sName">'+fx.name+'</div>'+
-        '<div class="sCost">'+(owned? (equipped?'EQUIPPED':'OWNED, tap!') : fx.cost+' coins')+'</div>';
+        '<div class="sCost">'+(owned? (equipped?'GEKOZEN':'IN BEZIT, tik!') : fx.cost+' munten')+'</div>';
       b.onclick=()=>{ if(owned){ S.effect=fx.id; sClick(); renderShop(); renderHome(); scheduleSave(); }
         else if(!buy(fx.cost, ()=>{ S.ownedEffects.push(fx.id); S.effect=fx.id; })) nope(b); };
       g.appendChild(b);
@@ -2883,7 +2978,7 @@ $('btnAgain').onclick=()=>{
   } else startRun(S.world);
 };
 $('btnHome').onclick=()=>{ sClick(); renderHome(); show('home'); };
-$('btnMute').onclick=()=>{ S.muted=!S.muted; $('btnMute').textContent=S.muted?'🔇 Muted':'🔊 Sound'; if(!S.muted) sClick(); scheduleSave(); };
+$('btnMute').onclick=()=>{ S.muted=!S.muted; $('btnMute').textContent=S.muted?'🔇 Geluid uit':'🔊 Geluid'; if(!S.muted) sClick(); scheduleSave(); };
 
 /* ===================== FREE PLAY: Dot Muncher (no math, pure fun) ===================== */
 const FP={cols:19,rows:22,cell:20,grid:null,pellets:null,left:0,player:null,dir:null,want:null,
@@ -2906,7 +3001,7 @@ function fpStart(){
   if((S.inventory.freeplay||0)<=0) return;
   S.inventory.freeplay--; scheduleSave(); renderHome();
   fpBuild(); fpReset(true);
-  $('fpMsg').textContent='Munch every dot. Dodge the ghosts!';
+  $('fpMsg').textContent='Eet alle stippen. Ontwijk de spoken!';
   $('freeplay').classList.add('on');
   fpDraw(); fpUpdateBar();
   clearInterval(FP.timer); FP.timer=setInterval(fpTick,150);
@@ -2954,20 +3049,20 @@ function fpLoseLife(){
   FP.lives--; tone(180,.25,'sawtooth',0,.12);
   fpUpdateBar(); fpDraw();
   if(FP.lives<=0){ fpGameOver(); return; }
-  $('fpMsg').textContent='Caught! '+FP.lives+' live'+(FP.lives===1?'':'s')+' left.';
+  $('fpMsg').textContent='Gepakt! Nog '+FP.lives+' '+(FP.lives===1?'leven':'levens')+' over.';
   clearInterval(FP.timer); FP.timer=null;
-  setTimeout(()=>{ fpReset(false); $('fpMsg').textContent='Go go go!'; fpDraw();
+  setTimeout(()=>{ fpReset(false); $('fpMsg').textContent='Ga, ga, ga!'; fpDraw();
     FP.timer=setInterval(fpTick,150); }, 900);
 }
 function fpWin(){
   FP.over=true; clearInterval(FP.timer); FP.timer=null;
   tone(523,.12,'triangle',0,.1); tone(784,.16,'triangle',.12,.1); tone(1046,.2,'triangle',.26,.1);
-  $('fpMsg').innerHTML='🎉 CLEARED! Score '+FP.score+'. Tap Done.';
+  $('fpMsg').innerHTML='🎉 GEHAALD! Score: '+FP.score+'. Tik op Klaar.';
   fpDraw();
 }
 function fpGameOver(){
   FP.over=true; clearInterval(FP.timer); FP.timer=null;
-  $('fpMsg').innerHTML='Game over — score '+FP.score+'. Tap Done.';
+  $('fpMsg').innerHTML='Spel afgelopen — score: '+FP.score+'. Tik op Klaar.';
   fpDraw();
 }
 function fpUpdateBar(){
@@ -3028,14 +3123,14 @@ function applySeeds(){
 function enterDojo(created, offline){
   $('btnSignout').style.display='';
   $('homeName').textContent=S.name;
-  $('btnMute').textContent=S.muted?'🔇 Muted':'🔊 Sound';
+  $('btnMute').textContent=S.muted?'🔇 Geluid uit':'🔊 Geluid';
   S.sessionFirstDone=false;   // arm the "first problem this login" +10 bonus
   applySeeds();
   renderHome();
   show('home');
   setSyncStatus(offline?'offline':'saved');
   if(created){
-    overlay('<div class="ovGlyph">🥷</div><div class="ovBig">WELCOME, '+ (S.name||'NINJA').toUpperCase() +'!</div>', 2000, null);
+    overlay('<div class="ovGlyph">🥷</div><div class="ovBig">WELKOM, '+ (S.name||'NINJA').toUpperCase() +'!</div>', 2000, null);
   }
 }
 // remember the signed-in player across refreshes (real site, not an artifact)
@@ -3052,11 +3147,11 @@ async function autoLogin(){
 let parentMode=false;
 function setParentMode(on){
   parentMode=on;
-  $('btnLogin').textContent=on?'📊 VIEW REPORT':'⚡ START';
-  $('btnParentMode').textContent=on?'Back to player sign-in':'Parent? View the progress report';
+  $('btnLogin').textContent=on?'📊 BEKIJK RAPPORT':'⚡ START';
+  $('btnParentMode').textContent=on?'Terug naar aanmelden als speler':'Ouder of leerkracht? Bekijk de voortgang';
   $('loginNote').textContent=on
-    ? "Enter your child's ninja name and PIN to see how they're doing."
-    : 'First time? Pick any name and a PIN you\'ll remember, that becomes your account. Coming back? Use the same name and PIN.';
+    ? 'Vul de ninjanaam en pincode van het kind in om de voortgang te bekijken.'
+    : 'Eerste keer? Kies een naam en een pincode van vier cijfers. Gebruik later dezelfde naam en pincode.';
   $('loginErr').classList.remove('on');
 }
 $('btnParentMode').onclick=()=>{ sClick(); setParentMode(!parentMode); };
@@ -3064,8 +3159,8 @@ $('btnParentMode').onclick=()=>{ sClick(); setParentMode(!parentMode); };
 async function doLogin(){
   const name=$('nameInp').value.trim();
   const pin=$('pinInp').value.trim();
-  if(name.length<1){ showLoginError(parentMode?"Type your child's ninja name.":'Type a ninja name.'); return; }
-  if(!/^[0-9]{4}$/.test(pin)){ showLoginError('PIN must be exactly 4 numbers.'); return; }
+  if(name.length<1){ showLoginError(parentMode?'Vul de ninjanaam van het kind in.':'Vul een ninjanaam in.'); return; }
+  if(!/^[0-9]{4}$/.test(pin)){ showLoginError('De pincode moet precies vier cijfers hebben.'); return; }
   $('loginErr').classList.remove('on');
   const btn=$('btnLogin'); btn.disabled=true; const keep=btn.textContent; btn.textContent='…'; sClick();
 
@@ -3074,12 +3169,12 @@ async function doLogin(){
       const r=await apiPost({ action:'report', name, pin });
       btn.disabled=false; btn.textContent=keep;
       if(r.data && r.data.ok){ renderParent(name, r.data.data); show('parent'); return; }
-      if(r.data && r.data.error==='no_such_player'){ showLoginError('No ninja with that name yet.'); return; }
-      if(r.data && r.data.error==='wrong_pin'){ showLoginError('That PIN does not match this ninja.'); return; }
-      showLoginError('Could not load the report. Try again.');
+      if(r.data && r.data.error==='no_such_player'){ showLoginError('Er is nog geen ninja met die naam.'); return; }
+      if(r.data && r.data.error==='wrong_pin'){ showLoginError('Deze pincode hoort niet bij deze ninja.'); return; }
+      showLoginError('Het rapport kon niet worden geladen. Probeer opnieuw.');
     }catch(e){
       btn.disabled=false; btn.textContent=keep;
-      showLoginError('Reports need an internet connection.');
+      showLoginError('Voor rapporten is een internetverbinding nodig.');
     }
     return;
   }
@@ -3087,8 +3182,8 @@ async function doLogin(){
   const r=await cloudLogin(name, pin);
   btn.disabled=false; btn.textContent=keep;
   if(!r.ok){
-    if(r.error==='wrong_pin') showLoginError('That name is taken and the PIN is wrong. Try again or pick a new name.');
-    else showLoginError('Could not sign in. Check your connection and try again.');
+    if(r.error==='wrong_pin') showLoginError('Deze naam is al in gebruik en de pincode klopt niet. Probeer opnieuw of kies een andere naam.');
+    else showLoginError('Aanmelden is niet gelukt. Controleer de verbinding en probeer opnieuw.');
     return;
   }
   S.name=name;
@@ -3100,7 +3195,7 @@ async function doLogin(){
 function renderParent(name, d){
   const body=$('parentBody');
   if(!d || (!d.progress && !d.stats)){
-    body.innerHTML='<div class="parCard"><div class="parEmpty">No games played yet for <b>'+name+'</b>.<br>Once they play a mission, results show up here.</div></div>';
+    body.innerHTML='<div class="parCard"><div class="parEmpty"><b>'+name+'</b> heeft nog niet gespeeld.<br>Na de eerste missie verschijnen de resultaten hier.</div></div>';
     return;
   }
   const prog=d.progress||{topics:{},sessions:[]};
@@ -3113,17 +3208,17 @@ function renderParent(name, d){
 
   let html='<div class="parCard"><div class="parHead">'+
     '<div class="pa">'+avatar+'</div>'+
-    '<div><div class="pn">'+name+'</div><div class="pl">Level '+(d.level||1)+' · '+rankFor(d.level||1)+' · '+(d.coins||0)+' coins</div></div>'+
+    '<div><div class="pn">'+name+'</div><div class="pl">Niveau '+(d.level||1)+' · '+rankFor(d.level||1)+' · '+(d.coins||0)+' munten</div></div>'+
     '</div><div class="parKpis">'+
-    '<div class="kpi"><div class="n">'+totSolved+'</div><div class="l">Problems solved</div></div>'+
-    '<div class="kpi"><div class="n" style="color:var(--green)">'+(totSolved?Math.round(totFirst/totSolved*100):0)+'%</div><div class="l">Right first try</div></div>'+
-    '<div class="kpi"><div class="n" style="color:var(--gold)">'+totWrongs+'</div><div class="l">Wrong attempts</div></div>'+
-    '<div class="kpi"><div class="n" style="color:var(--cyan)">'+totTutors+'</div><div class="l">Tutorials used</div></div>'+
+    '<div class="kpi"><div class="n">'+totSolved+'</div><div class="l">Sommen opgelost</div></div>'+
+    '<div class="kpi"><div class="n" style="color:var(--green)">'+(totSolved?Math.round(totFirst/totSolved*100):0)+'%</div><div class="l">Meteen goed</div></div>'+
+    '<div class="kpi"><div class="n" style="color:var(--gold)">'+totWrongs+'</div><div class="l">Foute pogingen</div></div>'+
+    '<div class="kpi"><div class="n" style="color:var(--cyan)">'+totTutors+'</div><div class="l">Uitleg gebruikt</div></div>'+
     '</div></div>';
 
   // NINJA BELTS, the quick strengths/weaknesses view (same panel the student sees)
   const mastery=prog.mastery||{};
-  html+='<div class="parCard"><div class="parSecTitle">🥋 Belt progress, what he\'s mastering</div>'+
+  html+='<div class="parCard"><div class="parSecTitle">🥋 Voortgang met ninjabanden</div>'+
     beltPanelHTML(mastery, false)+'</div>';
 
   // ---- topic snapshot: where he needs help vs where he's strong ----
@@ -3140,19 +3235,19 @@ function renderParent(name, d){
     if(!weak.length) weak=trow.filter(r=>r.solved>0 && (r.firstPct??100)<70).sort((a,b)=>(a.firstPct??100)-(b.firstPct??100));
     // doing well: strongest belts with nothing flagged
     const strong=trow.filter(r=>r.flags===0 && r.m>=40).sort((a,b)=> b.m-a.m || (b.firstPct??0)-(a.firstPct??0));
-    const flagWord=n=>n+' flag'+(n===1?'':'s');
-    let snap='<div class="parCard"><div class="parSecTitle">📊 Where he needs help vs where he\'s strong</div><div class="snap">';
-    snap+='<div class="snapCol weak"><div class="snapH">🙋 Needs the most help</div>';
+    const flagWord=n=>n+' hulpvraag'+(n===1?'':'en');
+    let snap='<div class="parCard"><div class="parSecTitle">📊 Hulp nodig en sterke onderdelen</div><div class="snap">';
+    snap+='<div class="snapCol weak"><div class="snapH">🙋 Meeste hulp nodig</div>';
     if(weak.length) weak.slice(0,4).forEach(r=>{ const col=TOPICCOLORS[r.t]||'#9aa3d8';
       snap+='<div class="snapRow"><span style="color:'+col+'">'+(TOPICNAMES[r.t]||r.t)+'</span>'+
-        '<span class="sub">'+(r.flags?flagWord(r.flags):'')+(r.flags&&r.firstPct!=null?' · ':'')+(r.firstPct!=null?r.firstPct+'% first try':'')+'</span></div>'; });
-    else snap+='<div class="snapEmpty">Nothing flagged yet, he\'s cruising. 🎉</div>';
+        '<span class="sub">'+(r.flags?flagWord(r.flags):'')+(r.flags&&r.firstPct!=null?' · ':'')+(r.firstPct!=null?r.firstPct+'% meteen goed':'')+'</span></div>'; });
+    else snap+='<div class="snapEmpty">Nog geen hulpvragen. Dat gaat goed! 🎉</div>';
     snap+='</div>';
-    snap+='<div class="snapCol good"><div class="snapH">💪 Doing well</div>';
+    snap+='<div class="snapCol good"><div class="snapH">💪 Gaat goed</div>';
     if(strong.length) strong.slice(0,4).forEach(r=>{ const L=masteryLevel(r.m);
       snap+='<div class="snapRow"><span>'+(TOPICNAMES[r.t]||r.t)+'</span>'+
         '<span class="b" style="color:'+L.color+'">'+L.name+'</span></div>'; });
-    else snap+='<div class="snapEmpty">Belts show up here once he reaches Orange in a skill.</div>';
+    else snap+='<div class="snapEmpty">Vanaf de oranje band verschijnen hier sterke onderdelen.</div>';
     snap+='</div></div></div>';
     html+=snap;
   }
@@ -3160,29 +3255,29 @@ function renderParent(name, d){
   // 🙋 questions he flagged as "I need help" — the parent's to-do list, tap any to open it
   const nh=(prog.needHelp||[]).slice().reverse();
   if(nh.length){
-    html+='<div class="parCard"><div class="parSecTitle">🙋 Wants help with ('+nh.length+')</div>'+
-      '<div class="parEmpty" style="padding:0 0 10px; text-align:left">He got stuck and flagged these to go over together. Tap any one to open the full problem, the hint he saw, and what he tried.</div>';
+    html+='<div class="parCard"><div class="parSecTitle">🙋 Hulp gevraagd bij ('+nh.length+')</div>'+
+      '<div class="parEmpty" style="padding:0 0 10px; text-align:left">Bij deze sommen vroeg de speler om hulp. Tik op een som om de opdracht, hint en pogingen te bekijken.</div>';
     nh.slice(0,20).forEach(h=>{
       const col=TOPICCOLORS[h.topic]||'#9aa3d8';
       const dt=new Date(h.at).toLocaleDateString(undefined,{month:'short',day:'numeric'});
       const loc=h.where+(h.qNum?' · Q'+h.qNum:'')+' · '+dt;
       // detail: full question, the tip, his attempts, the right answer
       let det='';
-      if(h.qHTML){ det+='<div class="hdLabel">The problem</div><div class="hdQ">'+h.qHTML+'</div>'; }
-      if(h.tip){ det+='<div class="hdBlock"><div class="hdLabel">🥷 The hint he saw</div><div class="hdTip">'+h.tip+'</div></div>'; }
+      if(h.qHTML){ det+='<div class="hdLabel">De som</div><div class="hdQ">'+h.qHTML+'</div>'; }
+      if(h.tip){ det+='<div class="hdBlock"><div class="hdLabel">🥷 Bekeken hint</div><div class="hdTip">'+h.tip+'</div></div>'; }
       const picks=Array.isArray(h.picks)?h.picks:[];
-      det+='<div class="hdBlock"><div class="hdLabel">What he tried</div>';
+      det+='<div class="hdBlock"><div class="hdLabel">Geprobeerd</div>';
       if(picks.length) det+=picks.map(p=>'<span class="pick bad">'+p+'</span>').join('');
-      else det+='<span class="snapEmpty">He flagged it before choosing an answer.</span>';
+      else det+='<span class="snapEmpty">Er werd om hulp gevraagd vóór er een antwoord was gekozen.</span>';
       det+='</div>';
-      if(h.correct) det+='<div class="hdBlock"><div class="hdLabel">Correct answer</div><span class="pick good">'+h.correct+'</span></div>';
-      if(!h.qHTML && !h.tip && !picks.length) det='<div class="snapEmpty">This is an earlier flag, only the summary above was recorded for it.</div>';
+      if(h.correct) det+='<div class="hdBlock"><div class="hdLabel">Juiste antwoord</div><span class="pick good">'+h.correct+'</span></div>';
+      if(!h.qHTML && !h.tip && !picks.length) det='<div class="snapEmpty">Van deze oudere hulpvraag is alleen de samenvatting bewaard.</div>';
       html+='<div class="helpItem" onclick="this.classList.toggle(\'open\')">'+
         '<div class="helpRowHead"><span class="helpTopic" style="background:'+col+'22; color:'+col+'; border-color:'+col+'55">'+(TOPICNAMES[h.topic]||h.topic)+'</span>'+
         '<div class="helpQ">'+h.q+'</div><div class="helpMeta">'+loc+' <span class="caret">▸</span></div></div>'+
         '<div class="helpDetail">'+det+'</div></div>';
     });
-    if(nh.length>20) html+='<div class="parEmpty" style="padding:6px 0 0; font-size:11px">…and '+(nh.length-20)+' more earlier.</div>';
+    if(nh.length>20) html+='<div class="parEmpty" style="padding:6px 0 0; font-size:11px">…en nog '+(nh.length-20)+' oudere hulpvragen.</div>';
     html+='</div>';
   }
 
@@ -3190,41 +3285,41 @@ function renderParent(name, d){
   const solvedIds=prog.solved||{};
   let wbDone=0; for(let i=0;i<BOOKS.length;i++) if(story['B'+(i+1)]) wbDone++;
   let chalDone=0; let ci=1; while(story['C'+ci]){ chalDone++; ci++; }
-  html+='<div class="parCard"><div class="parSecTitle">Workbook Quest, RSM Grade 4 Advanced</div>'+
-    '<div class="skRow"><div class="sn">Levels done</div>'+
+  html+='<div class="parCard"><div class="parSecTitle">Werkboekmissie · groep 4</div>'+
+    '<div class="skRow"><div class="sn">Niveaus klaar</div>'+
     '<div class="sbar"><div class="sfill" style="width:'+(wbDone/BOOKS.length*100)+'%; background:var(--gold)"></div></div>'+
-    '<div class="sd">'+wbDone+' of '+BOOKS.length+(chalDone?' · +'+chalDone+' challenge':'')+'</div></div>';
+    '<div class="sd">'+wbDone+' van '+BOOKS.length+(chalDone?' · +'+chalDone+' uitdaging':'')+'</div></div>';
   for(let i=0;i<BOOKS.length;i++){
     const r=story['B'+(i+1)];
     const qs=bookQs(i); const sc=qs.filter(o=>solvedIds[o.id]).length;
     html+='<div class="sessRow"><div class="sd1">'+BOOKS[i].name+'</div><div class="sw">'+
       (r? '<span style="color:var(--gold)">'+'★'.repeat(r.stars)+'</span><span style="opacity:.2">'+'★'.repeat(3-r.stars)+'</span>'
-        : (sc>0? sc+' of '+qs.length+' problems' : '<span style="color:#5b64a8">not started</span>'))+
-      '</div><div class="ss">'+(r? r.ft+' first-try · '+r.wr+' wrong' : BOOKS[i].sub)+'</div></div>';
+        : (sc>0? sc+' van '+qs.length+' sommen' : '<span style="color:#5b64a8">nog niet gestart</span>'))+
+      '</div><div class="ss">'+(r? r.ft+' meteen goed · '+r.wr+' fout' : BOOKS[i].sub)+'</div></div>';
   }
   html+='</div>';
 
-  html+='<div class="parCard"><div class="parSecTitle">Skill by skill</div>';
+  html+='<div class="parCard"><div class="parSecTitle">Per vaardigheid</div>';
   const keys=Object.keys(topics);
-  if(!keys.length) html+='<div class="parEmpty">No problems solved yet.</div>';
+  if(!keys.length) html+='<div class="parEmpty">Nog geen sommen opgelost.</div>';
   keys.forEach(t=>{
     const p=topics[t];
     const pct=p.solved?Math.round(p.first/p.solved*100):0;
     const avgTries=p.solved?((p.wrongs+p.solved)/p.solved).toFixed(1):'—';
     html+='<div class="skRow"><div class="sn">'+(TOPICNAMES[t]||t)+'</div>'+
       '<div class="sbar"><div class="sfill" style="width:'+pct+'%; background:'+(TOPICCOLORS[t]||'#9aa3d8')+'"></div></div>'+
-      '<div class="sd">'+pct+'% first try · '+avgTries+' tries avg'+(p.tutors?' · '+p.tutors+' 🧠':'')+'</div></div>';
+      '<div class="sd">'+pct+'% meteen goed · gemiddeld '+avgTries+' pogingen'+(p.tutors?' · '+p.tutors+' 🧠':'')+'</div></div>';
   });
-  html+='<div class="parEmpty" style="padding:8px 0 0; font-size:11px">"Tries avg" = how many answers it took before getting it right (1.0 is perfect). 🧠 = tutorials shown.</div></div>';
+  html+='<div class="parEmpty" style="padding:8px 0 0; font-size:11px">Gemiddelde pogingen: 1,0 betekent dat elke som meteen goed was. 🧠 = aantal keren uitleg bekeken.</div></div>';
 
   const sess=(prog.sessions||[]).slice().reverse();
-  html+='<div class="parCard"><div class="parSecTitle">Recent missions</div>';
-  if(!sess.length) html+='<div class="parEmpty">No missions finished yet.</div>';
+  html+='<div class="parCard"><div class="parSecTitle">Recente missies</div>';
+  if(!sess.length) html+='<div class="parEmpty">Nog geen missies afgerond.</div>';
   sess.forEach(s=>{
     const wn=(WORLDS.find(w=>w.id===s.w)||{}).name||s.w;
     const dt=new Date(s.t).toLocaleDateString(undefined,{month:'short',day:'numeric'});
     html+='<div class="sessRow"><div class="sd1">'+dt+'</div><div class="sw">'+wn+'</div>'+
-      '<div class="ss">'+s.s+' solved · '+s.wr+' wrong · '+s.ft+' first-try</div></div>';
+      '<div class="ss">'+s.s+' opgelost · '+s.wr+' fout · '+s.ft+' meteen goed</div></div>';
   });
   html+='</div>';
   body.innerHTML=html;
@@ -3246,9 +3341,9 @@ $('btnSignout').onclick=()=>{
   sClick(); show('login');
 };
 
-/* ---------------- Nederlandse zichtbare tekst ----------------
-   De oorspronkelijke spelcode en vormgeving blijven intact. Deze laag vertaalt
-   ook tekst die later door het spel wordt toegevoegd (vragen, meldingen en rapporten). */
+/* Oude automatische woordvervanging uitgeschakeld. Alle zichtbare teksten staan
+   nu rechtstreeks en als volledige Nederlandse zinnen in de spelonderdelen. */
+if(false){
 const NL_RULES=[
   [/Multiply and divide first, then add and subtract/gi,'Eerst vermenigvuldigen en delen, daarna optellen en aftrekken'],
   [/Parentheses and powers go before everything/gi,'Haakjes en machten gaan helemaal voor'],
@@ -3330,6 +3425,7 @@ function translateDutch(root){
 const nlObserver=new MutationObserver(list=>list.forEach(m=>m.addedNodes.forEach(n=>{ if(n.nodeType===Node.TEXT_NODE && n.parentElement && !n.parentElement.closest('script,style,canvas')) n.nodeValue=nlText(n.nodeValue||''); else if(n.nodeType===Node.ELEMENT_NODE) translateDutch(n); })));
 nlObserver.observe(document.body,{childList:true,subtree:true});
 translateDutch(document.body);
+}
 
 buildWorlds();
 renderHome();
