@@ -15,14 +15,18 @@ Een volledig Nederlandstalig en speels rekenavontuur voor kinderen vanaf groep 4
 
 ## Lokaal openen
 
-Je kunt `index.html` direct openen. Voor opslaan en de API gebruik je de Cloudflare Pages-omgeving uit het oorspronkelijke project.
+Je kunt `index.html` direct openen om de interface te bekijken. De productieversie
+draait op Vercel; online opslaan gebruikt Supabase via server-side API-routes.
 
 ## Techniek
 
 - Eén zelfstandig `index.html`-bestand met HTML, CSS en JavaScript
-- Cloudflare Pages Functions voor opslaan en rapportages
-- Cloudflare KV voor voortgang per speler
+- Vercel Functions voor opslaan en rapportages
+- Supabase Postgres voor voortgang per speler
 - Geen apart framework of bouwstap nodig
+
+De live versie staat op [number-ninja-nl.vercel.app](https://number-ninja-nl.vercel.app).
+Zie [README-DEPLOY.md](README-DEPLOY.md) voor productiebeheer.
 
 ## Privacy
 

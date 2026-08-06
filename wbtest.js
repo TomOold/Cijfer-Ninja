@@ -32,12 +32,12 @@ for(let i=0;i<800;i++){
 for(let i=0;i<800;i++){
   const q=genMachine(4); const x=Number(q.choices.find(c=>c.ok).h);
   const t=q.qHTML.replace(/<[^>]+>/g,'');
-  const mm=t.match(/multiplied my number by (\d+), then added (\d+), then divided by (\d+), and got (\d+)/);
+  const mm=t.match(/vermenigvuldigde mijn getal met (\d+), telde er (\d+) bij op en deelde daarna door (\d+)\. De uitkomst was (\d+)/);
   ck(mm && ((x*+mm[1]+ +mm[2])/+mm[3]===+mm[4]), 'machine4 solves', t.slice(0,80)+' x='+x);
 }
 for(let i=0;i<600;i++){
   const q=genFactor(4); const a=Number(q.choices.find(c=>c.ok).h);
-  const mm=q.qHTML.match(/LCM\((\d+), (\d+), (\d+)\)/);
+  const mm=q.qHTML.match(/(?:LCM|KGV)\((\d+), (\d+), (\d+)\)/);
   ck(mm && a===lcm(lcm(+mm[1],+mm[2]),+mm[3]), 'lcm3 correct', JSON.stringify(mm));
 }
 
@@ -78,8 +78,8 @@ WB.forEach((lvl,li)=>{
     // extra independent check for GCF/LCM displays
     if(type==='b'){
       let mm;
-      if(mm=String(t[1]).match(/GCF\((\d+),\s*(\d+)\)/)) ck(gcd(+mm[1],+mm[2])===t[2], tag+' GCF value', t[1]+' stated '+t[2]);
-      if(mm=String(t[1]).match(/LCM\((\d+),\s*(\d+)\)/)) ck(lcm(+mm[1],+mm[2])===t[2], tag+' LCM value', t[1]+' stated '+t[2]);
+      if(mm=String(t[1]).match(/(?:GCF|GGD)\((\d+),\s*(\d+)\)/)) ck(gcd(+mm[1],+mm[2])===t[2], tag+' GCF value', t[1]+' stated '+t[2]);
+      if(mm=String(t[1]).match(/(?:LCM|KGV)\((\d+),\s*(\d+)\)/)) ck(lcm(+mm[1],+mm[2])===t[2], tag+' LCM value', t[1]+' stated '+t[2]);
     }
     if(type==='c'){
       ck(Array.isArray(t[2]) && t[2].length>=2 && t[3]>=0 && t[3]<t[2].length, tag+' c-structure');
