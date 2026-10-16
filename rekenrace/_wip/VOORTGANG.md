@@ -19,3 +19,13 @@ Run part tests: `RR_PARTS_DIR=rekenrace/_wip/parts node --test tests/rekenrace-<
 3. Playtest with Playwright (all viewports in BRIEF section 6), review against the calm-design rules D1-D12,
    Dutch language/maths proofreading, security review (names via textContent only).
 4. Wire tests into `npm test`, add `rekenrace/README.md`, mention in root README + CLAUDE.md, delete `_wip/`.
+
+## Decision by the user (2026-10-16): perspective
+The user remembers the original RedCat game as 3D (unconfirmed; MyAbandonware lists 1st-person + 2D scrolling).
+Chosen: **finish the 2D side-view version first (v1), THEN add a pseudo-3D "behind the kart" view as an extra option.**
+- v1 = what is described above (RR.Scene side view). Ship it playable first.
+- Phase 2 (after v1 is playable, tested and pushed): `RR.Scene3D` with the same public API as `RR.Scene`
+  (setTrack, setRacers, place, advanceTo, setIdle, resize, destroy) — OutRun-style pseudo-3D road on canvas,
+  gentle curves/hills, themed roadside sprites scaled by depth, rear-view hero karts (new sprites), rivals behind the
+  camera not drawn (progress strip still shows everyone). Same calm rules D1-D12: slow gentle glides, no speed streaks.
+  Add a setting "Aanzicht: zijkant / vanachter" in the Ouders screen + menu; default stays side view. Tests/screens as v1.
