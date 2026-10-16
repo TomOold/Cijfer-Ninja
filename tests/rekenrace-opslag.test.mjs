@@ -12,7 +12,6 @@ const KEY = "rekenrace:v1";
 const HEROES = ["egel", "eekhoorn", "pad", "uil"];
 const KINDS = ["add", "sub", "times", "div", "gap", "story"];
 const OUTCOMES = ["first", "second", "miss"];
-const GOOD = { first: true, second: true, miss: false };
 
 // ----------------------------------------------------------------------- helpers
 
@@ -213,6 +212,15 @@ describe("players", () => {
     assert.ok(![a.id, b.id, c.id].includes(d.id));
   });
 
+  test("the id of a removed player is not reused even right after a reload", () => {
+    const { storage, store } = fresh();
+    store.addPlayer({ name: "A", hero: "egel", grade: 3 });
+    const b = store.addPlayer({ name: "B", hero: "egel", grade: 3 }).player;
+    store.removePlayer(b.id);   // the highest id goes away ...
+    const c = Store.create(storage).addPlayer({ name: "C", hero: "egel", grade: 3 }).player;
+    assert.notEqual(c.id, b.id, "... and a reload must still remember that it was used");
+  });
+
   test("ids stay unique over many adds and removals", () => {
     const { store } = fresh();
     const seen = new Set();
@@ -231,11 +239,11 @@ describe("players", () => {
       ["trims", "  Eva  ", "Eva"],
       ["collapses inner spaces", "Eva    Jansen", "Eva Jansen"],
       ["treats tab and newline as spaces", "Eva\tJan\nsen", "Eva Jan sen"],
-      ["treats a non-breaking space as a space", "Eva  Jan", "Eva Jan"],
+      ["treats a non-breaking space as a space", "Eva\u00a0\u00a0Jan", "Eva Jan"],
       ["removes control characters", "E\u0000v\u0007a\u007f", "Eva"],
-      ["removes zero-width and bidi override characters", "E​v‮a⁦", "Eva"],
-      ["re-collapses spaces left behind by removed characters", "A ​ B", "A B"],
-      ["composes accents (NFC)", "José", "José"],
+      ["removes zero-width and bidi override characters", "E\u200bv\u202ea\u2066", "Eva"],
+      ["re-collapses spaces left behind by removed characters", "A \u200b B", "A B"],
+      ["composes accents (NFC)", "Jose\u0301", "Jos\u00e9"],
       ["truncates to 12 characters", "Abcdefghijklmnop", "Abcdefghijkl"],
       ["does not leave a trailing space after truncating", "Abcdefghijk lm", "Abcdefghijk"],
       ["counts by code point, not UTF-16 unit", "\u{1F431}".repeat(15), "\u{1F431}".repeat(12)],
@@ -253,7 +261,7 @@ describe("players", () => {
 
     test("empty-ish names are name_empty", () => {
       const { store } = fresh();
-      for (const name of ["", "   ", "\t\n", "\u0000\u0001", "​​", undefined, null, 5, {}, [], true]) {
+      for (const name of ["", "   ", "\t\n", "\u0000\u0001", "\u200b\u200b", undefined, null, 5, {}, [], true]) {
         assert.deepEqual(store.addPlayer({ name, hero: "egel", grade: 4 }), { ok: false, error: "name_empty" }, String(name));
       }
       assert.deepEqual(store.addPlayer(), { ok: false, error: "name_empty" });
@@ -265,11 +273,11 @@ describe("players", () => {
     test("names are unique case-insensitively (also after cleaning and truncating)", () => {
       const { store } = fresh();
       assert.equal(store.addPlayer({ name: "Eva", hero: "egel", grade: 4 }).ok, true);
-      for (const dup of ["eva", "EVA", " eVa ", "E​va"]) {
+      for (const dup of ["eva", "EVA", " eVa ", "E\u200bva"]) {
         assert.deepEqual(store.addPlayer({ name: dup, hero: "pad", grade: 3 }), { ok: false, error: "name_taken" }, dup);
       }
-      assert.equal(store.addPlayer({ name: "Émilie", hero: "egel", grade: 4 }).ok, true);
-      assert.equal(store.addPlayer({ name: "éMILIE", hero: "egel", grade: 4 }).error, "name_taken");
+      assert.equal(store.addPlayer({ name: "\u00c9milie", hero: "egel", grade: 4 }).ok, true);
+      assert.equal(store.addPlayer({ name: "\u00e9MILIE", hero: "egel", grade: 4 }).error, "name_taken");
       assert.equal(store.addPlayer({ name: "Abcdefghijklmnop", hero: "egel", grade: 4 }).ok, true);
       assert.equal(store.addPlayer({ name: "abcdefghijklXYZ", hero: "egel", grade: 4 }).error, "name_taken");
       assert.equal(store.players().length, 3);
@@ -433,6 +441,7 @@ describe("recordAnswer and statistics", () => {
       ["", "add", "first"], [undefined, "add", "first"], [null, "add", "first"], [12, "add", "first"],
       ["12345", "add", "first"], ["__proto__", "add", "first"], ["add:1\n+1", "add", "first"],
       ["add:" + "9".repeat(80), "add", "first"], [["add:1+1"], "add", "first"], [{}, "add", "first"],
+      ["add:\ud800", "add", "first"], ["add:\u0085x", "add", "first"],
     ];
     for (const [k, kind, o] of bad) assert.equal(store.recordAnswer(k, kind, o), false, JSON.stringify([k, kind, o]));
     assert.equal(storage.map.get(KEY), before);
@@ -524,7 +533,10 @@ describe("recordAnswer and statistics", () => {
     assert.deepEqual(store.openKeys(0), []);
     assert.deepEqual(store.openKeys(-3), []);
     assert.deepEqual(store.openKeys(NaN), []);
-    assert.deepEqual(store.openKeys("3"), []);
+    assert.deepEqual(store.openKeys("3"), all.slice(0, 3), "a digit string from a form works");
+    assert.deepEqual(store.openKeys("many"), []);
+    assert.deepEqual(store.openKeys(null), []);
+    assert.deepEqual(store.openKeys({}), []);
     assert.deepEqual(store.openKeys(Infinity), all);
     assert.deepEqual(store.openKeys(1e9), all);
     assert.deepEqual(store.openKeys(), all);
@@ -701,6 +713,26 @@ describe("pruning and clamping", () => {
     assert.equal(Object.keys(doc.players[1].answers).length, 400);
   });
 
+  test("the largest document the store can produce is far below the size limit and loads completely", () => {
+    const storage = fakeStorage();
+    const store = Store.create(storage, () => 253402214400000);
+    // worst case: 8 players, 400 answers each, 80-character keys full of characters JSON must escape
+    for (let p = 0; p < 8; p++) {
+      const id = store.addPlayer({ name: "Kind " + p, hero: "pad", grade: 6 }).player.id;
+      store.select(id);
+      for (let i = 0; i < 400; i++) {
+        const key = ('story:"\\' + i + "x".repeat(80)).slice(0, 79) + "q";
+        assert.equal(store.recordAnswer(key, "story", "miss"), true);
+      }
+      store.stamp(8, 4);
+    }
+    const raw = storage.map.get(KEY);
+    assert.ok(raw.length < 1000000, "stored size " + raw.length);
+    const again = Store.create(storage);
+    for (const p of again.players()) assert.equal(again.openKeys(1000, p.id).length, 400);
+    checkDoc(stored(storage));
+  });
+
   test("a loaded document with thousands of answers is pruned to the newest 400 by t", () => {
     const answers = {};
     const order = [];
@@ -800,6 +832,27 @@ describe("stamps and nextTrack", () => {
     assert.deepEqual(store.stamps(), { 3: { place: 2, date: "2026-03-05" } });
   });
 
+  test("the date is the LOCAL calendar day, not the UTC one", () => {
+    const oldTz = process.env.TZ;
+    try {
+      // Auckland is UTC+13 in March: 00:30 local on the 5th is still the 4th in UTC.
+      process.env.TZ = "Pacific/Auckland";
+      const t = new Date(2026, 2, 5, 0, 30).getTime();
+      assert.equal(new Date(t).toISOString().slice(0, 10), "2026-03-04", "sanity: UTC day differs");
+      const { store } = withEva({}, () => t);
+      store.stamp(1, 1);
+      assert.equal(store.stamps()["1"].date, "2026-03-05");
+      // and a late evening in Los Angeles is already the next day in UTC
+      process.env.TZ = "America/Los_Angeles";
+      const late = new Date(2026, 2, 5, 23, 30).getTime();
+      const other = withEva({}, () => late);
+      other.store.stamp(1, 1);
+      assert.equal(other.store.stamps()["1"].date, "2026-03-05");
+    } finally {
+      if (oldTz === undefined) delete process.env.TZ; else process.env.TZ = oldTz;
+    }
+  });
+
   test("a better place replaces the place, the first date stays; a worse place changes nothing", () => {
     let now = noon(2026, 3, 5);
     const { storage, store } = withEva({}, () => now);
@@ -889,8 +942,10 @@ describe("stamps and nextTrack", () => {
     store.select(eva.id);
     assert.equal(store.stamp(1, 1), true);
     assert.equal(store.recordAnswer("add:1", "add", "first"), true);
+    // a clock that is not a function is ignored; the saved selection is restored
     const s2 = Store.create(storage, "not a function");
-    assert.equal(s2.stamp(2, 1), false, "nobody is selected in a store restored from a fresh load? (no: current is stored)");
+    assert.equal(s2.stamp(2, 1), true);
+    assert.match(s2.stamps()["2"].date, /^\d{4}-\d{2}-\d{2}$/);
   });
 });
 
@@ -1101,7 +1156,10 @@ describe("persistence", () => {
     expectWrite("addPlayer", () => store.addPlayer({ name: "Bo", hero: "uil", grade: 3 }));
     expectWrite("select", () => store.select(store.players()[1].id));
     expectWrite("removePlayer", () => store.removePlayer(store.players()[1].id));
+    expectWrite("select back", () => store.select(eva.id));
     expectWrite("resetProgress", () => store.resetProgress(eva.id));
+
+    expectWrite("stamp after the reset", () => store.stamp(1, 2));
 
     expectNoWrite("worse place", () => store.stamp(1, 4));
     expectNoWrite("setSetting same value", () => store.setSetting("sound", false));
@@ -1109,7 +1167,7 @@ describe("persistence", () => {
     expectNoWrite("setHero same value", () => store.setHero(eva.id, "pad"));
     expectNoWrite("rename same name", () => store.rename(eva.id, "Eefje"));
     expectNoWrite("select same player", () => store.select(eva.id));
-    expectNoWrite("resetProgress on empty profile", () => store.resetProgress(eva.id));
+    expectNoWrite("resetProgress on unknown id", () => store.resetProgress("nope"));
     expectNoWrite("invalid answer", () => store.recordAnswer("add:1", "add", "great"));
     expectNoWrite("invalid stamp", () => store.stamp(9, 1));
     expectNoWrite("invalid setting", () => store.setSetting("restAfter", 99));
@@ -1149,7 +1207,6 @@ describe("failure modes", () => {
     ["a number", 42],
     ["an empty object", {}],
     ["no setItem", { getItem: () => null }],
-    ["getItem returns undefined", { getItem: () => undefined, setItem() {}, removeItem() {} }],
   ];
 
   for (const [label, storage] of brokenStorages) {
@@ -1167,6 +1224,16 @@ describe("failure modes", () => {
       assert.equal(store.removePlayer(eva.id), true);
     });
   }
+
+  test("a storage object whose property access throws is treated as unusable", () => {
+    const hostile = new Proxy({}, { get() { throw new Error("SecurityError"); } });
+    const store = Store.create(hostile);
+    assert.equal(store.addPlayer({ name: "Eva", hero: "egel", grade: 4 }).ok, true);
+    assert.deepEqual(store.status(), { persistent: false, recovered: null });
+    // persistent() blowing up is not fatal either
+    const odd = { getItem: () => null, setItem() {}, persistent() { throw new Error("boom"); } };
+    assert.deepEqual(Store.create(odd).status(), { persistent: false, recovered: null });
+  });
 
   test("two memory-only stores do not share anything", () => {
     const a = Store.create(null);
@@ -1517,7 +1584,7 @@ describe("repairing stored documents", () => {
     assert.equal(ids[0], "p1");
     assert.equal(new Set(ids).size, 3);
     assert.equal(r.out.current, "p1");
-    for (const bad of [5, null, "", "__proto__", "P1", "p", "p1 ", "pÃ©", {}, "p" + "z".repeat(30)]) {
+    for (const bad of [5, null, "", "__proto__", "P1", "p", "p1 ", "p\u00c3\u00a9", {}, "p" + "z".repeat(30)]) {
       const q = load((d) => { d.players[0].id = bad; });
       assert.match(q.out.players[0].id, /^p[0-9a-z]+$/, JSON.stringify(bad));
     }
@@ -1619,7 +1686,7 @@ describe("fuzzing stored documents", () => {
   function junk(rng, depth = 0) {
     const choices = [
       () => null, () => true, () => false, () => -1, () => 0, () => 1, () => 1e15, () => 0.5, () => -0.5,
-      () => "", () => "abc", () => "5", () => "  7  ", () => "\u0000​", () => "x".repeat(300), () => "p1",
+      () => "", () => "abc", () => "5", () => "  7  ", () => "\u0000\u200b", () => "x".repeat(300), () => "p1",
       () => [], () => {}, () => [1, 2, 3], () => ({ a: 1 }), () => "__proto__", () => "2026-01-01", () => "\ud800",
       () => (depth < 3 ? [junk(rng, depth + 1), junk(rng, depth + 1)] : []),
       () => (depth < 3 ? { place: junk(rng, depth + 1), ok: junk(rng, depth + 1) } : {}),
