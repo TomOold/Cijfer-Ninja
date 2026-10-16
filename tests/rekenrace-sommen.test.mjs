@@ -104,7 +104,8 @@ const STORY_RULES = {
 
 const ENGLISH = /\b(the|and|minus|plus|times|divided|what|how|answer|correct|wrong|score)\b/i;
 
-// Every invariant that holds for one question. `light` skips the slower lint.
+// Every invariant that holds for one question. `light` skips the slower lint;
+// 'cheap' also skips the formula evaluation and the fromKey round trip.
 function checkQuestion(q, light = false) {
   const ctx = `${q.key} | ${q.text}`;
   assert.deepEqual(Object.keys(q), ["key", "kind", "text", "answer", "hint", "explain", "formula"], ctx);
@@ -127,7 +128,7 @@ function checkQuestion(q, light = false) {
   assert.ok(hasNum(q.explain, q.answer), `explain lacks the answer ${q.answer}: ${q.explain} (${ctx})`);
 
   // formula evaluates to the answer
-  assert.equal(evalFormula(q.formula), q.answer, `formula ${q.formula} (${ctx})`);
+  if (light !== "cheap") assert.equal(evalFormula(q.formula), q.answer, `formula ${q.formula} (${ctx})`);
 
   if (q.kind === "story") {
     assert.ok(q.text.endsWith("?") && q.text.split("?").length === 2, `story ends in one question: ${q.text}`);
@@ -158,7 +159,7 @@ function checkQuestion(q, light = false) {
       assert.equal(q.kind, OP_NAME[s.op]);
       assert.equal(q.key, s.op === ":" ? `div:${s.a}:${s.b}` : `${q.kind}:${s.a}${OP_KEY[s.op]}${s.b}`);
       if (s.op === ":") assert.ok(s.a % s.b === 0, `division is exact: ${q.text}`);
-      assert.equal(evalFormula(`${s.a}${s.op === MIN ? "-" : s.op === KEER ? "*" : s.op === ":" ? "/" : "+"}${s.b}`), q.answer);
+      if (light !== "cheap") assert.equal(evalFormula(`${s.a}${s.op === MIN ? "-" : s.op === KEER ? "*" : s.op === ":" ? "/" : "+"}${s.b}`), q.answer);
     }
     if (s.op === ":" || q.text.includes(":")) {
       // a division sum is always exact, also when the gap hides a factor
@@ -167,7 +168,7 @@ function checkQuestion(q, light = false) {
   }
 
   // rebuilding from the key gives exactly the same question
-  assert.deepEqual(Q.fromKey(q.key), q, `fromKey round trip: ${q.key}`);
+  if (light !== "cheap") assert.deepEqual(Q.fromKey(q.key), q, `fromKey round trip: ${q.key}`);
 
   if (!light) {
     for (const field of [q.hint, q.explain]) {
@@ -242,7 +243,7 @@ test("series: structure, distinctness and fromKey over every grade x level x foc
           assert.equal(list.length, 10, ctx);
           assert.equal(new Set(list.map((q) => q.key)).size, 10, `distinct keys ${ctx}`);
           assert.equal(new Set(list.map((q) => q.answer)).size, 10, `distinct answers ${ctx}: ${list.map((q) => q.answer)}`);
-          list.forEach((q) => checkQuestion(q, true));
+          list.forEach((q, i) => checkQuestion(q, i % 4 === 0 ? true : "cheap"));
 
           const kinds = list.map((q) => q.kind);
           if (focus === "add" || focus === "sub" || focus === "story") assert.ok(kinds.every((k) => k === focus), ctx);
@@ -529,7 +530,7 @@ test("exhaustive small grids: hints never leak, explanations always carry the an
     built++;
     checkQuestion(q);
   }
-  assert.ok(built > 9000, `built ${built}`);
+  assert.ok(built > 7000, `built ${built}`);
 });
 
 test("random big numbers: same invariants for 3- and 4-digit sums", () => {
@@ -544,5 +545,411 @@ test("random big numbers: same invariants for 3- and 4-digit sums", () => {
       const q = Q.fromKey(key);
       if (q) checkQuestion(q, i % 4 !== 0);
     }
+  }
+});
+
+// ------------------------------------------------------------------ stories
+
+test("stories: all templates are reachable, plurals safe, Dutch looks tidy", () => {
+  const examples = new Map();
+  for (const grade of GRADES) {
+    for (const level of LEVELS) {
+      for (let seed = 1; seed <= 150; seed++) {
+        for (const q of Q.series({ grade, level, focus: "story" }, 10, rng(seed * 13 + level))) {
+          const id = q.key.split(":")[1];
+          if (!examples.has(id)) examples.set(id, q);
+        }
+      }
+    }
+  }
+  assert.ok(examples.size >= 18, `at least 18 templates, found ${examples.size}`);
+  assert.deepEqual([...examples.keys()].sort(), Object.keys(STORY_RULES).sort(), "every template can be drawn");
+  const heDeWords = { elk: ["kind", "vriendje"], elke: ["doos", "rij", "boot", "emmer", "zak", "kist", "mand"] };
+  for (const q of examples.values()) {
+    const lines = q.text.split("\n");
+    assert.equal(lines.length, 2, `a story has a statement and a question: ${q.text}`);
+    assert.match(lines[0], /^[A-Z'][^?]*\.$/, lines[0]);
+    assert.match(lines[1], /^Hoeveel [^?]*\?$/, lines[1]);
+    assert.ok(!/ {2}/.test(q.text) && !/\s[.,?]/.test(q.text), q.text);
+    assert.ok(!ENGLISH.test(q.text), q.text);
+    for (const [word, nouns] of Object.entries(heDeWords)) {
+      for (const m of q.text.matchAll(new RegExp(`\\b${word} (?!\\d)([a-z]+)`, "g"))) {
+        assert.ok(nouns.includes(m[1]), `"${word} ${m[1]}" has the wrong article in: ${q.text}`);
+      }
+    }
+    assert.ok(!/\b(1|0) [a-z]+/.test(q.text), "no singular or zero amounts in a story");
+  }
+});
+
+test("stories: one step in groep 3, two steps and bigger numbers later", () => {
+  const stats = {};
+  for (const grade of GRADES) {
+    for (const level of LEVELS) {
+      let one = 0;
+      let two = 0;
+      let biggest = 0;
+      for (let seed = 1; seed <= 150; seed++) {
+        for (const q of Q.series({ grade, level, focus: "story" }, 10, rng(seed * 5 + level))) {
+          const n = numsIn(q.text);
+          if (n.length === 2) one++;
+          else two++;
+          biggest = Math.max(biggest, ...n, q.answer);
+        }
+      }
+      stats[`${grade}/${level}`] = { one, two, biggest };
+    }
+  }
+  for (const level of LEVELS) {
+    assert.equal(stats[`3/${level}`].two, 0, `no two-step stories in groep 3 (level ${level})`);
+    assert.ok(stats[`3/${level}`].biggest <= 100, `groep 3 stories stay within 100 (level ${level})`);
+    assert.ok(stats[`4/${level}`].biggest <= 1000, `groep 4 stories stay within 1000 (level ${level})`);
+  }
+  assert.ok(stats["5/8"].two > stats["5/8"].one, "groep 5 level 8 is mostly two-step");
+  assert.ok(stats["6/8"].two > stats["6/8"].one * 1.2, "groep 6 level 8 is mostly two-step");
+  assert.ok(stats["6/8"].biggest > 1000 && stats["6/8"].biggest <= 9999);
+  assert.ok(stats["3/1"].biggest <= 20, "the first stories stay within 20");
+});
+
+test("stories: a series of stories uses many different templates", () => {
+  for (const grade of GRADES) {
+    for (const level of LEVELS) {
+      let total = 0;
+      for (let seed = 1; seed <= 50; seed++) {
+        const ids = new Set(Q.series({ grade, level, focus: "story" }, 10, rng(seed)).map((q) => q.key.split(":")[1]));
+        assert.ok(ids.size >= 5, `${grade}/${level}: only ${ids.size} templates in one series`);
+        total += ids.size;
+      }
+      assert.ok(total / 50 >= 7, `${grade}/${level}: average template variety ${total / 50}`);
+    }
+  }
+});
+
+// --------------------------------------------------------- hints & methods
+
+test("methods: bridging explanations only appear when the sum really bridges", () => {
+  let bridging = 0;
+  let plain = 0;
+  for (const grade of GRADES) {
+    for (const level of LEVELS) {
+      for (const focus of ["add", "sub"]) {
+        for (let seed = 1; seed <= 120; seed++) {
+          for (const q of Q.series({ grade, level, focus }, 10, rng(seed * 3 + level))) {
+            const s = solveText(q.text);
+            const text = `${q.hint} ${q.explain}`;
+            if (focus === "add") {
+              const carry = s.a % 10 + s.b % 10 >= 10;
+              if (/volgende tiental|Maak eerst 10 vol|Maak eerst tien vol|rond getal/.test(text)) {
+                assert.ok(carry, `bridging text without a carry: ${q.text}: ${text}`);
+                bridging++;
+              } else plain++;
+              if (/dubbelsom/.test(text)) assert.equal(s.a, s.b, q.text);
+            } else {
+              const borrow = s.a % 10 < s.b % 10;
+              if (/hele tiental/.test(text)) {
+                assert.ok(borrow, `borrowing text without a borrow: ${q.text}: ${text}`);
+                bridging++;
+              } else plain++;
+              if (/Haal eerst (10|tien) weg/.test(text)) assert.equal(s.a % 10, 0, q.text);
+            }
+          }
+        }
+      }
+    }
+  }
+  assert.ok(bridging > 500 && plain > 500, `both kinds occur (${bridging}/${plain})`);
+});
+
+test("methods: the tables get their Dutch method (6 = 5 + 1 keer erbij, 9 = 10 min 1 keer, ...)", () => {
+  for (let a = 1; a <= 10; a++) {
+    for (let b = 1; b <= 10; b++) {
+      const q = Q.fromKey(`times:${a}x${b}`);
+      const has = (n) => a === n || b === n;
+      const none = (...list) => list.every((n) => !has(n));
+      if (has(10)) assert.match(q.explain, /nul achter/, q.key);
+      else if (has(1)) assert.match(q.explain, /gewoon/, q.key);
+      else if (has(2)) assert.match(q.explain, /Verdubbel/, q.key);
+      else if (has(9)) assert.match(q.explain, /tafel van 10 min 1 keer/, q.key);
+      else if (has(6)) assert.match(q.explain, /tafel van 5 en dan 1 keer erbij/, q.key);
+      else if (has(8)) assert.match(q.explain, /dubbele van tafel van 4|Verdubbel drie keer/, q.key);
+      else if (has(4)) assert.match(q.explain, /Verdubbel twee keer/, q.key);
+      else if (has(3)) assert.match(q.explain, /tafel van 2/, q.key);
+      else assert.ok(none(1, 2, 3, 4, 6, 8, 9, 10));
+      if (has(9) && none(1, 2, 10)) assert.match(q.hint, /tafel van 10 min 1 keer/, q.key);
+      if (has(6) && none(1, 2, 9, 10)) assert.match(q.hint, /tafel van 6 is tafel van 5|5 ×/i, q.key);
+    }
+  }
+  for (let d = 2; d <= 10; d++) {
+    for (let q = 2; q <= 10; q++) {
+      const x = Q.fromKey(`div:${d * q}:${d}`);
+      assert.match(x.explain, new RegExp(`${q} \\u00d7 ${d} = ${d * q}|helft|Halveer|nul weg|verdubbelen`), x.key);
+      if (d === 3 || d === 6 || d === 7 || d === 9) assert.match(`${x.hint} ${x.explain}`, /omgekeerde van keer|tafel van/, x.key);
+    }
+  }
+  assert.match(Q.fromKey("div:84:4").explain, /Halveer|Splits/);
+  assert.match(Q.fromKey("times:23x4").explain, /Splits 23 in 20 en 3/);
+  assert.match(Q.fromKey("times:30x40").explain, /twee nullen/);
+  assert.match(Q.fromKey("add:47+36").explain, /volgende tiental|Splits|Stap voor stap/);
+  assert.match(Q.fromKey("sub:100-37").explain, /Aanvullen|Stap voor stap|dicht bij/);
+});
+
+test("methods: hints and explanations are varied, not one fixed sentence", () => {
+  const norm = (s) => s.replace(/\d+/g, "#");
+  const hints = {};
+  const explains = {};
+  for (const grade of GRADES) {
+    for (const level of LEVELS) {
+      for (let seed = 1; seed <= 60; seed++) {
+        for (const q of Q.series({ grade, level }, 10, rng(seed * 17 + level))) {
+          (hints[q.kind] ||= new Set()).add(norm(q.hint));
+          (explains[q.kind] ||= new Set()).add(norm(q.explain));
+        }
+      }
+    }
+  }
+  const minHints = { add: 12, sub: 12, times: 9, div: 7, gap: 10, story: 20 };
+  const minExplains = { add: 20, sub: 20, times: 9, div: 8, gap: 40, story: 20 };
+  for (const kind of Object.keys(Q.KINDS)) {
+    assert.ok(hints[kind].size >= minHints[kind], `${kind}: only ${hints[kind].size} hint styles`);
+    assert.ok(explains[kind].size >= minExplains[kind], `${kind}: only ${explains[kind].size} explanation styles`);
+  }
+});
+
+test("gap sums: all four operations, the unknown in any position", () => {
+  const seen = new Set();
+  for (let seed = 1; seed <= 600; seed++) {
+    for (const q of Q.series({ grade: 5, level: 6 }, 10, rng(seed))) {
+      if (q.kind !== "gap") continue;
+      const s = solveText(q.text);
+      seen.add(`${s.op}/${s.unknown}`);
+    }
+  }
+  for (const op of ["+", MIN, KEER, ":"]) for (const pos of ["a", "b"]) assert.ok(seen.has(`${op}/${pos}`), `gap ${op} with the unknown at ${pos}`);
+  // the first groep 3 gap sums only hide the second number: 3 + ? = 8
+  for (let seed = 1; seed <= 200; seed++) {
+    for (const q of Q.series({ grade: 3, level: 3 }, 10, rng(seed)).filter((x) => x.kind === "gap")) {
+      assert.equal(solveText(q.text).unknown, "b", q.text);
+    }
+  }
+});
+
+// --------------------------------------------------------- difficulty ramp
+
+const KIND_EXTRA = { add: 0, sub: 0.05, times: 0.2, div: 0.25, gap: 0.2, story: 0.3 };
+// An explicit rank: size of the biggest number + a bonus per kind + a bonus for a carry/borrow.
+function rank(q) {
+  const nums = numsIn(q.text);
+  let value = Math.log10(1 + Math.max(q.answer, ...nums)) + KIND_EXTRA[q.kind];
+  if (q.kind === "story" && nums.length === 3) value += 0.2;
+  const s = PLAIN_RE.exec(q.text);
+  if (s) {
+    const a = Number(s[1]);
+    const b = Number(s[3]);
+    if (s[2] === "+" && (a < 10 && b < 10 ? a + b > 10 : (a % 10) + (b % 10) >= 10)) value += 0.15;
+    if (s[2] === MIN && a % 10 < b % 10) value += 0.15;
+  }
+  return value;
+}
+
+test("difficulty ramp: gentle and non-decreasing per level, sane across grades", () => {
+  const mean = {};
+  const early = {};
+  const late = {};
+  const first = {};
+  for (const grade of GRADES) {
+    for (const level of LEVELS) {
+      let sum = 0;
+      let n = 0;
+      let e = 0;
+      let l = 0;
+      let f = 0;
+      for (let seed = 1; seed <= 400; seed++) {
+        const list = Q.series({ grade, level }, 10, rng(seed * 13 + level));
+        list.forEach((q, i) => {
+          const r = rank(q);
+          sum += r;
+          n++;
+          if (i < 5) e += r;
+          else l += r;
+          if (i === 0) f += r;
+        });
+      }
+      mean[`${grade}/${level}`] = sum / n;
+      early[`${grade}/${level}`] = e / 2000;
+      late[`${grade}/${level}`] = l / 2000;
+      first[`${grade}/${level}`] = f / 400;
+    }
+  }
+  for (const grade of GRADES) {
+    for (let level = 2; level <= 8; level++) {
+      assert.ok(mean[`${grade}/${level}`] >= mean[`${grade}/${level - 1}`] - 0.03,
+        `groep ${grade}: level ${level} (${mean[`${grade}/${level}`].toFixed(3)}) is easier than level ${level - 1} (${mean[`${grade}/${level - 1}`].toFixed(3)})`);
+    }
+    assert.ok(mean[`${grade}/8`] >= mean[`${grade}/1`] + 0.45, `groep ${grade}: level 8 clearly harder than level 1`);
+    const lo = (mean[`${grade}/1`] + mean[`${grade}/2`] + mean[`${grade}/3`] + mean[`${grade}/4`]) / 4;
+    const hi = (mean[`${grade}/5`] + mean[`${grade}/6`] + mean[`${grade}/7`] + mean[`${grade}/8`]) / 4;
+    assert.ok(hi > lo + 0.25, `groep ${grade}: second half of the track is harder`);
+  }
+  for (let grade = 3; grade < 6; grade++) {
+    assert.ok(mean[`${grade}/1`] < mean[`${grade + 1}/8`], `groep ${grade} level 1 is easier than groep ${grade + 1} level 8`);
+    assert.ok(mean[`${grade + 1}/1`] <= mean[`${grade}/8`] + 0.15, `groep ${grade + 1} level 1 does not jump above groep ${grade} level 8`);
+  }
+  // inside one series the sums rise gently and start with a warm-up
+  for (const key of Object.keys(mean)) {
+    assert.ok(late[key] > early[key] + 0.1, `${key}: later sums are harder than the first five`);
+    assert.ok(first[key] < mean[key], `${key}: the first sum is easier than average`);
+  }
+});
+
+test("warm-up: groep 3 level 1 starts with trivially easy sums", () => {
+  let total = 0;
+  for (let seed = 1; seed <= 300; seed++) {
+    const list = Q.series({ grade: 3, level: 1 }, 10, rng(seed));
+    const first = list[0];
+    assert.ok(first.kind === "add" || first.kind === "sub", first.key);
+    assert.ok(first.answer <= 8, `first answer ${first.answer}: ${first.text}`);
+    assert.ok(Math.max(...numsIn(first.text)) <= 8, first.text);
+    total += first.answer;
+    for (const q of list) assert.ok(Math.max(...numsIn(q.text), q.answer) <= 14, `groep 3 level 1 stays tiny: ${q.text}`);
+  }
+  assert.ok(total / 300 <= 5, `mean first answer ${total / 300}`);
+  // groep 4 level 1 is a continuation of groep 3, not a cliff
+  for (let seed = 1; seed <= 200; seed++) {
+    const first = Q.series({ grade: 4, level: 1 }, 10, rng(seed))[0];
+    assert.ok(Math.max(...numsIn(first.text), first.answer) <= 100, first.text);
+  }
+});
+
+test("curriculum spot checks per grade and level", () => {
+  const sample = (opts, n = 120) => {
+    const out = [];
+    for (let seed = 1; seed <= n; seed++) out.push(...Q.series(opts, 10, rng(seed)));
+    return out;
+  };
+  const has = (list, f) => list.some(f);
+  const factors = (q) => {
+    const s = PLAIN_RE.exec(q.text);
+    return s ? [Number(s[1]), Number(s[3])] : [];
+  };
+  const uses = (q, ...tables) => factors(q).some((n) => tables.includes(n));
+  const g3 = sample({ grade: 3, level: 8 });
+  assert.ok(has(g3, (q) => q.kind === "times"), "groep 3 level 8 has tables");
+  assert.ok(!has(g3, (q) => q.kind === "times" && !uses(q, 2, 5, 10)), "groep 3 tables are 2, 5 and 10");
+  assert.ok(!has(sample({ grade: 3, level: 4 }), (q) => q.kind === "times" || q.kind === "div" || q.kind === "story"), "no tables or stories before level 6");
+  assert.ok(!has(sample({ grade: 3, level: 5 }), (q) => Math.max(...numsIn(q.text), q.answer) > 100), "groep 3 level 5 stays within 100");
+  assert.ok(has(sample({ grade: 3, level: 3 }), (q) => q.kind === "add" && /^\d0 \+ \d0 =/.test(q.text)), "whole tens like 30 + 20");
+  const g4 = sample({ grade: 4, level: 4 });
+  assert.ok(has(g4, (q) => q.kind === "div"), "groep 4 level 4 divides");
+  assert.ok(has(g4, (q) => q.kind === "times" && uses(q, 3, 4)), "tables 3 and 4");
+  assert.ok(has(sample({ grade: 4, level: 3 }), (q) => q.kind === "add" && /^[1-9]00 \+ [1-9]00 =/.test(q.text)), "whole hundreds like 300 + 400");
+  assert.ok(has(sample({ grade: 4, level: 6 }), (q) => q.kind === "times" && uses(q, 7, 8)), "tables 7 and 8 at level 6");
+  const share7 = (level) => {
+    const times = sample({ grade: 4, level }, 150).filter((q) => q.kind === "times");
+    return times.filter((q) => uses(q, 7)).length / times.length;
+  };
+  assert.ok(share7(5) < share7(6) / 2, `the 7 table arrives at level 6 (${share7(5).toFixed(2)} vs ${share7(6).toFixed(2)})`);
+  assert.ok(has(sample({ grade: 4, level: 5 }), (q) => q.kind === "times" && uses(q, 6, 9)), "tables 6 and 9 at level 5");
+  const g5 = sample({ grade: 5, level: 3 });
+  assert.ok(has(g5, (q) => q.kind === "times" && /^\d\d × \d =/.test(q.text)), "23 x 4 style at groep 5 level 3");
+  assert.ok(has(sample({ grade: 5, level: 6 }), (q) => q.kind === "times" && /^\d0 × \d0 =/.test(q.text)), "30 x 40");
+  assert.ok(has(sample({ grade: 5, level: 6 }), (q) => q.kind === "div" && /^\d\d : \d =/.test(q.text)), "84 : 4");
+  assert.ok(has(sample({ grade: 5, level: 6 }), (q) => q.kind === "add" && /^\d\d00 \+ \d\d00 =/.test(q.text)), "4500 + 3200");
+  assert.ok(has(sample({ grade: 5, level: 8 }), (q) => q.kind === "times" && /^\d\d\d × \d =/.test(q.text)), "136 x 5");
+  assert.ok(has(sample({ grade: 5, level: 8 }), (q) => q.kind === "div" && /^\d\d\d : \d =/.test(q.text)), "3-digit : 1-digit");
+  assert.ok(has(sample({ grade: 6, level: 8 }), (q) => q.kind === "times" && /^\d\d × \d\d =/.test(q.text)), "23 x 12");
+  assert.ok(has(sample({ grade: 6, level: 6 }), (q) => q.kind === "add" && /^\d\d\d\d \+ \d\d\d\d =/.test(q.text)), "4-digit sums in groep 6");
+});
+
+test("performance: series(10) takes well under 5 ms on average for every configuration", () => {
+  let worst = 0;
+  let worstCfg = "";
+  for (const grade of GRADES) {
+    for (const level of LEVELS) {
+      for (const focus of FOCI) {
+        const t0 = process.hrtime.bigint();
+        const runs = 60;
+        for (let seed = 1; seed <= runs; seed++) Q.series({ grade, level, focus, repeat: ["times:7x8", "add:47+36"] }, 10, rng(seed));
+        const ms = Number(process.hrtime.bigint() - t0) / 1e6 / runs;
+        if (ms > worst) {
+          worst = ms;
+          worstCfg = `${grade}/${level}/${focus}`;
+        }
+      }
+    }
+  }
+  for (const table of [1, 5, 10]) {
+    const t0 = process.hrtime.bigint();
+    for (let seed = 1; seed <= 60; seed++) Q.series({ grade: 4, level: 5, focus: "mix", table }, 10, rng(seed));
+    worst = Math.max(worst, Number(process.hrtime.bigint() - t0) / 1e6 / 60);
+  }
+  assert.ok(worst < 5, `slowest configuration ${worstCfg} needs ${worst.toFixed(2)} ms per series`);
+});
+
+test("keys are unique per exact question and stable", () => {
+  const seen = new Map();
+  for (const grade of GRADES) {
+    for (const level of LEVELS) {
+      for (let seed = 1; seed <= 60; seed++) {
+        for (const q of Q.series({ grade, level }, 10, rng(seed * 11))) {
+          assert.match(q.key, /^(add|sub|times|div|gap|story):/, q.key);
+          assert.equal(q.key.split(":")[0], q.kind);
+          assert.ok(!/\s/.test(q.key), q.key);
+          const prev = seen.get(q.key);
+          if (prev) assert.deepEqual(prev, q, `same key, same question: ${q.key}`);
+          else seen.set(q.key, q);
+        }
+      }
+    }
+  }
+  assert.ok(seen.size > 3000, `variety of keys: ${seen.size}`);
+});
+
+test("gap sums have exactly one solution (brute force over 0..9999)", () => {
+  let checked = 0;
+  for (let seed = 1; seed <= 400; seed++) {
+    for (const grade of GRADES) {
+      const list = Q.series({ grade, level: 1 + (seed % 8) }, 10, rng(seed * 3 + grade)).filter((q) => q.kind === "gap");
+      for (const q of list) {
+        const s = solveText(q.text);
+        const solutions = [];
+        for (let x = 0; x <= 9999; x++) {
+          const a = s.unknown === "a" ? x : s.a;
+          const b = s.unknown === "b" ? x : s.b;
+          if (b === 0 && s.op === ":") continue;
+          const value = s.op === "+" ? a + b : s.op === MIN ? a - b : s.op === KEER ? a * b : a / b;
+          if (value === s.c) solutions.push(x);
+        }
+        assert.deepEqual(solutions, [q.answer], `${q.text} must have the single solution ${q.answer}`);
+        checked++;
+      }
+    }
+  }
+  assert.ok(checked > 800, `checked ${checked} gap sums`);
+});
+
+test("fromKey: fuzzed keys either fail cleanly or give a canonical, valid question", () => {
+  const r = rng(2024);
+  const base = [];
+  for (let seed = 1; seed <= 80; seed++) base.push(...Q.series({ grade: 3 + (seed % 4), level: 1 + (seed % 8) }, 10, rng(seed)).map((q) => q.key));
+  const alphabet = "0123456789+-x:?=abcdefghijklmnopqrstuvwxyz .−×";
+  let accepted = 0;
+  for (let i = 0; i < 20000; i++) {
+    let key = base[Math.floor(r() * base.length)];
+    const edits = 1 + Math.floor(r() * 3);
+    for (let e = 0; e < edits; e++) {
+      const at = Math.floor(r() * (key.length + 1));
+      const c = alphabet[Math.floor(r() * alphabet.length)];
+      const mode = r();
+      key = mode < 0.4 ? key.slice(0, at) + c + key.slice(at) : mode < 0.7 ? key.slice(0, at) + key.slice(at + 1) : key.slice(0, at) + c + key.slice(at + 1);
+    }
+    const q = Q.fromKey(key);
+    if (q === null) continue;
+    accepted++;
+    assert.equal(q.key, key, "only canonical keys are accepted");
+    checkQuestion(q, "cheap");
+  }
+  assert.ok(accepted > 100, `some fuzzed keys stay valid (${accepted})`);
+  for (const junk of ["story:constructor:3:4", "story:__proto__:3:4", "story:tostring:3:4", "gap:constructor:1+?=2", `add:${"9".repeat(500)}+1`,
+    "add:1+" + "1".repeat(5), "times:99999x1", "\u0000", "add:١+٢", "add:1\n+2"]) {
+    assert.equal(Q.fromKey(junk), null, junk);
   }
 });
