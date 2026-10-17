@@ -27,3 +27,14 @@ Chosen: **finish the 2D side-view version first (v1), THEN add a pseudo-3D "behi
   gentle curves/hills, themed roadside sprites scaled by depth, rear-view hero karts (new sprites), rivals behind the
   camera not drawn (progress strip still shows everyone). Same calm rules D1-D12: slow gentle glides, no speed streaks.
   Add a setting "Aanzicht: zijkant / vanachter" in the Ouders screen + menu; default stays side view. Tests/screens as v1.
+
+## Phone report (2026-10-17, user): blank screen in the iPhone file viewer
+Symptom: only the static title bar (empty icon square, sound + music buttons) and an empty cream body; no title text, no screens.
+Diagnosis (reproduced in scratchpad/review/phone/repro.cjs): identical picture when the HOST blocks inline scripts (CSP script-src nonce) while scripting is enabled
+(so the <noscript> message does not show either). The game boots fine in: normal load, sandboxed opaque-origin iframe, blocked localStorage, blank canvas.toDataURL,
+no structuredClone. Real iOS Safari could not be tested here (only Chromium installed). Most likely the in-app file viewer does not run scripts.
+Workaround given: private claude.ai artifact copy (title changed to "Rekenrace voor kinderen"): https://claude.ai/artifact/W2WgP78fb1pfbNJ18jMm1m
+TODO after the review round (apply to rekenrace/index.html AFTER the fixer finishes to avoid edit conflicts):
+ 1. Visible boot fallback: a static, always-visible note in <main> ("Het spel wordt gestart... Lukt dit niet? Open het bestand in Safari of Chrome") that the script hides as its first action,
+    plus a tiny separate early <script> that shows window.onerror / unhandledrejection messages in that note. Today a blocked or crashing script gives a silent blank page.
+ 2. CODE-4/CODE-5 from the review: canvas toDataURL read-back (privacy browsers blank it) and swallowed draw/audio errors.
