@@ -599,7 +599,8 @@ RR.Sound = (function () {
       if (lastPlayed[name] != null && now - lastPlayed[name] < (GAP[name] || 0.1)) return;
       if (LONG[name] && busyUntil[name] > now) return;
       voices = voices.filter(function (e) { return e > now; });
-      if (voices.length >= 8) return;
+      // while the context is still waking up its clock stands still, so queue at most two sounds
+      if (voices.length >= (ctx.state === 'running' ? 8 : 2)) return;
       variant = (variant + 1) % VARIANTS.length;
       const t = now + 0.012;   // a hair ahead so the attack ramp is never cut off
       const end = fx.build(ctx, graph.sfx, t, GAP[name] ? VARIANTS[variant] : 1);

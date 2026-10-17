@@ -3,12 +3,12 @@
 This folder exists so the work survives a reclaimed container. It is NOT part of the shipped game.
 Read `BRIEF.md` first: it is the complete design brief, contracts and rules.
 
-## State (snapshot)
-- `parts/pure-rng.js`, `pure-race.js`, `pure-opslag.js`: done, tests green (`tests/rekenrace-race.test.mjs`, `tests/rekenrace-opslag.test.mjs`).
-- `parts/pure-sommen.js`: written; test suite `tests/rekenrace-sommen.test.mjs` being finished.
-- `parts/sprites.js`: done (4 heroes, 8 stamp icons, flag/trophy/lock/licence).
-- `parts/scene.js`: IN PROGRESS. Only the `tulips` theme exists so far; other themes fall back to it.
-- `parts/geluid.js`: IN PROGRESS (WebAudio synth + music).
+## State (snapshot 2026-10-17)
+All six parts are DONE and verified by the orchestrator (all tests green: race 47, opslag 140, sommen 30; sprites/scene/sound browser checks ALL OK):
+`parts/pure-rng.js`, `pure-sommen.js`, `pure-race.js`, `pure-opslag.js`, `sprites.js`, `scene.js` (8 themes), `geluid.js`.
+Full agent reports (API extras, limitations, integration notes) are in `reports/*.md` - read them before integrating.
+`build/assemble.mjs` concatenates the parts + UI sources (`ui/template.html`, `ui.css`, `ui.js`) into `rekenrace/index.html`.
+NEXT: write the UI (ui/ files) and assemble. Once index.html is frozen, edit it directly and stop using assemble.
 
 Run part tests: `RR_PARTS_DIR=rekenrace/_wip/parts node --test tests/rekenrace-<name>.test.mjs`.
 
