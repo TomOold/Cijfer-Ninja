@@ -365,6 +365,9 @@ canvas.scene{display:block;width:100%;height:auto;aspect-ratio:20/9;image-render
 .feedback[data-tone="ok"]{color:var(--pal-deepteal)}
 .feedback[data-tone="note"]{background:var(--note-bg);border-left:6px solid var(--pal-orange);color:var(--ink)}
 .fb-main{font-weight:700;margin-right:.35em}
+/* Same cell as the feedback line, invisible: it holds the tip of the sum that is on screen, so the room for the tip
+   is already there when it appears (nothing moves, and the scene is sized for it). */
+.feedback.is-reserve{visibility:hidden;pointer-events:none}
 .feedback[data-tone="ok"] .fb-main{font-size:1.1rem}
 
 .keypad{grid-row:4;grid-column:1;display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
@@ -590,6 +593,11 @@ canvas.scene{display:block;width:100%;height:auto;aspect-ratio:20/9;image-render
 }
 
 /* ---------- very narrow screens (an old small phone, or a page zoomed in a lot) ---------- */
+@media (max-width:349px){
+  /* six keys of 48 px next to each other only fit with a thin gap and a little less room at the sides */
+  .is-tight .keypad{gap:3px}
+  .is-tight .screen.race{padding-left:8px;padding-right:8px}
+}
 @media (max-width:340px){
   .tools{gap:4px}
   .tool-nav{padding:0 10px}
@@ -700,6 +708,7 @@ canvas.scene{display:block;width:100%;height:auto;aspect-ratio:20/9;image-render
             <p class="q" id="q" tabindex="-1"></p>
             <div class="answer" id="answer" role="status" data-empty="true"><span class="sr-only" id="answer-label" data-txt="race.yourAnswer"></span><span class="answer-text" id="answer-text"></span></div>
             <p class="feedback" id="feedback" aria-live="polite"></p>
+            <p class="feedback is-reserve" id="feedback-reserve" data-tone="note" aria-hidden="true"></p>
             <div class="keypad" id="keypad" role="group" data-txt-label="race.keypad"></div>
             <div class="explain panel" id="explain">
               <p class="explain-answer" id="explain-answer"></p>
@@ -8229,7 +8238,7 @@ RR.UI = (function () {
     // a portrait phone with little height (a small screen, or the browser toolbars take their share); the narrower
     // the phone, the more a long story wraps, so a 400 px wide phone needs the flat layout up to 800 px high
     S.compact = !S.wide && (hgt <= 660 || (w <= 430 && hgt <= 800));
-    S.tight = S.compact && hgt <= 600 && w >= 350;   // even less height, and room for six keys of 48px side by side
+    S.tight = S.compact && hgt <= 600 && w >= 320;   // even less height, and room for six keys of 48px side by side (a thin gap at 320 px)
     const root = document.documentElement;
     root.classList.toggle('is-wide', S.wide);
     root.classList.toggle('is-short', S.short);
@@ -8495,6 +8504,7 @@ RR.UI = (function () {
     byId('race-progress').textContent = '';
     byId('feedback').textContent = '';
     byId('feedback').dataset.tone = '';
+    byId('feedback-reserve').textContent = '';
     byId('q').textContent = '';
     byId('answer-text').textContent = '';
     bindScene(byId('slot-race'));
@@ -8548,6 +8558,7 @@ RR.UI = (function () {
     const qEl = byId('q');
     renderQuestion(qEl, q.text);
     qEl.className = 'q' + (q.text.indexOf('\n') >= 0 ? ' q-story' : q.text.length > 14 ? ' q-long' : '');
+    byId('feedback-reserve').replaceChildren(h('span', { class: 'fb' }, [h('span', { class: 'fb-main' }, TXT.race.notYet), ' ' + glueSums(q.hint)]));
     setPhase(R, 'ask');
     byId('race-progress').textContent = TXT.race.progress(R.index + 1, R.questions.length);
     setFeedback('', '');
