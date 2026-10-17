@@ -672,6 +672,134 @@ describe("recordAnswer and statistics", () => {
   });
 });
 
+describe("the store agrees with the rest of the game on ids", () => {
+  // The store hard-codes hero ids, sum kinds and the track count on purpose (it must work alone), so
+  // nothing but this test notices when a hero, a kind or a track is added to the game and not to the store.
+  test("every hero of RR.Heroes can be chosen, and nothing else", () => {
+    const { store } = fresh();
+    RR.Heroes.forEach((h, i) => assert.equal(store.addPlayer({ name: "Kind" + i, hero: h.id, grade: 4 }).ok, true, h.id));
+    assert.deepEqual(RR.Heroes.map((h) => h.id).sort(), [...HEROES].sort());
+    assert.equal(store.addPlayer({ name: "Extra", hero: "hond", grade: 4 }).error, "bad_hero");
+  });
+
+  test("every sum kind of RR.Questions can be recorded", () => {
+    const { store } = withEva();
+    Object.keys(RR.Questions.KINDS).forEach((kind) => assert.equal(store.recordAnswer(kind + ":x", kind, "first"), true, kind));
+    assert.deepEqual(store.kindStats().map((k) => k.kind), Object.keys(RR.Questions.KINDS));
+  });
+
+  test("every track of RR.Tracks can be stamped, the next one cannot, and the place range matches the race", () => {
+    const { store } = withEva();
+    RR.Tracks.forEach((t) => assert.equal(store.stamp(t.id, 4), true, "track " + t.id));
+    assert.equal(store.stamp(RR.Tracks.length + 1, 1), false);
+    assert.equal(store.nextTrack(), RR.Tracks.length + 1);
+    const state = RR.Race.create({ track: 1, hero: "egel", seed: 1 });
+    assert.equal(RR.Race.standings(state).length, 4, "four racers: places 1..4, the range the store accepts");
+    assert.equal(store.stamp(1, 5), false);
+  });
+});
+
+describe("where a sum was met (grade and level)", () => {
+  // A missed hard sum must not be woven into an easy race later (review finding CODE-1).
+  const rec = (store, key, outcome, where) => store.recordAnswer(key, "add", outcome, where);
+
+  test("the answer record keeps its exact old shape when no context is given", () => {
+    const { storage, store } = withEva(undefined, () => 1000);
+    rec(store, "add:1+2", "miss");
+    assert.deepEqual(stored(storage).players[0].answers["add:1+2"], { kind: "add", ok: 0, miss: 1, last: "miss", t: 1000 });
+  });
+
+  test("a valid context is stored with the record and survives a reload", () => {
+    const { storage, store } = withEva(undefined, () => 1000);
+    rec(store, "add:1+2", "miss", { grade: 4, level: 8 });
+    assert.deepEqual(stored(storage).players[0].answers["add:1+2"], { kind: "add", ok: 0, miss: 1, last: "miss", t: 1000, grade: 4, level: 8 });
+    const again = Store.create(storage);
+    assert.deepEqual(again.openKeys(5, undefined, { grade: 4, level: 8 }), ["add:1+2"]);
+    assert.deepEqual(again.openKeys(5, undefined, { grade: 4, level: 7 }), []);
+    checkDoc(stored(storage));
+  });
+
+  test("an invalid context is ignored: the answer still counts and no fields are added", () => {
+    const { storage, store } = withEva(undefined, () => 1000);
+    const bad = [{ grade: 2, level: 1 }, { grade: 7, level: 1 }, { grade: 4, level: 0 }, { grade: 4, level: 9 }, { grade: 4 }, { level: 3 },
+      { grade: 4.5, level: 2 }, { grade: "x", level: 2 }, null, 5, "4", [4, 2]];
+    bad.forEach((where, i) => assert.equal(rec(store, "add:" + i, "miss", where), true));
+    const answers = stored(storage).players[0].answers;
+    bad.forEach((_, i) => assert.deepEqual(Object.keys(answers["add:" + i]).sort(), ["kind", "last", "miss", "ok", "t"]));
+    assert.equal(store.kindStats()[0].total, bad.length);
+  });
+
+  test("openKeys with a context: same group, same level or easier; records without context always qualify", () => {
+    const { store } = withEva();
+    rec(store, "add:old", "miss");                             // no context (older data)
+    rec(store, "add:g4l2", "miss", { grade: 4, level: 2 });
+    rec(store, "add:g4l8", "second", { grade: 4, level: 8 });
+    rec(store, "add:g3l1", "miss", { grade: 3, level: 1 });
+    rec(store, "add:g5l5", "miss", { grade: 5, level: 5 });
+    const open = (where) => store.openKeys(10, undefined, where);
+    assert.deepEqual(open(), ["add:g5l5", "add:g3l1", "add:g4l8", "add:g4l2", "add:old"], "no context: unchanged behaviour");
+    assert.deepEqual(open({ grade: 4, level: 1 }), ["add:old"]);
+    assert.deepEqual(open({ grade: 4, level: 2 }), ["add:g4l2", "add:old"]);
+    assert.deepEqual(open({ grade: 4, level: 8 }), ["add:g4l8", "add:g4l2", "add:old"]);
+    assert.deepEqual(open({ grade: 3, level: 8 }), ["add:g3l1", "add:old"]);
+    assert.deepEqual(open({ grade: 6, level: 8 }), ["add:old"]);
+    assert.deepEqual(open({ grade: 99, level: 8 }), open(), "a nonsense context filters nothing");
+  });
+
+  test("openKeys skips sums that do not fit and still fills n from older ones", () => {
+    const { store } = withEva();
+    rec(store, "add:easy1", "miss", { grade: 4, level: 1 });
+    rec(store, "add:easy2", "miss", { grade: 4, level: 1 });
+    rec(store, "add:hard1", "miss", { grade: 4, level: 8 });
+    rec(store, "add:hard2", "miss", { grade: 4, level: 8 });
+    assert.deepEqual(store.openKeys(2, undefined, { grade: 4, level: 1 }), ["add:easy2", "add:easy1"]);
+    assert.deepEqual(store.openKeys(1, undefined, { grade: 4, level: 1 }), ["add:easy2"]);
+    assert.deepEqual(store.openKeys(3, undefined, { grade: 4, level: 1 }), ["add:easy2", "add:easy1"]);
+  });
+
+  test("the latest answer decides where a sum counts as met", () => {
+    const { store } = withEva();
+    rec(store, "add:x", "miss", { grade: 4, level: 8 });
+    assert.deepEqual(store.openKeys(5, undefined, { grade: 4, level: 2 }), []);
+    rec(store, "add:x", "second", { grade: 4, level: 2 });
+    assert.deepEqual(store.openKeys(5, undefined, { grade: 4, level: 2 }), ["add:x"]);
+    rec(store, "add:x", "first", { grade: 4, level: 2 });
+    assert.deepEqual(store.openKeys(5, undefined, { grade: 4, level: 8 }), [], "a later first still closes it");
+  });
+
+  test("the context filter works for another profile too, and never switches player", () => {
+    const { store, eva } = withEva();
+    rec(store, "add:a", "miss", { grade: 4, level: 5 });
+    const bo = store.addPlayer({ name: "Bo", hero: "pad", grade: 5 }).player;
+    store.select(bo.id);
+    assert.deepEqual(store.openKeys(5, eva.id, { grade: 4, level: 5 }), ["add:a"]);
+    assert.deepEqual(store.openKeys(5, eva.id, { grade: 4, level: 4 }), []);
+    assert.deepEqual(store.openKeys(5, undefined, { grade: 4, level: 5 }), []);
+    assert.equal(store.current().id, bo.id);
+  });
+
+  test("stored context is repaired: valid pairs kept, junk dropped", () => {
+    const answers = {
+      "add:ok": { kind: "add", ok: 0, miss: 1, last: "miss", t: 1, grade: 5, level: 3 },
+      "add:str": { kind: "add", ok: 0, miss: 1, last: "miss", t: 2, grade: "5", level: "3" },
+      "add:grade": { kind: "add", ok: 0, miss: 1, last: "miss", t: 3, grade: 9, level: 3 },
+      "add:level": { kind: "add", ok: 0, miss: 1, last: "miss", t: 4, grade: 5, level: 99 },
+      "add:half": { kind: "add", ok: 0, miss: 1, last: "miss", t: 5, grade: 5 },
+      "add:obj": { kind: "add", ok: 0, miss: 1, last: "miss", t: 6, grade: {}, level: [] },
+    };
+    const doc = { v: 1, counter: 1, current: "p1", settings: DEFAULT_SETTINGS, players: [{ id: "p1", name: "Eva", hero: "egel", grade: 5, answers, kinds: {}, stamps: {} }] };
+    const { storage, store } = fresh({ [KEY]: JSON.stringify(doc) });
+    store.setSetting("restAfter", 4);   // forces a write of the repaired document
+    const a = stored(storage).players[0].answers;
+    assert.deepEqual([a["add:ok"].grade, a["add:ok"].level], [5, 3]);
+    assert.deepEqual([a["add:str"].grade, a["add:str"].level], [5, 3], "digit strings are accepted like everywhere else in the store");
+    for (const k of ["add:grade", "add:level", "add:half", "add:obj"]) {
+      assert.equal("grade" in a[k] || "level" in a[k], false, k + " carries no half context");
+    }
+    checkDoc(stored(storage));
+  });
+});
+
 describe("pruning and clamping", () => {
   const keyOf = (i) => "add:k" + i;
 

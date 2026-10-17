@@ -50,6 +50,7 @@ body{
   background-image:repeating-conic-gradient(var(--pal-sky) 0% 25%, var(--pal-aqua) 0% 50%);
   background-size:4px 4px;
   overflow:hidden;
+  overscroll-behavior:none;     /* a swipe on the page must not pull-to-refresh and drop a race */
   -webkit-text-size-adjust:100%;
   text-size-adjust:100%;
 }
@@ -57,7 +58,7 @@ body{
 h1,h2,h3,p,ul,ol{margin:0}
 ul,ol{padding:0;list-style:none}
 button,input,select{font:inherit;color:inherit}
-img,svg{display:block}
+img,svg,canvas.pix{display:block}
 .pix{image-rendering:-moz-crisp-edges;image-rendering:crisp-edges;image-rendering:pixelated}
 .sr-only,.vh{position:absolute !important;width:1px;height:1px;margin:-1px;padding:0;border:0;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap}
 .noscript{position:fixed;inset:auto 16px 16px;padding:12px 16px;background:var(--paper);border:2px solid var(--edge)}
@@ -90,7 +91,7 @@ img,svg{display:block}
 }
 .brand{display:flex;align-items:center;gap:10px;min-width:0}
 .brand-icon{width:20px;height:20px;border:1px solid var(--pal-white);background:var(--pal-white)}
-.brand-name{font-weight:700;font-size:1.25rem;letter-spacing:.03em;white-space:nowrap}
+.brand-name{font-weight:700;font-size:1.25rem;letter-spacing:.03em;white-space:nowrap;min-width:0;overflow:hidden;text-overflow:ellipsis}
 .tools{display:flex;align-items:center;gap:8px}
 .tool{
   min-width:48px;min-height:48px;padding:0 10px;display:flex;align-items:center;justify-content:center;
@@ -99,7 +100,7 @@ img,svg{display:block}
   box-shadow:0 0 0 1px var(--edge);
 }
 .tool:active{border-color:var(--lo) var(--hi) var(--hi) var(--lo);transform:translate(1px,1px)}
-.tool:focus-visible{outline:3px solid var(--pal-yellow);outline-offset:3px}
+.tool:focus-visible{outline:3px solid var(--pal-yellow);outline-offset:1px}
 .tool-nav{font-weight:700;padding:0 16px}
 .ico{width:28px;height:28px}
 .ico .off-mark{display:none}
@@ -319,7 +320,7 @@ canvas.scene{display:block;width:100%;height:auto;aspect-ratio:20/9;image-render
   background:#fff;border:2px solid;border-color:var(--lo) var(--hi) var(--hi) var(--lo);box-shadow:0 0 0 1px var(--edge);
   font-size:2rem;font-weight:700;letter-spacing:.12em;font-variant-numeric:tabular-nums;
 }
-.answer[data-empty="true"]::after{content:"_";color:var(--pal-grey)}
+.answer[data-empty="true"]::after{content:"_";content:"_" / "";color:var(--pal-grey)}   /* 2nd line: no accessible text for the cursor */
 .feedback{
   grid-row:3;grid-column:1;min-height:2.9rem;padding:4px 10px;font-size:.98rem;line-height:1.3;display:flex;align-items:center;
 }
@@ -339,6 +340,7 @@ canvas.scene{display:block;width:100%;height:auto;aspect-ratio:20/9;image-render
 .key-ok{background:var(--primary);color:var(--pal-white);font-size:1.3rem;border-color:var(--pal-teal) var(--pal-navy) var(--pal-navy) var(--pal-teal)}
 .key-ok:active{border-color:var(--pal-navy) var(--pal-teal) var(--pal-teal) var(--pal-navy)}
 .ico-del{width:34px;height:24px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linejoin:round}
+.keypad{transition:opacity .2s ease}
 .race[data-phase="gliding"] .keypad,.race[data-phase="done"] .keypad{opacity:.55}
 
 .explain{
@@ -373,6 +375,12 @@ canvas.scene{display:block;width:100%;height:auto;aspect-ratio:20/9;image-render
 .is-wide .q.q-long{font-size:clamp(1.5rem,2.8vw,2.1rem)}
 .is-wide .q.q-story{font-size:clamp(.95rem,1.35vw,1.15rem)}
 .is-wide .keypad{--key-h:clamp(52px,8vh,64px)}
+
+/* a portrait phone with little height: three rows of four keys instead of four rows of three, so "Klaar" stays on screen */
+.is-compact .keypad{grid-template-columns:repeat(4,1fr);gap:6px;--key-h:48px}
+.is-tight .keypad{grid-template-columns:repeat(6,1fr)}
+.is-tight .key{font-size:1.4rem}
+.is-tight .key-ok{font-size:1.05rem}
 
 /* wide and low (a phone held sideways): a flatter keypad, everything must fit without scrolling */
 .is-wide.is-short{--right-min:352px}
@@ -433,8 +441,11 @@ canvas.scene{display:block;width:100%;height:auto;aspect-ratio:20/9;image-render
 .stand-name{font-size:1.05rem;overflow-wrap:anywhere}
 .stand-you{color:var(--muted)}
 .fact{font-size:1.1rem;font-weight:700;padding-top:6px;border-top:2px dotted var(--lo)}
+.fact-more{font-size:.9rem;font-weight:400;color:var(--muted)}
 .stamp-got{display:flex;align-items:center;gap:14px}
 .stamp-pic{width:60px;height:60px;flex:none}
+.stamp-text{display:flex;flex-direction:column;align-items:flex-start;gap:8px;min-width:0}
+.stamp-text .btn.quiet{padding-left:0;padding-right:0}
 .practise h2{font-size:1.15rem}
 .practise-list{display:flex;flex-direction:column;gap:6px;margin-top:8px;font-size:1.1rem;font-variant-numeric:tabular-nums}
 .finish-actions{margin-top:6px;position:sticky;bottom:calc(-1 * var(--pad));padding:10px 0 var(--pad);background:linear-gradient(to bottom,transparent,var(--face) 12px)}
@@ -455,7 +466,7 @@ canvas.scene{display:block;width:100%;height:auto;aspect-ratio:20/9;image-render
 }
 .licence-band{display:flex;align-items:center;gap:12px;padding:10px 16px;background:linear-gradient(90deg,var(--pal-deepblue),var(--pal-blue));color:var(--pal-white);border-bottom:3px solid var(--pal-yellow)}
 .licence-flag{width:40px;height:40px;background:var(--pal-white);border:1px solid var(--pal-white)}
-.licence-title{font-size:clamp(1.4rem,4.4vw,2rem);letter-spacing:.14em;text-transform:uppercase}
+.licence-title{font-size:clamp(1.4rem,4.4vw,2rem);letter-spacing:.14em}
 .licence-main{display:flex;align-items:center;gap:20px;padding:16px 20px}
 .licence-kart{width:128px;height:88px;flex:none}
 .licence-who{display:flex;flex-direction:column;gap:4px;min-width:0}
@@ -464,7 +475,7 @@ canvas.scene{display:block;width:100%;height:auto;aspect-ratio:20/9;image-render
 .licence-text{font-size:1rem}
 .licence-date{font-size:.95rem;color:var(--muted)}
 .licence-stamps{display:grid;grid-template-columns:repeat(4,1fr);gap:8px 6px;padding:0 14px}
-.licence-stamps li{display:flex;flex-direction:column;align-items:center;gap:2px;font-size:.78rem;text-align:center}
+.licence-stamps li{display:flex;flex-direction:column;align-items:center;gap:2px;font-size:.78rem;text-align:center;min-width:0;overflow-wrap:anywhere}
 .licence-stamp{width:60px;height:60px}
 @media (min-width:700px){
   .licence-stamps{grid-template-columns:repeat(8,1fr)}
@@ -533,6 +544,15 @@ canvas.scene{display:block;width:100%;height:auto;aspect-ratio:20/9;image-render
   .titlebar{padding-left:10px}
 }
 
+/* ---------- very narrow screens (an old small phone, or a page zoomed in a lot) ---------- */
+@media (max-width:340px){
+  .tools{gap:4px}
+  .tool-nav{padding:0 10px}
+  .race-title{font-size:1.05rem}
+  .race-progress{font-size:.95rem}
+  .race-line{column-gap:8px}
+}
+
 /* ---------- printing: only the licence ---------- */
 @page{size:A5 landscape;margin:10mm}
 @media print{
@@ -544,20 +564,29 @@ canvas.scene{display:block;width:100%;height:auto;aspect-ratio:20/9;image-render
   .screen{display:none !important}
   #s-rijbewijs{display:block !important;overflow:visible;padding:0;animation:none}
   .page-licence{max-width:none}
-  .licence{margin:0;-webkit-print-color-adjust:exact;print-color-adjust:exact;break-inside:avoid}
+  .licence{margin:10px;-webkit-print-color-adjust:exact;print-color-adjust:exact;break-inside:avoid}
   .licence *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
   /* fill the A5 page: the kart at 8x, a bigger name, the 8 stamps in one row */
-  .licence-band{padding:14px 24px}
+  .licence-band{padding:8px 24px}
   .licence-title{font-size:2.4rem}
   .licence-flag{width:60px;height:60px}
-  .licence-main{padding:26px 30px;gap:30px}
-  .licence-kart{width:256px;height:176px}
-  .licence-name{font-size:3rem}
+  .licence-main{padding:12px 24px;gap:24px}
+  .licence-kart{width:192px;height:132px}
+  .licence-name{font-size:2.4rem;overflow-wrap:anywhere}
   .licence-text{font-size:1.3rem}
   .licence-date{font-size:1.1rem}
   .licence-label{font-size:1rem}
   .licence-stamps{grid-template-columns:repeat(8,1fr);padding:6px 24px 16px;gap:4px}
   .licence-stamps li{font-size:.9rem}
+}
+
+/* ---------- forced colours (Windows high contrast) ---------- */
+/* Backgrounds, gradients and shadows are dropped there, so a chosen radio chip or hero card would look
+   like an unchosen one. Show the choice with a dot and a thicker highlight border instead. */
+@media (forced-colors:active){
+  .chip label::before,.hero-card label::before{forced-color-adjust:none;background:Canvas;border-color:CanvasText}
+  .chip input:checked + label::before,.hero-card input:checked + label::before{background:radial-gradient(circle,CanvasText 0 4px,Canvas 5px)}
+  .chip input:checked + label,.hero-card input:checked + label{border-width:4px;border-color:Highlight}
 }
 
 /* ---------- less motion ---------- */
@@ -625,7 +654,7 @@ canvas.scene{display:block;width:100%;height:auto;aspect-ratio:20/9;image-render
             <div class="explain panel" id="explain">
               <p class="explain-answer" id="explain-answer"></p>
               <div class="explain-text" id="explain-text"></div>
-              <button type="button" class="btn primary" id="btn-next" data-action="next" data-sfx="" data-txt="race.next"></button>
+              <button type="button" class="btn primary" id="btn-next" data-action="next" data-sfx="" aria-describedby="explain-answer explain-text" data-txt="race.next"></button>
             </div>
           </div>
         </div>
@@ -2043,7 +2072,7 @@ RR.Tracks = (function () {
     },
     {
       id: 7, theme: 'ice', name: 'IJsbaan', length: 10,
-      blurb: 'Je rijdt over het ijs van de gracht, langs een kraam met koek en zopie en besneeuwde bomen.'
+      blurb: 'Je rijdt over het ijs van de gracht, langs een kraam met koek-en-zopie en besneeuwde bomen.'
     },
     {
       id: 8, theme: 'hills', name: 'Heuvelland', length: 10,
@@ -2371,6 +2400,16 @@ RR.Store = (function () {
     return typeof v === 'number' && Number.isFinite(v) ? Math.min(Math.max(Math.floor(v), 0), T_MAX) : 0;
   }
 
+  // Where an answer was given: { grade, level } with both in range, else null.
+  function toContext(v) {
+    if (!isObj(v)) return null;
+    const grade = toInt(v.grade);
+    const level = toInt(v.level);
+    if (grade === null || grade < MIN_GRADE || grade > MAX_GRADE) return null;
+    if (level === null || level < 1 || level > TRACK_COUNT) return null;
+    return { grade: grade, level: level };
+  }
+
   function pad(n, len) { return ('0000' + n).slice(-len); }
 
   // Local calendar date (a licence should show the day the family saw).
@@ -2468,7 +2507,10 @@ RR.Store = (function () {
         }
         // the latest outcome must be reflected in the counters
         if (last === 'miss') miss = Math.max(miss, 1); else ok = Math.max(ok, 1);
-        list.push({ key: key, index: index, rec: { kind: kind, ok: ok, miss: miss, last: last, t: toTime(rec.t) } });
+        const entry = { kind: kind, ok: ok, miss: miss, last: last, t: toTime(rec.t) };
+        const where = toContext(rec);
+        if (where) { entry.grade = where.grade; entry.level = where.level; }
+        list.push({ key: key, index: index, rec: entry });
       });
     }
     list.sort(function (a, b) { return a.rec.t - b.rec.t || a.index - b.index; });
@@ -2828,7 +2870,9 @@ RR.Store = (function () {
 
     // ---- answers
 
-    function recordAnswer(key, kind, outcome) {
+    // `where` ({ grade, level }) is optional: it tells openKeys where the sum was met, so a missed
+    // hard sum is not woven into an easy race later. Without it the record keeps its older shape.
+    function recordAnswer(key, kind, outcome, where) {
       if (!validKey(key) || KIND_IDS.indexOf(kind) < 0 || OUTCOMES.indexOf(outcome) < 0) return false;
       if (!currentPlayer()) return false;
       return mutate(function () {
@@ -2840,6 +2884,8 @@ RR.Store = (function () {
         Object.keys(answers).forEach(function (k) { if (answers[k].t > t) t = answers[k].t; });
         const good = outcome !== 'miss';
         const rec = { kind: kind, ok: prev ? prev.ok : 0, miss: prev ? prev.miss : 0, last: outcome, t: t };
+        const ctx = toContext(where);
+        if (ctx) { rec.grade = ctx.grade; rec.level = ctx.level; }
         if (good) rec.ok = Math.min(rec.ok + 1, MAX_COUNT); else rec.miss = Math.min(rec.miss + 1, MAX_COUNT);
         delete answers[key];
         answers[key] = rec;   // re-insert: object order is recency order
@@ -2854,14 +2900,20 @@ RR.Store = (function () {
     }
 
     // Keys whose latest outcome was second/miss, newest first. A later 'first' closes one.
-    function openKeys(n, id) {
+    // With `where` ({ grade, level }) only sums that suit that race are returned: the same grade,
+    // and met on that level or an easier one. Records without a context (older data) always qualify.
+    function openKeys(n, id, where) {
       const p = subject(id);
       if (!p) return [];
+      const ctx = toContext(where);
       const keys = Object.keys(p.answers);
       const max = limitOf(n);
       const out = [];
       for (let i = keys.length - 1; i >= 0 && out.length < max; i--) {
-        if (p.answers[keys[i]].last !== 'first') out.push(keys[i]);
+        const rec = p.answers[keys[i]];
+        if (rec.last === 'first') continue;
+        if (ctx && rec.grade !== undefined && (rec.grade !== ctx.grade || rec.level > ctx.level)) continue;
+        out.push(keys[i]);
       }
       return out;
     }
@@ -2972,6 +3024,22 @@ RR.Store = (function () {
   };
 })();
 // ===ENDPURE===
+
+// Errors that are swallowed on purpose (drawing and audio must never break a race) still leave one
+// console line per kind, so a problem that only shows in one browser can be found from a bug report.
+RR.warnOnce = (function () {
+  'use strict';
+  const seen = Object.create(null);
+  let count = 0;
+  return function (where, err) {
+    const msg = where + ': ' + (err && err.message ? err.message : String(err));
+    if (seen[msg] || count >= 20) return;
+    seen[msg] = true;
+    count++;
+    try { if (typeof console !== 'undefined' && console.warn) console.warn('Rekenrace ' + msg); } catch (e) { /* nowhere to report to */ }
+  };
+})();
+
 // Pixel-art sprites for Rekenrace: four kart heroes, head portraits and icons.
 // Everything is generated in code from tiny string maps (one character = one
 // palette colour, '.' = transparent) and baked once to cached canvases.
@@ -3830,7 +3898,7 @@ RR.Sprites = (function () {
         ctx.drawImage(src, 0, 0, c.width, c.height);
         url = c.toDataURL('image/png');
       }
-    } catch (e) { url = ''; }
+    } catch (e) { RR.warnOnce('sprites', e); url = ''; }
     return (urlCache[key] = url || transparentURL());
   }
 
@@ -3846,7 +3914,7 @@ RR.Sprites = (function () {
       ctx.imageSmoothingEnabled = false;
       ctx.drawImage(spr, x, y, spr.width * scale, spr.height * scale);
       ctx.imageSmoothingEnabled = was;
-    } catch (e) { /* drawing must never break the game loop */ }
+    } catch (e) { RR.warnOnce('sprites', e); /* drawing must never break the game loop */ }
   }
 
   // x, y = bottom-centre of the kart: the sprite covers columns x-16 .. x+15
@@ -3860,7 +3928,7 @@ RR.Sprites = (function () {
       if (!spr) return;
       const s = intScale(o.scale);
       blit(ctx, spr, Math.round(x) - (spr.width * s >> 1), Math.round(y) - spr.height * s, s);
-    } catch (e) { /* never break the game loop */ }
+    } catch (e) { RR.warnOnce('sprites', e); /* never break the game loop */ }
   }
 
   // Extras for canvas code (e.g. the minimap strip): x, y = centre of the head / icon.
@@ -3870,7 +3938,7 @@ RR.Sprites = (function () {
       if (!spr) return;
       const s = intScale(opts && opts.scale);
       blit(ctx, spr, Math.round(x) - (spr.width * s >> 1), Math.round(y) - (spr.height * s >> 1), s);
-    } catch (e) { /* never break the game loop */ }
+    } catch (e) { RR.warnOnce('sprites', e); /* never break the game loop */ }
   }
 
   function drawIcon(ctx, name, x, y, opts) {
@@ -3879,7 +3947,7 @@ RR.Sprites = (function () {
       if (!spr) return;
       const s = intScale(opts && opts.scale);
       blit(ctx, spr, Math.round(x) - (spr.width * s >> 1), Math.round(y) - (spr.height * s >> 1), s);
-    } catch (e) { /* never break the game loop */ }
+    } catch (e) { RR.warnOnce('sprites', e); /* never break the game loop */ }
   }
 
   function heroURL(heroId, scale) {
@@ -3892,6 +3960,37 @@ RR.Sprites = (function () {
 
   function iconURL(name, scale) {
     return toURL('icon', name, scale, iconCanvas);
+  }
+
+  // Privacy modes (Tor, Firefox resistFingerprinting, some content blockers) return an empty picture from
+  // toDataURL. A painted canvas must not read back identical to an empty one; if it does, the data URLs above are useless.
+  let readback = null;
+  function readbackWorks() {
+    if (readback === null) {
+      try {
+        const painted = newCanvas(2, 2);
+        const ctx = painted.getContext('2d');
+        ctx.fillStyle = '#336699';
+        ctx.fillRect(0, 0, 2, 2);
+        readback = painted.toDataURL('image/png') !== newCanvas(2, 2).toDataURL('image/png');
+      } catch (e) { readback = false; }
+    }
+    return readback;
+  }
+
+  // A fresh, scaled <canvas> with the same picture the URL functions give (kind: 'hero' | 'head' | 'icon'),
+  // for pages that cannot rely on readbackWorks(). Each call returns a new element: one canvas lives in one place.
+  function canvasFor(kind, id, scale) {
+    try {
+      const src = kind === 'hero' ? kartCanvas(id, 0, false) : kind === 'head' ? headCanvas(id) : kind === 'icon' ? iconCanvas(id) : null;
+      if (!src) return null;
+      const s = intScale(scale);
+      const c = newCanvas(src.width * s, src.height * s);
+      const ctx = c.getContext('2d');
+      ctx.imageSmoothingEnabled = false;
+      ctx.drawImage(src, 0, 0, c.width, c.height);
+      return c;
+    } catch (e) { RR.warnOnce('sprites', e); return null; }
   }
 
   // Problems with the art data (wrong row widths, unknown glyphs); [] when clean.
@@ -3973,6 +4072,8 @@ RR.Sprites = (function () {
     heroURL: heroURL,
     headURL: headURL,
     iconURL: iconURL,
+    readbackWorks: readbackWorks,
+    canvasFor: canvasFor,
     validate: validate
   };
 })();
@@ -3989,8 +4090,8 @@ RR.Sprites = (function () {
 //   scene.setReducedMotion(on)      instant moves, no wheel animation, no idle drift
 //   scene.resize(), scene.destroy(), scene.positions(), scene.width / height / theme / length
 //   RR.Scene.THEMES, RR.Scene.SIZE, RR.Scene.PX_PER_UNIT
-// Public methods never throw. RR.Scene.onError (optional function) is a development hook that
-// receives drawing errors, which are otherwise swallowed.
+// Public methods never throw. RR.Scene.onError (a function; replace it to collect them) receives the
+// drawing errors that are otherwise swallowed. By default each distinct one is logged once with console.warn.
 //
 // Everything is baked once per theme into cached offscreen canvases (sky, parallax layers, road
 // tile) and then only blitted, so a frame costs a few dozen drawImage calls. Nothing runs unless
@@ -4038,13 +4139,17 @@ RR.Scene = (function () {
   const PAL = (typeof RR !== 'undefined' && RR.Sprites && RR.Sprites.PALETTE) || {};
 
   const badColours = {};
+  function report(e) {
+    if (typeof RR !== 'undefined' && RR.Scene && typeof RR.Scene.onError === 'function') RR.Scene.onError(e);
+  }
+
   function col(n) {
     if (PAL[n]) return PAL[n];
     if (typeof n === 'string' && n.charAt(0) === '#') return n;
     // a typo in a colour name must be loud during development, never a silent wrong colour
     if (!badColours[n]) {
       badColours[n] = 1;
-      if (typeof RR !== 'undefined' && RR.Scene && typeof RR.Scene.onError === 'function') RR.Scene.onError(new Error('unknown colour ' + n));
+      report(new Error('unknown colour ' + n));
     }
     return '#ff00ff';
   }
@@ -5671,7 +5776,6 @@ RR.Scene = (function () {
         // far cranes
         [40, 200, 340].forEach(function (cx, i) { g.rep(cx, 34, function (q) { gantry(g, q, q0, 44 + (i % 2) * 5, 30, mix('blue', 'sky', 0.4), mix('slate', 'sky', 0.4), 4 + i); }); });
         // boats on the water
-        const hull = mix('navy', 'slate', 0.3);
         [[100, 'yacht'], [290, 'tug'], [370, 'yacht'], [200, 'cutter'], [20, 'cutter']].forEach(function (b, i) {
           g.rep(b[0], 34, function (q) {
             const wy = q0 + 3 + (i % 3);
@@ -6193,7 +6297,7 @@ RR.Scene = (function () {
     const def = THEMES[id];
     const guard = function (fn) {
       try { return fn(); } catch (e) {
-        if (typeof RR.Scene.onError === 'function') RR.Scene.onError(e);
+        report(e);
         return null;
       }
     };
@@ -6389,8 +6493,8 @@ RR.Scene = (function () {
       try {
         paint(fx);
       } catch (e) {
-        // a drawing problem must never break the game; the hook is for development only
-        if (typeof RR.Scene.onError === 'function') RR.Scene.onError(e);
+        // a drawing problem must never break the game, but it should leave a trace
+        report(e);
       }
     }
 
@@ -6714,7 +6818,7 @@ RR.Scene = (function () {
         st.length = isFinite(len) && len > 0 ? Math.min(len, 200) : 10;
         if (!gateCache) gateCache = bakeGates();
         render(null);
-      } catch (e) { /* never throw */ }
+      } catch (e) { report(e); }
     };
 
     scene.setRacers = function (racers, playerId) {
@@ -6744,7 +6848,7 @@ RR.Scene = (function () {
         st.wheel = {};
         syncCam();
         render(null);
-      } catch (e) { /* never throw */ }
+      } catch (e) { report(e); }
     };
 
     scene.place = function (positions) {
@@ -6755,7 +6859,7 @@ RR.Scene = (function () {
         st.racers.forEach(function (r) { st.pos[r.id] = n[r.id]; });
         syncCam();
         render(null);
-      } catch (e) { /* never throw */ }
+      } catch (e) { report(e); }
     };
 
     scene.advanceTo = function (positions, opts2) {
@@ -6800,7 +6904,7 @@ RR.Scene = (function () {
         lastTs = 0;
         if (!st.anim) { cancelLoops(); render(null); }
         wake();
-      } catch (e) { /* never throw */ }
+      } catch (e) { report(e); }
     };
 
     scene.setReducedMotion = function (on) {
@@ -6808,7 +6912,7 @@ RR.Scene = (function () {
         st.reduced = !!on;
         if (st.reduced) { finishAnim(); cancelLoops(); render(null); }
         else wake();
-      } catch (e) { /* never throw */ }
+      } catch (e) { report(e); }
     };
 
     scene.resize = function () {
@@ -6817,7 +6921,7 @@ RR.Scene = (function () {
         if (canvas.width !== W) canvas.width = W;
         if (canvas.height !== H) canvas.height = H;
         render(null);
-      } catch (e) { /* never throw */ }
+      } catch (e) { report(e); }
     };
 
     scene.positions = function () {
@@ -6835,7 +6939,7 @@ RR.Scene = (function () {
         if (hasDoc) document.removeEventListener('visibilitychange', onVisibility);
         if (mql && mql.removeEventListener) mql.removeEventListener('change', onMotionPref);
         baked = null;
-      } catch (e) { /* never throw */ }
+      } catch (e) { report(e); }
     };
 
     function onVisibility() {
@@ -6843,7 +6947,7 @@ RR.Scene = (function () {
         if (st.destroyed) return;
         if (hidden()) { finishAnim(); cancelLoops(); lastTs = 0; }
         else { lastTs = 0; render(null); wake(); }
-      } catch (e) { /* never throw */ }
+      } catch (e) { report(e); }
     }
 
     function onMotionPref(ev) { scene.setReducedMotion(!!ev.matches); }
@@ -6865,7 +6969,7 @@ RR.Scene = (function () {
 
   return {
     create: create,
-    onError: null,
+    onError: function (e) { RR.warnOnce('scene', e); },
     THEMES: THEME_IDS.slice(),
     SIZE: { width: W, height: H },
     PX_PER_UNIT: PPU,
@@ -7336,7 +7440,7 @@ RR.Sound = (function () {
   const VARIANTS = [1, 1.03, 0.97, 1.015, 0.985];
 
   function safe(fn) {
-    try { return fn(); } catch (e) { return undefined; }
+    try { return fn(); } catch (e) { RR.warnOnce('sound', e); return undefined; }
   }
   function nowMs() {
     return (typeof performance !== 'undefined' && performance.now) ? performance.now() : 0;
@@ -7541,6 +7645,12 @@ RR.Sound = (function () {
 // calm, at most one "!" per message). Names are user data: always textContent.
 // ===========================================================================
 
+// A name that ends in punctuation ("Lola!") would make "Hoi, Lola!." in a sentence of ours.
+function sentenceName(name) {
+  const n = String(name);
+  return n.replace(/[\s.!?,:;]+$/, '') || n;
+}
+
 // ---------- all user-facing text ----------
 const TXT = {
   appName: 'Rekenrace',
@@ -7565,6 +7675,7 @@ const TXT = {
     title: 'Nieuwe speler',
     name: 'Hoe heet je?',
     nameHint: 'Maximaal 12 tekens.',
+    privacy: 'Je naam blijft alleen op dit apparaat.',
     hero: 'Kies je held',
     grade: 'In welke groep zit je?',
     submit: 'Klaar',
@@ -7579,16 +7690,16 @@ const TXT = {
   },
 
   menu: {
-    hello: name => 'Hoi, ' + name + '.',
+    hello: name => 'Hoi, ' + sentenceName(name) + '.',
     ask: 'Wat wil je doen?',
     sceneLabel: 'Vier dieren in karretjes staan klaar bij de start van een baan.',
     championship: 'Kampioenschap',
     championshipNext: name => 'Volgende baan: ' + name,
     championshipDone: 'Alle banen gereden',
     free: 'Vrije race',
-    freeSub: 'Kies zelf een baan en soort sommen',
+    freeSub: 'Kies zelf een baan en een soort sommen',
     stamps: 'Stempelkaart',
-    stampsSub: n => n + ' van 8 stempels',
+    stampsSub: n => n >= 8 ? '8 van 8 stempels. Je rijbewijs is klaar.' : n + ' van 8 stempels',
     other: 'Andere speler',
     otherSub: 'Iemand anders gaat spelen',
     parents: 'Ouders'
@@ -7607,6 +7718,8 @@ const TXT = {
     title: 'Vrije race',
     intro: 'Oefen op je eigen manier. Een vrije race geeft geen stempel.',
     track: 'Kies een baan',
+    trackNote: 'Een latere baan heeft moeilijkere sommen.',
+    lockedNote: 'Een baan met een slotje rijd je eerst in het Kampioenschap.',
     focus: 'Welke sommen wil je oefenen?',
     table: 'Welke tafel?',
     allTables: 'Alle tafels',
@@ -7614,9 +7727,15 @@ const TXT = {
     go: 'Naar de start',
     // the line shown on the start card of a free race
     focusLine: (focus, table) => {
-      if (focus === 'times') return table ? 'Tafel van ' + table : 'Alle tafels';
-      if (focus === 'div') return table ? 'Delen met de tafel van ' + table : 'Delen';
-      return TXT.vrij.foci[focus] || TXT.vrij.foci.mix;
+      if (focus === 'times') return table ? 'Je oefent de tafel van ' + table + '.' : 'Je oefent alle tafels.';
+      if (focus === 'div') return table ? 'Je oefent delen met de tafel van ' + table + '.' : 'Je oefent delen.';
+      return TXT.vrij.focusSentences[focus] || TXT.vrij.focusSentences.mix;
+    },
+    focusSentences: {
+      mix: 'Je oefent allerlei sommen door elkaar.',
+      add: 'Je oefent optellen.',
+      sub: 'Je oefent aftrekken.',
+      story: 'Je oefent verhaalsommen.'
     }
   },
 
@@ -7627,7 +7746,6 @@ const TXT = {
     pause: 'Pauze',
     start: 'Start',
     freeNote: 'Dit is een vrije race. Je krijgt hier geen stempel voor.',
-    freeFocus: line => 'Sommen: ' + line + '.',
     places: ['eerste', 'tweede', 'derde', 'vierde'],
     sceneLabel: (track, placeWord) => 'Race op de baan ' + track.name + '. Jij staat op de ' + placeWord + ' plaats.',
     sceneLabelStart: track => 'Vier dieren in karretjes staan klaar op de baan ' + track.name + '.',
@@ -7639,6 +7757,7 @@ const TXT = {
     second: 'Goed, het is gelukt.',
     notYet: 'Nog niet helemaal.',
     answerIs: n => 'Het antwoord is ' + n + '.',
+    spokenDivide: ' gedeeld door ',
     next: 'Volgende'
   },
 
@@ -7658,31 +7777,35 @@ const TXT = {
     place: n => 'Je bent als ' + TXT.race.places[n - 1] + ' over de finish gekomen.',
     standings: 'Zo kwamen jullie binnen',
     you: 'jij',
-    firstTime: (n, total) => n + ' van ' + total + ' goed in één keer',
+    // first and second tries both count as good, the same as on the parents screen
+    good: (n, total) => n + ' van ' + total + ' goed',
+    ofWhichFirst: n => 'waarvan ' + n + ' in \u00e9\u00e9n keer',
     practise: 'Oefenen',
+    answer: 'Antwoord:',
     practiseNote: 'Deze sommen gingen nog niet goed. Kijk er gerust nog eens naar.',
     stampNew: name => 'Je hebt de stempel van ' + name + ' gehaald.',
     stampHad: name => 'Je had de stempel van ' + name + ' al.',
-    garage: 'Terug naar de garage',
+    licenceReady: 'Alle acht de stempels zijn binnen. Je Rekenrijbewijs ligt klaar.',
+    garage: 'Terug naar het menu',
     again: 'Nog een keer'
   },
 
   rust: {
-    title: name => 'Mooi gedaan, ' + name + '. Tijd voor een pauze?',
+    title: name => 'Mooi gedaan, ' + sentenceName(name) + '. Tijd voor een pauze?',
     stop: 'Stoppen',
     more: 'Toch nog een race'
   },
 
   totziens: {
-    title: name => 'Tot de volgende keer, ' + name + '.',
+    title: name => 'Tot de volgende keer, ' + sentenceName(name) + '.',
     back: 'Terug naar het begin'
   },
 
   stempels: {
     title: 'Stempelkaart',
-    intro: 'Voor elke baan die je rijdt, krijg je een stempel.',
+    intro: 'Voor elke baan die je in het Kampioenschap rijdt, krijg je een stempel. Met alle acht de stempels krijg je een Rekenrijbewijs.',
     date: d => 'gereden op ' + d,
-    notYet: 'nog niet gereden',
+    notYet: 'nog geen stempel',
     licence: 'Rekenrijbewijs bekijken'
   },
 
@@ -7702,7 +7825,7 @@ const TXT = {
     results: 'Resultaten',
     kindLine: (label, ok, total) => label + ': ' + ok + ' van ' + total + ' goed',
     kindNone: label => label + ': nog niet geoefend',
-    kindNote: 'Bij goed tellen ook de sommen mee die bij de tweede poging goed gingen.',
+    kindNote: 'Sommen die bij de tweede poging goed gingen, tellen ook als goed.',
     tricky: 'Moeilijke sommen',
     trickyNone: 'Er zijn nog geen moeilijke sommen.',
     settings: 'Instellingen',
@@ -7720,7 +7843,7 @@ const TXT = {
     removeDone: name => name + ' is verwijderd.',
     noPlayers: 'Er zijn nog geen spelers.',
     about: 'Over dit spel',
-    aboutText: 'Rekenrace is een rustig rekenspel. Er zijn geen klokken, geen punten en geen reclame. Alles wat je speelt blijft op dit apparaat: er is geen account en er wordt niets via internet verstuurd.'
+    aboutText: 'Rekenrace is een rustig rekenspel. Er zijn geen klokken, geen punten en geen reclame. Sommen die nog niet lukten komen later nog een keer terug. Een latere baan heeft moeilijkere sommen, ook bij een vrije race. Alles wat je speelt blijft op dit apparaat: er is geen account en er wordt niets via internet verstuurd.'
   }
 };
 
@@ -7736,6 +7859,9 @@ RR.UI = (function () {
   const SCENE_RATIO = 20 / 9;
   const GARAGE_RIGHT_MIN = 260;     // the garage buttons need at least this much room
   const REDUCED_PAUSE_MS = 600;     // reduced motion: no glide, so give the feedback a moment to be read
+  // Input debounce, not game state: a double tap on Start or Klaar must not land on the control that appears under it.
+  const START_GUARD_MS = 400;
+  const EXPLAIN_GUARD_MS = 600;
   const KEYS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', 'del', '0', 'ok'];
   const MONTHS = ['januari', 'februari', 'maart', 'april', 'mei', 'juni', 'juli', 'augustus', 'september', 'oktober', 'november', 'december'];
   const FOCUS_ORDER = ['mix', 'add', 'sub', 'times', 'div', 'story'];
@@ -7750,6 +7876,8 @@ RR.UI = (function () {
     screen: null,
     wide: false,
     short: false,
+    compact: false,
+    tight: false,
     reduced: false,
     races: 0,                 // finished races this sitting (never stored)
     raceSeq: 0,
@@ -7801,9 +7929,21 @@ RR.UI = (function () {
   function pic(url, w, h2, cls) {
     return h('img', { src: url, alt: '', width: w, height: h2, class: 'pix' + (cls ? ' ' + cls : ''), draggable: 'false' });
   }
-  const headImg = (hero, scale, cls) => pic(RR.Sprites.headURL(hero, scale), SIZE.head.w * scale, SIZE.head.h * scale, cls);
-  const kartImg = (hero, scale, cls) => pic(RR.Sprites.heroURL(hero, scale), SIZE.kart.w * scale, SIZE.kart.h * scale, cls);
-  const iconImg = (name, scale, cls) => pic(RR.Sprites.iconURL(name, scale), SIZE.icon.w * scale, SIZE.icon.h * scale, cls);
+  // An <img> from a data URL; where the browser blanks canvas read-back (privacy modes) a <canvas> instead.
+  function sprite(kind, id, scale, size, cls, urlOf) {
+    if (!RR.Sprites.readbackWorks()) {
+      const c = RR.Sprites.canvasFor(kind, id, scale);
+      if (c) {
+        c.className = 'pix' + (cls ? ' ' + cls : '');
+        c.setAttribute('aria-hidden', 'true');
+        return c;
+      }
+    }
+    return pic(urlOf(id, scale), size.w * scale, size.h * scale, cls);
+  }
+  const headImg = (hero, scale, cls) => sprite('head', hero, scale, SIZE.head, cls, RR.Sprites.headURL);
+  const kartImg = (hero, scale, cls) => sprite('hero', hero, scale, SIZE.kart, cls, RR.Sprites.heroURL);
+  const iconImg = (name, scale, cls) => sprite('icon', name, scale, SIZE.icon, cls, RR.Sprites.iconURL);
 
   function longDate(iso) {
     const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso || '');
@@ -7818,13 +7958,19 @@ RR.UI = (function () {
 
   function sleep(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
 
-  // "24 + ? = 51" with its answer filled in; stories get the answer after the text.
+  // Keeps "8 \u2212 6 = 2" in one piece when a line wraps: non-breaking spaces around + \u2212 \u00d7 : =.
+  // Render time only: the question texts themselves keep plain spaces (they are parsed and tested as such).
+  function glueSums(text) {
+    return String(text).replace(/ ([+\u2212\u00d7:=]) /g, '\u00a0$1\u00a0');
+  }
+
+  // "24 + ? = 51" with its answer filled in; stories get a labelled answer after the text.
   function fullSum(q) {
     const text = q.text;
     if (q.kind !== 'story' && text.indexOf('\n') < 0 && text.split('?').length === 2) {
-      return text.replace('?', String(q.answer));
+      return glueSums(text.replace('?', String(q.answer)));
     }
-    return text.replace(/\n/g, ' ') + ' ' + String(q.answer);
+    return text.replace(/\n/g, ' ') + ' ' + TXT.finish.answer + ' ' + String(q.answer);
   }
 
   function cur() { return S.store.current(); }
@@ -7945,6 +8091,12 @@ RR.UI = (function () {
     return whole > 0 && whole >= maxW * minFill ? whole : Math.max(160, Math.floor(maxW));
   }
 
+  // Sizes the one scene canvas for the screen it is in. The CSS and this function share three things:
+  //   --scene-col  (race, wide layout) set here: the width of the left grid column, i.e. the picture plus its border;
+  //   --left-w     (garage, wide layout) set here: the same for the garage's left column;
+  //   --right-min  read here (declared in :root, wider under .is-wide.is-short): the least room the right column needs.
+  // The picture is always a whole multiple of 320 device pixels when that leaves at least minFill of the space
+  // (chooseWidth), and the slot is then pinned to the picture's height so nothing below it jumps.
   function fitScene() {
     S.fitQueued = false;
     const slot = S.slot;
@@ -8000,9 +8152,13 @@ RR.UI = (function () {
     const w = window.innerWidth, hgt = window.innerHeight;
     S.wide = w >= 640 && w / hgt >= 1.1;
     S.short = hgt <= 520;
+    S.compact = !S.wide && hgt <= 660;    // a portrait phone with little height (small screen or browser toolbars)
+    S.tight = S.compact && hgt <= 600 && w >= 350;   // even less height, and room for six keys of 48px side by side
     const root = document.documentElement;
     root.classList.toggle('is-wide', S.wide);
     root.classList.toggle('is-short', S.short);
+    root.classList.toggle('is-compact', S.compact);
+    root.classList.toggle('is-tight', S.tight);
   }
 
   function setSceneLabel(label) { S.canvas.setAttribute('aria-label', label); }
@@ -8030,6 +8186,7 @@ RR.UI = (function () {
       h('div', { class: 'page' }, [
         screenTitle('spelers', TXT.spelers.title),
         h('div', { class: 'pgrid' }, cards),
+        players.length >= RR.Store.LIMITS.players ? note(TXT.nieuw.errors.too_many, 'quiet-note') : null,
         storageNote(),
         h('p', { class: 'foot' }, h('button', { type: 'button', class: 'btn quiet', 'data-action': 'parents' }, TXT.spelers.parents))
       ])
@@ -8055,7 +8212,7 @@ RR.UI = (function () {
       h('div', { class: 'field' }, [
         h('label', { for: 'in-name', class: 'label' }, TXT.nieuw.name),
         h('input', { type: 'text', id: 'in-name', name: 'name', class: 'text-in', maxlength: L.nameLength, autocomplete: 'off', autocapitalize: 'words', spellcheck: 'false', 'aria-describedby': 'hint-name err-name' }),
-        h('p', { class: 'hint', id: 'hint-name' }, TXT.nieuw.nameHint),
+        h('p', { class: 'hint', id: 'hint-name' }, TXT.nieuw.nameHint + ' ' + TXT.nieuw.privacy),
         h('p', { class: 'field-error', id: 'err-name', role: 'alert', hidden: true })
       ]),
       h('fieldset', { class: 'fieldset' }, [
@@ -8080,6 +8237,12 @@ RR.UI = (function () {
     if (field === 'name') byId('in-name').setAttribute('aria-invalid', message ? 'true' : 'false');
   }
 
+  // On a small screen the message can sit below the fold (the focused radio itself is invisible): bring it into view.
+  function showFirstError() {
+    const el = $$('.field-error', byId('form-new')).filter(e => !e.hidden)[0];
+    if (el) el.scrollIntoView({ block: 'nearest' });
+  }
+
   function submitNewPlayer(form) {
     const name = form.elements.name.value;
     const heroEl = form.querySelector('input[name="hero"]:checked');
@@ -8090,12 +8253,13 @@ RR.UI = (function () {
     if (!name.trim()) { setFieldError('name', E.name_empty); firstBad = firstBad || byId('in-name'); }
     if (!heroEl) { setFieldError('hero', E.bad_hero); firstBad = firstBad || form.querySelector('input[name="hero"]'); }
     if (!gradeEl) { setFieldError('grade', E.bad_grade); firstBad = firstBad || form.querySelector('input[name="grade"]'); }
-    if (firstBad) { firstBad.focus(); return; }
+    if (firstBad) { firstBad.focus(); showFirstError(); return; }
     const res = S.store.addPlayer({ name: name, hero: heroEl.value, grade: Number(gradeEl.value) });
     if (!res.ok) {
       const field = res.error === 'bad_hero' ? 'hero' : res.error === 'bad_grade' ? 'grade' : 'name';
       setFieldError(field, E[res.error] || E.other);
       (field === 'name' ? byId('in-name') : form.querySelector('input[name="' + field + '"]')).focus();
+      showFirstError();
       return;
     }
     S.store.select(res.player.id);
@@ -8205,7 +8369,11 @@ RR.UI = (function () {
     sec.replaceChildren(h('div', { class: 'page' }, [
       screenTitle('vrij', TXT.vrij.title),
       h('p', { class: 'lead' }, TXT.vrij.intro),
-      h('fieldset', { class: 'fieldset' }, [h('legend', { class: 'label' }, TXT.vrij.track), h('div', { class: 'chips chips-tracks' }, trackChips)]),
+      h('fieldset', { class: 'fieldset' }, [
+        h('legend', { class: 'label' }, TXT.vrij.track),
+        h('div', { class: 'chips chips-tracks' }, trackChips),
+        h('p', { class: 'hint' }, next <= TRACKS.length ? TXT.vrij.trackNote + ' ' + TXT.vrij.lockedNote : TXT.vrij.trackNote)
+      ]),
       h('fieldset', { class: 'fieldset' }, [h('legend', { class: 'label' }, TXT.vrij.focus), h('div', { class: 'chips' }, focusChips)]),
       tableSet,
       h('div', { class: 'form-actions' }, h('button', { type: 'button', class: 'btn primary big', 'data-action': 'start-free', 'data-sfx': '' }, TXT.vrij.go))
@@ -8242,10 +8410,10 @@ RR.UI = (function () {
     const R = S.race;
     const tr = R.track;
     byId('race-title').textContent = R.mode === 'free' ? TXT.race.freeTitle(tr) : TXT.race.title(tr);
-    byId('intro-title').textContent = TXT.race.title(tr);
+    byId('intro-title').textContent = R.mode === 'free' ? TXT.race.freeTitle(tr) : TXT.race.title(tr);
     byId('intro-blurb').textContent = tr.blurb;
     const extra = byId('intro-extra');
-    extra.textContent = R.mode === 'free' ? TXT.race.freeNote + ' ' + TXT.race.freeFocus(TXT.vrij.focusLine(R.cfg.focus, R.cfg.table)) : '';
+    extra.textContent = R.mode === 'free' ? TXT.race.freeNote + ' ' + TXT.vrij.focusLine(R.cfg.focus, R.cfg.table) : '';
     extra.hidden = R.mode !== 'free';
     byId('race-progress').textContent = '';
     byId('feedback').textContent = '';
@@ -8265,10 +8433,14 @@ RR.UI = (function () {
     const R = S.race;
     if (!R || R.phase !== 'intro') return;
     const player = cur();
-    const opts = { grade: player.grade, level: R.track.id, focus: R.cfg.focus, repeat: S.store.openKeys(3) };
+    const where = { grade: player.grade, level: R.track.id };
+    R.where = where;
+    // earlier misses only come back in a race that suits them (same group, same level or harder)
+    const opts = { grade: where.grade, level: where.level, focus: R.cfg.focus, repeat: S.store.openKeys(3, undefined, where) };
     if (R.cfg.table) opts.table = R.cfg.table;
     R.questions = RR.Questions.series(opts, SUMS_PER_RACE);
     R.index = 0;
+    R.keysFrom = performance.now() + START_GUARD_MS;
     RR.Sound.play('go');
     showQuestion(R);
   }
@@ -8281,13 +8453,22 @@ RR.UI = (function () {
     });
   }
 
+  // Screen readers say "56 dubbele punt 8" for "56 : 8 = ?". Give them the spoken form and hide the written one.
+  function renderQuestion(el, text) {
+    if (text.indexOf('\n') < 0 && text.indexOf(' : ') >= 0) {
+      el.replaceChildren(h('span', { 'aria-hidden': 'true' }, text), h('span', { class: 'sr-only' }, text.split(' : ').join(TXT.race.spokenDivide)));
+    } else {
+      renderLines(el, text);
+    }
+  }
+
   function showQuestion(R) {
     const q = R.questions[R.index];
     R.q = q;
     R.attempt = 0;
     R.input = '';
     const qEl = byId('q');
-    renderLines(qEl, q.text);
+    renderQuestion(qEl, q.text);
     qEl.className = 'q' + (q.text.indexOf('\n') >= 0 ? ' q-story' : q.text.length > 14 ? ' q-long' : '');
     setPhase(R, 'ask');
     byId('race-progress').textContent = TXT.race.progress(R.index + 1, R.questions.length);
@@ -8306,7 +8487,7 @@ RR.UI = (function () {
     fb.replaceChildren();
     fb.dataset.tone = main || extra ? (tone || 'ok') : '';
     if (!main && !extra) return;
-    fb.appendChild(h('span', { class: 'fb' }, [main ? h('span', { class: 'fb-main' }, main) : null, extra ? ' ' + extra : null]));
+    fb.appendChild(h('span', { class: 'fb' }, [main ? h('span', { class: 'fb-main' }, main) : null, extra ? ' ' + glueSums(extra) : null]));
   }
 
   function pressDigit(d) {
@@ -8353,18 +8534,20 @@ RR.UI = (function () {
     setFeedback('', '');
     R.input = '';
     renderAnswer(R);
+    R.explainFrom = performance.now() + EXPLAIN_GUARD_MS;
     setPhase(R, 'explain');
     byId('btn-next').focus({ preventScroll: true });
   }
 
   function renderExplain(el, text) {
     el.replaceChildren();
-    String(text).split('\n').forEach(line => el.appendChild(h('p', null, line)));
+    String(text).split('\n').forEach(line => el.appendChild(h('p', null, glueSums(line))));
   }
 
   function nextAfterExplain() {
     const R = S.race;
     if (!R || R.phase !== 'explain') return;
+    if (performance.now() < R.explainFrom) return;     // a second tap of the same double tap
     resolveSum(R, 'miss');
   }
 
@@ -8384,7 +8567,7 @@ RR.UI = (function () {
   async function resolveSum(R, outcome) {
     const q = R.q;
     setPhase(R, 'gliding');
-    S.store.recordAnswer(q.key, q.kind, outcome);
+    S.store.recordAnswer(q.key, q.kind, outcome, R.where);
     R.log.push({ q: q, outcome: outcome });
     const res = RR.Race.advance(R.state, outcome);
     RR.Sound.play('glide');
@@ -8405,15 +8588,18 @@ RR.UI = (function () {
   function finishRace(R) {
     const sum = RR.Race.summary(R.state);
     let isNew = false;
+    let completes = false;
     if (R.mode === 'championship') {
       isNew = !S.store.stamps()[R.track.id];
       S.store.stamp(R.track.id, sum.place);
+      const have = S.store.stamps();
+      completes = isNew && TRACKS.every(t => have[t.id]);     // the licence now exists: say so once
     }
     S.races++;
     RR.Sound.play(isNew ? 'stamp' : 'finish');
     S.finish = {
       cfg: R.cfg, track: R.track, mode: R.mode, summary: sum,
-      standings: RR.Race.standings(R.state), isNewStamp: isNew,
+      standings: RR.Race.standings(R.state), isNewStamp: isNew, completesCard: completes,
       missed: R.log.filter(e => e.outcome === 'miss').map(e => e.q).slice(0, 5)
     };
     show('finish');
@@ -8452,12 +8638,19 @@ RR.UI = (function () {
       h('div', { class: 'finish-grid' }, [
         h('section', { class: 'panel finish-card', 'aria-label': TXT.finish.standings }, [
           h('ol', { class: 'standings' }, rows),
-          h('p', { class: 'fact' }, TXT.finish.firstTime(F.summary.first, F.summary.total))
+          h('div', { class: 'fact' }, [
+            h('p', null, TXT.finish.good(F.summary.first + F.summary.second, F.summary.total)),
+            F.summary.first > 0 && F.summary.second > 0 ? h('p', { class: 'fact-more' }, TXT.finish.ofWhichFirst(F.summary.first)) : null
+          ])
         ]),
         h('div', { class: 'finish-side' }, [
           F.mode === 'championship' ? h('div', { class: 'panel stamp-got' }, [
             iconImg('stamp-' + F.track.theme, 3, 'stamp-pic'),
-            h('p', null, F.isNewStamp ? TXT.finish.stampNew(F.track.name) : TXT.finish.stampHad(F.track.name))
+            h('div', { class: 'stamp-text' }, [
+              h('p', null, F.isNewStamp ? TXT.finish.stampNew(F.track.name) : TXT.finish.stampHad(F.track.name)),
+              F.completesCard ? h('p', null, TXT.finish.licenceReady) : null,
+              F.completesCard ? h('button', { type: 'button', class: 'btn quiet', 'data-action': 'to', 'data-to': 'rijbewijs' }, TXT.stempels.licence) : null
+            ])
           ]) : null,
           F.missed.length ? h('div', { class: 'panel practise' }, [
             h('h2', null, TXT.finish.practise),
@@ -8500,7 +8693,7 @@ RR.UI = (function () {
     sec.replaceChildren(h('div', { class: 'page page-center' }, [
       kartImg(cur().hero, 4, 'rest-kart'),
       screenTitle('tot-ziens', TXT.totziens.title(cur().name)),
-      h('div', { class: 'form-actions' }, h('button', { type: 'button', class: 'btn primary big', 'data-action': 'restart', 'data-sfx': '' }, TXT.totziens.back))
+      h('div', { class: 'form-actions' }, h('button', { type: 'button', class: 'btn quiet', 'data-action': 'restart', 'data-sfx': '' }, TXT.totziens.back))
     ]));
   };
 
@@ -8566,7 +8759,9 @@ RR.UI = (function () {
   }
 
   function trickyBlock(player) {
-    const sums = S.store.trickyKeys(8, player.id).map(t => RR.Questions.fromKey(t.key)).filter(Boolean);
+    // Only sums that are still open: one that was missed once and has been right first time since is no longer tricky.
+    const open = new Set(S.store.openKeys(undefined, player.id));
+    const sums = S.store.trickyKeys(undefined, player.id).filter(t => open.has(t.key)).map(t => RR.Questions.fromKey(t.key)).filter(Boolean).slice(0, 8);
     if (!sums.length) return h('p', { class: 'hint' }, TXT.ouders.trickyNone);
     return h('ul', { class: 'tricky' }, sums.map(q => h('li', null, fullSum(q))));
   }
@@ -8627,6 +8822,13 @@ RR.UI = (function () {
       h('section', { class: 'about', 'aria-labelledby': 'h-about' }, [h('h2', { id: 'h-about' }, TXT.ouders.about), h('p', null, TXT.ouders.aboutText)])
     ]));
     if (S.confirm) { const c = byId('btn-confirm-cancel'); if (c) setTimeout(() => c.focus(), 0); }
+    if (notice) {
+      // The card that was just replaced took the focus with it; the confirmation may be far above the scroll position.
+      const n = $('.notice', sec);
+      n.tabIndex = -1;
+      n.focus();
+      announce(notice);
+    }
   };
 
   function rerender(id) {
@@ -8664,7 +8866,13 @@ RR.UI = (function () {
     'toggle-setting': el => changeSetting(el.dataset.setting, el.getAttribute('aria-pressed') !== 'true'),
     'ask-reset': el => { S.confirm = { kind: 'reset', id: el.dataset.id }; rerender('ouders'); },
     'ask-remove': el => { S.confirm = { kind: 'remove', id: el.dataset.id }; rerender('ouders'); },
-    'confirm-cancel': () => { S.confirm = null; rerender('ouders'); },
+    'confirm-cancel': () => {
+      const c = S.confirm;
+      S.confirm = null;
+      rerender('ouders');
+      const back = c && $('[data-action="ask-' + c.kind + '"][data-id="' + c.id + '"]');   // keep the keyboard where it was
+      if (back) back.focus({ preventScroll: true });
+    },
     'confirm-yes': () => {
       const c = S.confirm;
       const p = S.store.players().filter(x => x.id === (c && c.id))[0];
@@ -8687,16 +8895,52 @@ RR.UI = (function () {
 
   const FORMS = { 'new-player': submitNewPlayer };
 
+  // The key a touch has just handled on lift, so the click that follows the same tap is not counted twice.
+  let touchedKey = null;
+
   function onClick(ev) {
     const el = ev.target.closest('[data-action]');
     if (!el || el.disabled || !el.isConnected) return;
+    if (touchedKey && touchedKey.el === el && ev.timeStamp - touchedKey.at < 800) { touchedKey = null; return; }
+    activate(el, ev.detail > 0, ev);
+  }
+
+  // pointer: true for a mouse or touch tap, false for the keyboard (Enter or Space on a focused control)
+  function activate(el, pointer, ev) {
     const fn = ACTIONS[el.dataset.action];
     if (!fn) return;
+    if (el.classList.contains('key') && S.race && performance.now() < S.race.keysFrom) return;   // second click of a double-click on Start
     const sfx = el.dataset.sfx === undefined ? 'tap' : el.dataset.sfx;
     if (sfx) RR.Sound.play(sfx);
     fn(el, ev);
-    // After a mouse or touch tap on a key, let go of focus so a physical Enter does not press that key again.
-    if (ev.detail > 0 && el.classList.contains('key')) el.blur();
+    // After a mouse or touch tap on a key (or on a sound switch during a race), let go of focus
+    // so a physical Enter does not press that control again instead of checking the answer.
+    if (pointer && (el.classList.contains('key') || (S.screen === 'race' && el.classList.contains('tool')))) el.blur();
+  }
+
+  // Keypad keys under a finger: the browser cancels the click of a tap while another finger rests on the glass
+  // (a thumb holding the tablet), so a touch counts when it lifts, on the key where it went down. A swipe that
+  // scrolls the page ends in pointercancel and never counts.
+  const touchDown = {};
+  const keyUnder = ev => (ev.target && ev.target.closest ? ev.target.closest('.key[data-action]') : null);
+
+  function onPointerDown(ev) {
+    if (ev.pointerType === 'touch') touchDown[ev.pointerId] = keyUnder(ev);
+  }
+
+  function onPointerCancel(ev) {
+    delete touchDown[ev.pointerId];
+  }
+
+  function onPointerUp(ev) {
+    if (ev.pointerType !== 'touch') return;
+    const el = touchDown[ev.pointerId];
+    delete touchDown[ev.pointerId];
+    if (!el || !el.isConnected || el.disabled || el !== keyUnder(ev)) return;
+    const r = el.getBoundingClientRect();
+    if (ev.clientX < r.left || ev.clientX > r.right || ev.clientY < r.top || ev.clientY > r.bottom) return;   // slid off the key
+    touchedKey = { el: el, at: ev.timeStamp };
+    activate(el, true, ev);
   }
 
   function onChange(ev) {
@@ -8717,6 +8961,8 @@ RR.UI = (function () {
     if (byId('dlg-pause').open) return;
     const R = S.race;
     if (S.screen !== 'race' || !R) return;
+    // A held Enter must not check, skip an explanation or press a focused button again and again.
+    if (ev.key === 'Enter' && ev.repeat) { ev.preventDefault(); return; }
     const onControl = !!ev.target.closest('button, a, input, select, textarea');
     if (ev.key === 'Escape') {
       if (R.phase !== 'intro') { ev.preventDefault(); openPause(); }
@@ -8766,12 +9012,22 @@ RR.UI = (function () {
     byId('btn-sound').title = TXT.header.sound;
     byId('btn-music').setAttribute('aria-label', TXT.header.music);
     byId('btn-music').title = TXT.header.music;
-    byId('brand-icon').src = RR.Sprites.iconURL('flag', 1);
+    const brand = byId('brand-icon');
+    const flag = RR.Sprites.readbackWorks() ? null : RR.Sprites.canvasFor('icon', 'flag', 1);
+    if (flag) {
+      flag.id = 'brand-icon';
+      flag.className = brand.className;
+      flag.setAttribute('aria-hidden', 'true');
+      brand.replaceWith(flag);
+    } else {
+      brand.src = RR.Sprites.iconURL('flag', 1);
+    }
   }
 
   function unlockSoundOnce() {
     const events = ['pointerup', 'click', 'keydown'];
-    const handler = () => {
+    const handler = ev => {
+      if (ev.type === 'keydown' && /^(Escape|Shift|Control|Alt|Meta|CapsLock)$/.test(ev.key)) return;   // not an activation: the context would stay suspended and warn
       RR.Sound.unlock();
       if (RR.Sound.isUnlocked()) events.forEach(e => document.removeEventListener(e, handler, true));
     };
@@ -8799,6 +9055,9 @@ RR.UI = (function () {
     applySettings();
 
     document.addEventListener('click', onClick);
+    document.addEventListener('pointerdown', onPointerDown);
+    document.addEventListener('pointerup', onPointerUp);
+    document.addEventListener('pointercancel', onPointerCancel);
     document.addEventListener('change', onChange);
     document.addEventListener('submit', onSubmit);
     document.addEventListener('keydown', onKey);
@@ -8806,6 +9065,13 @@ RR.UI = (function () {
       const r = ev.currentTarget.getBoundingClientRect();
       const outside = ev.clientX < r.left || ev.clientX > r.right || ev.clientY < r.top || ev.clientY > r.bottom;
       if (ev.target === ev.currentTarget && outside) closePause();
+    });
+    byId('dlg-pause').addEventListener('close', () => {
+      // The browser hands focus back to the opener (Pauze), where a physical Enter would open the dialog again.
+      const R = S.race;
+      if (S.screen !== 'race' || !R) return;
+      const target = byId(R.phase === 'explain' ? 'btn-next' : 'q');
+      if (target) target.focus({ preventScroll: true });
     });
     unlockSoundOnce();
 
