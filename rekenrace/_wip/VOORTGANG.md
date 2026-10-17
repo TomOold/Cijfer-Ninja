@@ -3,22 +3,20 @@
 This folder exists so the work survives a reclaimed container. It is NOT part of the shipped game.
 Read `BRIEF.md` first: it is the complete design brief, contracts and rules.
 
-## State (snapshot 2026-10-17)
-All six parts are DONE and verified by the orchestrator (all tests green: race 47, opslag 140, sommen 30; sprites/scene/sound browser checks ALL OK):
-`parts/pure-rng.js`, `pure-sommen.js`, `pure-race.js`, `pure-opslag.js`, `sprites.js`, `scene.js` (8 themes), `geluid.js`.
-Full agent reports (API extras, limitations, integration notes) are in `reports/*.md` - read them before integrating.
-`build/assemble.mjs` concatenates the parts + UI sources (`ui/template.html`, `ui.css`, `ui.js`) into `rekenrace/index.html`.
-NEXT: write the UI (ui/ files) and assemble. Once index.html is frozen, edit it directly and stop using assemble.
+## State (2026-10-17): v1 IS INTEGRATED AND FROZEN
+`rekenrace/index.html` (one file, ~380 KB) is now the ONLY source of truth. The old part files and the assemble script were
+removed on purpose: edit `rekenrace/index.html` directly. (Do not resurrect `assemble.mjs`: it would overwrite your edits.)
+- Tests green against index.html: `node --test tests/rekenrace-race.test.mjs tests/rekenrace-opslag.test.mjs tests/rekenrace-sommen.test.mjs`
+  (47 + 140 + 40). Browser/behaviour suite: `rekenrace/_wip/e2e/play.cjs` (+ lib.cjs, shots.cjs, stress.cjs, monkey.cjs), 284 checks, run with
+  `NODE_PATH=$(npm root -g) node play.cjs` (needs the e2e scripts' relative paths adjusted if run from the repo; they load file:///home/user/Cijfer-Ninja/rekenrace/index.html).
+- Agent reports (API details, limitations): `reports/*.md`. Design brief: `BRIEF.md`.
+- 8 themes, 4 heroes, 12 screens, calm-design rules D1-D12 implemented; CSP meta enforces no network.
+- Already sent to the user: screenshots of the real game.
 
-Run part tests: `RR_PARTS_DIR=rekenrace/_wip/parts node --test tests/rekenrace-<name>.test.mjs`.
-
-## Next steps
-1. Finish scene (7 more themes) and sound; re-check all parts.
-2. Integrate into ONE `rekenrace/index.html` (inline CSS + one script: `const RR = {}`, pure parts between
-   `// ===PURE===` / `// ===ENDPURE===`, then sprites, scene, sound, UI). Screens: see BRIEF section 7.
-3. Playtest with Playwright (all viewports in BRIEF section 6), review against the calm-design rules D1-D12,
-   Dutch language/maths proofreading, security review (names via textContent only).
-4. Wire tests into `npm test`, add `rekenrace/README.md`, mention in root README + CLAUDE.md, delete `_wip/`.
+## Next steps (remaining)
+1. Review round on the frozen file (play-test, dopamine audit D1-D12, Dutch copy in TXT, a11y/visual, code+security), verify findings, ONE fixer applies them.
+2. Wire the three test files into `npm test` (package.json), decide about shipping the e2e scripts (tests/rekenrace-e2e/), write `rekenrace/README.md` (Dutch), mention in root README.md + CLAUDE.md.
+3. Phase 2 (user decision, below): pseudo-3D "behind the kart" view as an extra option. Then delete `rekenrace/_wip/`.
 
 ## Decision by the user (2026-10-16): perspective
 The user remembers the original RedCat game as 3D (unconfirmed; MyAbandonware lists 1st-person + 2D scrolling).

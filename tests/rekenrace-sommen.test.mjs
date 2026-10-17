@@ -100,6 +100,11 @@ const STORY_RULES = {
   broodjes: (a, b, c) => a - b - c,
   kisten: (a, b, c) => (a * b) / c,
   knikkers: (a, b, c) => a / b + c,
+  // thousands-level stories (review: tulips, shells and boats must not reach absurd numbers)
+  feestmensen: (a, b) => a + b,
+  kaartjes: (a, b) => a - b,
+  bezoekers: (a, b, c) => a + b + c,
+  feestdrukte: (a, b, c) => a + b - c,
 };
 
 const ENGLISH = /\b(the|and|minus|plus|times|divided|what|how|answer|correct|wrong|score)\b/i;
@@ -952,4 +957,324 @@ test("fromKey: fuzzed keys either fail cleanly or give a canonical, valid questi
     "add:1+" + "1".repeat(5), "times:99999x1", "\u0000", "add:١+٢", "add:1\n+2"]) {
     assert.equal(Q.fromKey(junk), null, junk);
   }
+});
+
+// ======================================================================
+// Review regressions (independent math + Dutch-language review).
+// Each test below pins one class of defect that the first version had.
+// ======================================================================
+
+const UNIT_VALUE = { eenheden: 1, eenheid: 1, tientallen: 10, tiental: 10, honderdtallen: 100, honderdtal: 100, duizendtallen: 1000, duizendtal: 1000 };
+const UNIT_RE = "eenheden|eenheid|tientallen|tiental|honderdtallen|honderdtal|duizendtallen|duizendtal";
+const OPC = `[+${MIN}${KEER}:]`;
+
+function evalChain(expr) {
+  const js = expr.replaceAll(MIN, "-").replaceAll(KEER, "*").replaceAll(" : ", " / ");
+  assert.match(js, /^[0-9+\-*/ ]+$/, expr);
+  return Function(`"use strict"; return (${js});`)();
+}
+
+// Every arithmetic statement in a hint or explanation, parsed with its own
+// tolerant regexes. Returns the statements that are false or inconsistent.
+function falseClaims(text) {
+  const bad = [];
+  const note = (claim, why) => bad.push(`${why}: "${claim}"`);
+  let m;
+  const each = (re, f) => {
+    re.lastIndex = 0;
+    while ((m = re.exec(text))) f(m);
+  };
+  each(new RegExp(`(\\d+) (${UNIT_RE}) ([+${MIN}]) (\\d+) (${UNIT_RE}) = (\\d+) (${UNIT_RE})`, "g"), (x) => {
+    const [all, a, ua, op, b, ub, r, ur] = x;
+    if (UNIT_VALUE[ua] !== UNIT_VALUE[ub] || UNIT_VALUE[ua] !== UNIT_VALUE[ur]) note(all, "unit mismatch");
+    if ((op === "+" ? +a + +b : +a - +b) !== +r) note(all, "unit arithmetic");
+    for (const [n, u] of [[a, ua], [b, ub], [r, ur]]) if ((Number(n) === 1) !== /(tal|heid)$/.test(u)) note(all, `plural of ${n} ${u}`);
+  });
+  each(new RegExp(`(\\d+) (${UNIT_RE}) : (\\d+) = (\\d+) (${UNIT_RE})`, "g"), (x) => {
+    if (+x[1] / +x[3] !== +x[4] || UNIT_VALUE[x[2]] !== UNIT_VALUE[x[5]]) note(x[0], "unit division");
+    for (const [n, u] of [[x[1], x[2]], [x[4], x[5]]]) if ((Number(n) === 1) !== /(tal|heid)$/.test(u)) note(x[0], `plural of ${n} ${u}`);
+  });
+  each(new RegExp(`(\\d+(?: ${OPC} \\d+)+) = (\\d+)`, "g"), (x) => {
+    if (evalChain(x[1]) !== +x[2]) note(x[0], "equation");
+  });
+  each(/dubbel (\d+) is (\d+)/g, (x) => { if (2 * +x[1] !== +x[2]) note(x[0], "dubbel"); });
+  each(/de helft van (\d+) is (\d+)(?:, de helft daarvan is (\d+))?/g, (x) => {
+    if (+x[1] !== 2 * +x[2]) note(x[0], "helft");
+    if (x[3] !== undefined && +x[2] !== 2 * +x[3]) note(x[0], "helft daarvan");
+  });
+  each(/(\d+) wordt (\d+), dan (\d+) en dan (\d+)/g, (x) => {
+    if (+x[1] !== 2 * +x[2] || +x[2] !== 2 * +x[3] || +x[3] !== 2 * +x[4]) note(x[0], "halveren");
+  });
+  each(/zet een nul achter (\d+)\. Dat wordt (\d+)/g, (x) => { if (+x[2] !== 10 * +x[1]) note(x[0], "nul achter"); });
+  each(/Delen door 10: haal een nul weg\. (\d+) wordt (\d+)/g, (x) => { if (+x[1] !== 10 * +x[2]) note(x[0], "nul weg"); });
+  each(/van (\d+) naar (\d+) is (\d+)/g, (x) => { if (+x[2] - +x[1] !== +x[3]) note(x[0], "aanvullen"); });
+  each(/(\d+) ligt dicht bij (\d+)/g, (x) => {
+    const d = Math.abs(+x[2] - +x[1]);
+    if (d < 1 || d > 2 || +x[2] % 10) note(x[0], "dicht bij");
+  });
+  each(/Splits (\d+) in ((?:\d+(?:, | en )?)+)/g, (x) => {
+    if (x[2].match(/\d+/g).reduce((s, v) => s + Number(v), 0) !== +x[1]) note(x[0], "splits");
+  });
+  each(/(\d+) is (\d+) en (\d+)\./g, (x) => { if (+x[2] + +x[3] !== +x[1]) note(x[0], "ontbinding"); });
+  each(/Tel in vijven: ((?:\d+(?:, )?)+)\. Dat is (\d+) keer/g, (x) => {
+    const l = x[1].match(/\d+/g).map(Number);
+    if (l.length !== +x[2] || l.some((v, i) => v !== 5 * (i + 1))) note(x[0], "tel in vijven");
+  });
+  each(/Begin bij (\d+) en tel (\d+) (verder|terug): ((?:\d+(?:, )?)+)\./g, (x) => {
+    const l = x[4].match(/\d+/g).map(Number);
+    const dir = x[3] === "verder" ? 1 : -1;
+    if (l.length !== +x[2] || l.some((v, i) => v !== +x[1] + dir * (i + 1))) note(x[0], "telrij");
+  });
+  each(/Er moet nog (\d+) (bij|af): (\d+) ([+−]) (\d+) = (\d+)/g, (x) => {
+    if (+x[1] !== +x[5] || (x[2] === "bij") !== (x[4] === "+")) note(x[0], "er moet nog");
+  });
+  each(/Dat is (\d+) te veel, dus (\d+) er weer bij: (\d+) \+ (\d+) = (\d+)/g, (x) => {
+    if (x[1] !== x[2] || x[2] !== x[4]) note(x[0], "te veel");
+  });
+  // aanvullen: the steps join up and "Samen" lists exactly those steps
+  const flat = text.replace(/\n/g, " ");
+  each(/Aanvullen: ((?:van \d+ naar \d+ is \d+(?:, | en )?)+)\. Samen ([\d + ]+) = (\d+)/g, (x) => {
+    const steps = [...x[1].matchAll(/van (\d+) naar (\d+) is (\d+)/g)].map((s) => s.slice(1).map(Number));
+    if (steps.some((s, i) => i && s[0] !== steps[i - 1][1])) note(x[0], "aanvullen loopt niet door");
+    if (numsIn(x[2]).join() !== steps.map((s) => s[2]).join()) note(x[0], "aanvullen: Samen telt andere stappen");
+    if (+x[3] !== steps[steps.length - 1][1] - steps[0][0]) note(x[0], "aanvullen: totaal");
+  });
+  // rounding up/down for compensating: the correction is the difference, in the right direction
+  for (const x of flat.matchAll(/(\d+) ligt dicht bij (\d+)\. (\d+) ([+−]) (\d+) = (\d+), en dan (\d+) (terug|erbij): (\d+)/g)) {
+    if (+x[5] !== +x[2] || +x[7] !== Math.abs(+x[2] - +x[1])) note(x[0], "compenseren");
+    if ((x[4] === "+") !== (x[8] === "terug")) note(x[0], "compenseren: richting");
+  }
+  return bad;
+}
+
+test("review: every equation, count and unit in a hint or explanation is true", () => {
+  let texts = 0;
+  const seen = new Set();
+  const examine = (q) => {
+    if (seen.has(q.key)) return;
+    seen.add(q.key);
+    for (const field of [q.hint, q.explain]) {
+      texts++;
+      assert.deepEqual(falseClaims(field), [], `${q.key}: ${field.replace(/\n/g, " / ")}`);
+    }
+  };
+  for (const grade of GRADES) {
+    for (const level of LEVELS) {
+      for (const focus of FOCI) {
+        for (let seed = 1; seed <= 40; seed++) Q.series({ grade, level, focus }, 10, rng(seed * 29 + level)).forEach(examine);
+      }
+    }
+  }
+  // every small sum, in every shape (the unit and tens/hundreds methods included)
+  for (let a = 1; a <= 60; a++) {
+    for (let b = 1; b <= 60; b++) {
+      for (const key of [`add:${a}+${b}`, a >= b ? `sub:${a}-${b}` : null, `times:${a}x${b}`, a % b === 0 ? `div:${a}:${b}` : null,
+        `gap:add:${a}+?=${a + b}`, `gap:add:?+${b}=${a + b}`, a > b ? `gap:sub:${a}-?=${a - b}` : null, a > b ? `gap:sub:?-${b}=${a - b}` : null,
+        `gap:times:${a}x?=${a * b}`, `gap:times:?x${b}=${a * b}`, `gap:div:?:${b}=${a}`, a % b === 0 ? `gap:div:${a}:?=${a / b}` : null]) {
+        if (key) examine(Q.fromKey(key));
+      }
+    }
+  }
+  for (const key of ["add:300+400", "add:1000+2000", "sub:1000-300", "sub:9000-4000", "div:600:3", "div:2400:6", "times:100x50", "times:30x40", "add:1996+1998", "sub:5000-4999"]) examine(Q.fromKey(key));
+  assert.ok(texts > 100000, `examined ${texts} texts`);
+});
+
+test("review: the closing line states the completed equation, also when a step looks the same", () => {
+  // the first step of this explanation reads "412 - 200 = 212", the same as the closing equation
+  assert.ok(Q.fromKey("gap:sub:412-?=212").explain.endsWith(`Dus 412 ${MIN} 200 = 212.`));
+  for (const grade of GRADES) {
+    for (const level of LEVELS) {
+      for (const focus of FOCI) {
+        for (let seed = 1; seed <= 40; seed++) {
+          for (const q of Q.series({ grade, level, focus }, 10, rng(seed * 31 + level))) {
+            if (q.kind === "story") continue;
+            const full = q.text.replace("?", q.answer);
+            assert.ok(q.explain.endsWith(`${full}.`), `explanation of ${q.text} must end with ${full}: ${q.explain}`);
+          }
+        }
+      }
+    }
+  }
+});
+
+test("review: hints never say that only one place changes when a carry or borrow changes the next one too", () => {
+  assert.ok(!/veranderen/.test(Q.fromKey("sub:100-20").hint), "100 - 20 changes the hundreds as well");
+  assert.ok(!/veranderen/.test(Q.fromKey("add:47+60").hint), "47 + 60 changes the hundreds as well");
+  for (const grade of GRADES) {
+    for (const level of LEVELS) {
+      for (const focus of ["add", "sub"]) {
+        for (let seed = 1; seed <= 60; seed++) {
+          for (const q of Q.series({ grade, level, focus }, 10, rng(seed * 7 + level))) {
+            assert.ok(!/^Alleen de (tientallen|honderdtallen|duizendtallen) veranderen/.test(q.hint), `${q.text}: ${q.hint}`);
+            if (/Alleen de eenheden veranderen/.test(q.hint)) {
+              const s = solveText(q.text);
+              const big = s.op === "+" ? Math.max(s.a, s.b) : s.a;
+              const result = s.op === "+" ? s.a + s.b : s.a - s.b;
+              assert.equal(Math.floor(big / 10), Math.floor(result / 10), `only the units may change: ${q.text}`);
+            }
+          }
+        }
+      }
+    }
+  }
+});
+
+test("review: groep 3 level 1 (within 10) has no tiental crossing, level 2 only doubles", () => {
+  const crossing = (op, a, b) => (op === "+" ? a + b > 10 && Math.floor(a / 10) + Math.floor(b / 10) !== Math.floor((a + b) / 10) : a > 10 && a % 10 < b);
+  for (let seed = 1; seed <= 400; seed++) {
+    for (const q of Q.series({ grade: 3, level: 1 }, 10, rng(seed))) {
+      const s = solveText(q.text);
+      assert.ok(!crossing(s.op, s.a, s.b), `groep 3 level 1 must not cross the ten: ${q.text}`);
+    }
+    for (const q of Q.series({ grade: 3, level: 2 }, 10, rng(seed + 5000))) {
+      const s = solveText(q.text);
+      assert.ok(!crossing(s.op, s.a, s.b) || (s.op === "+" && s.a === s.b), `groep 3 level 2 only crosses the ten with a double: ${q.text}`);
+    }
+  }
+  // ... and level 3 is where crossing the ten is practised
+  let crossings = 0;
+  for (let seed = 1; seed <= 100; seed++) {
+    for (const q of Q.series({ grade: 3, level: 3 }, 10, rng(seed))) {
+      const s = solveText(q.text);
+      if (crossing(s.op, s.a, s.b)) crossings++;
+    }
+  }
+  assert.ok(crossings > 100, `crossing the ten is practised in level 3 (${crossings})`);
+});
+
+test("review: gap sums are fair (known factor, tables of the level, small quotient)", () => {
+  const tables = (grade, level) => (grade === 3 ? [2, 5, 10] : grade === 4 && level <= 2 ? [1, 2, 5, 10] : grade === 4 && level <= 4 ? [1, 2, 3, 4, 5, 10]
+    : grade === 4 && level === 5 ? [1, 2, 3, 4, 5, 6, 9, 10] : null);
+  let gaps = 0;
+  for (const grade of GRADES) {
+    for (const level of LEVELS) {
+      for (const focus of ["mix", "times", "div"]) {
+        for (let seed = 1; seed <= 150; seed++) {
+          for (const q of Q.series({ grade, level, focus }, 10, rng(seed * 3 + grade))) {
+            if (q.kind !== "gap") continue;
+            const s = solveText(q.text);
+            if (s.op === KEER) {
+              const known = s.unknown === "a" ? s.b : s.a;
+              assert.ok(known <= 10 || known % 10 === 0, `dividing by ${known} is no fair gap sum: ${q.text}`);
+              const list = tables(grade, level);
+              if (list && s.a <= 10 && s.b <= 10) assert.ok(list.includes(known), `known factor ${known} of ${q.text} is no table of groep ${grade} level ${level}`);
+              gaps++;
+            }
+            if (s.op === ":" && s.unknown === "b") assert.ok(s.c <= 12, `how often does ${s.c} fit: ${q.text}`);
+          }
+        }
+      }
+    }
+  }
+  assert.ok(gaps > 1000, `${gaps} gap multiplications checked`);
+  // with a chosen table every order is fine: ? x 8 = 56 practises the table of 7
+  const seenHidden = new Set();
+  for (let seed = 1; seed <= 100; seed++) {
+    for (const q of Q.series({ grade: 4, level: 8, focus: "times", table: 7 }, 10, rng(seed))) {
+      if (q.kind === "gap") seenHidden.add(solveText(q.text).unknown);
+    }
+  }
+  assert.deepEqual([...seenHidden].sort(), ["a", "b"]);
+});
+
+// What a believable maximum per slot of every story is, written down independently of the engine.
+const STORY_MAX = {
+  tulpen: [250, 250], schelpen: [400, 400], fietsen: [300, 300], rondvaart: [60, 60], koeien: [120, 120], schelpweg: [500, 500],
+  zakken: [500, 500], boten: [200, 200], bekers: [500, 500], appels: [6000, 6000], eieren: [400, 12], rijen: [400, 25], mensen: [10, 40],
+  emmers: [10, 25], fietsrijen: [30, 30], meel: [400, 25], koekjes: [100, 100], tochtje: [300, 300], haven: [400, 400, 400],
+  weekschelpen: [300, 300, 300], broodjes: [2000, 2000, 2000], knikkers: [600, 600, 600], verdeel: [600, 10], dozen: [3000, 10],
+  bollen: [6000, 6000], plantrijen: [3000, 10],
+};
+
+test("review: story numbers stay believable (no 4957 shells on one beach, no 40 boats of 40 people)", () => {
+  const seen = new Set();
+  for (const grade of GRADES) {
+    for (const level of LEVELS) {
+      for (let seed = 1; seed <= 120; seed++) {
+        for (const q of Q.series({ grade, level, focus: "story" }, 10, rng(seed * 11 + level + grade))) {
+          const [, id, ...ns] = q.key.split(":");
+          seen.add(id);
+          const max = STORY_MAX[id];
+          if (!max) continue;
+          ns.map(Number).forEach((n, i) => assert.ok(n <= max[Math.min(i, max.length - 1)], `${id}: number ${n} in slot ${i} is not believable: ${q.text}`));
+        }
+      }
+    }
+  }
+  for (const id of ["tulpen", "schelpen", "schelpweg", "weekschelpen", "emmers", "mensen", "eieren"]) assert.ok(seen.has(id), `${id} still occurs`);
+  // thousands are carried by templates that can hold them: a festival, tickets, a bulb shed
+  const big = new Set();
+  for (let seed = 1; seed <= 200; seed++) {
+    for (const q of Q.series({ grade: 6, level: 8, focus: "story" }, 10, rng(seed))) if (Math.max(...numsIn(q.text)) >= 1000) big.add(q.key.split(":")[1]);
+  }
+  assert.ok(big.size >= 5, `several templates carry thousands: ${[...big]}`);
+  for (const id of big) assert.ok(["bollen", "appels", "feestmensen", "kaartjes", "bezoekers", "feestdrukte", "broodjes", "meel", "rijen", "eieren", "dozen", "plantrijen"].includes(id), `${id} should not hold thousands`);
+});
+
+test("review: gap hints are never empty phrases, also not when the answer equals a number in the sum", () => {
+  const generic = new Set(["Welk getal hoort er op de plek van het vraagteken?", "Reken stap voor stap.", "Denk aan de tafel die erbij hoort.", "Denk aan de keersom die erbij hoort."]);
+  for (let a = 1; a <= 40; a++) {
+    for (let b = 1; b <= 40; b++) {
+      for (const key of [`gap:add:${a}+?=${a + b}`, `gap:add:?+${b}=${a + b}`, a > b ? `gap:sub:${a}-?=${a - b}` : null, a > b ? `gap:sub:?-${b}=${a - b}` : null,
+        `gap:times:${a}x?=${a * b}`, `gap:times:?x${b}=${a * b}`, `gap:div:?:${b}=${a}`, a % b === 0 ? `gap:div:${a}:?=${a / b}` : null]) {
+        if (!key) continue;
+        const q = Q.fromKey(key);
+        assert.ok(!generic.has(q.hint), `${key}: ${q.hint}`);
+        assert.ok(!hasNum(q.hint, q.answer), `${key} leaks: ${q.hint}`);
+      }
+    }
+  }
+  // squares: ? x 6 = 36 has the answer 6 in the sum itself, so the hint has to work without digits
+  const sq = Q.fromKey("gap:times:?x6=36");
+  assert.ok(!/\d/.test(sq.hint) && sq.hint.length > 20, sq.hint);
+  assert.ok(!/Zeg de tafel van 4 op/.test(Q.fromKey("gap:times:?x4=200").hint), "no reciting the table up to 200");
+});
+
+test("review: wording a Dutch teacher would change stays out of hints and explanations", () => {
+  const old = [/Je kunt ook aanvullen/, /corrigeer/, /Wat weggaat, haal je eraf/, /dat is keer\./, /en tel die stap voor stap erbij/, /en reken elk deel apart uit/,
+    /Haal de (tientallen|honderdtallen|duizendtallen) van elkaar af/, /omgekeerde richting/, /tafel van 7 is tafel van 5 en 2 keer/i, /Welk getal keer het ene getal/];
+  for (const grade of GRADES) {
+    for (const level of LEVELS) {
+      for (const focus of FOCI) {
+        for (let seed = 1; seed <= 40; seed++) {
+          for (const q of Q.series({ grade, level, focus }, 10, rng(seed * 37 + level))) {
+            for (const re of old) assert.ok(!re.test(q.hint) && !re.test(q.explain), `${q.key}: ${re} in ${q.hint} | ${q.explain}`);
+          }
+        }
+      }
+    }
+  }
+  for (let a = 1; a <= 10; a++) for (let b = 1; b <= 10; b++) for (const re of old) assert.ok(!re.test(Q.fromKey(`times:${a}x${b}`).hint) && !re.test(Q.fromKey(`times:${a}x${b}`).explain));
+});
+
+test("review: methods follow the order of the sum and show every step", () => {
+  assert.match(Q.fromKey("times:30x40").explain, /^3 × 4 = 12\. Er komen twee nullen achter: 1200\./);
+  assert.match(Q.fromKey("times:40x30").explain, /^4 × 3 = 12\./);
+  // dividing by 5 by doubling shows the doubled number
+  let doubled = 0;
+  for (let q = 2; q <= 60; q++) {
+    const x = Q.fromKey(`div:${5 * q}:5`);
+    if (/verdubbelen/.test(x.explain)) {
+      assert.ok(x.explain.includes(`dubbel ${5 * q} is ${10 * q} en ${10 * q} : 10 = ${q}`), x.explain);
+      doubled++;
+    }
+  }
+  assert.ok(doubled > 5, `the doubling method occurs (${doubled})`);
+  // 1 tiental is singular, 10 tientallen plural
+  assert.ok(Q.fromKey("sub:100-90").explain.includes("10 tientallen − 9 tientallen = 1 tiental"));
+  assert.ok(Q.fromKey("add:10+10").explain.length > 0);
+});
+
+test("review: odd rng arguments never throw (a number is a seed, anything else means unseeded)", () => {
+  for (const bad of ["x", null, undefined, {}, [], NaN, Infinity, true]) {
+    assert.doesNotThrow(() => Q.make({ grade: 4, level: 3 }, bad), String(bad));
+    assert.equal(Q.series({ grade: 4, level: 3 }, 4, bad).length, 4);
+  }
+  const a = Q.series({ grade: 5, level: 4 }, 10, 42).map((q) => q.key);
+  assert.deepEqual(a, Q.series({ grade: 5, level: 4 }, 10, 42).map((q) => q.key), "a number seeds the generator");
+  assert.deepEqual(a, Q.series({ grade: 5, level: 4 }, 10, rng(42)).map((q) => q.key));
+  assert.equal(Q.make({}, 7).key, Q.make({}, rng(7)).key);
+  // reusing one rng object gives a new series each time, not the same one
+  const r = rng(9);
+  assert.notDeepEqual(Q.series({ grade: 4, level: 4 }, 10, r).map((q) => q.key), Q.series({ grade: 4, level: 4 }, 10, r).map((q) => q.key));
 });
