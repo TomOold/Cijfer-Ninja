@@ -423,9 +423,15 @@ canvas.scene{display:block;width:100%;height:auto;aspect-ratio:20/9;image-render
 
 /* a portrait phone with little height: three rows of four keys instead of four rows of three, so "Klaar" stays on screen */
 .is-compact .keypad{grid-template-columns:repeat(4,1fr);gap:6px;--key-h:48px}
-.is-tight .keypad{grid-template-columns:repeat(6,1fr)}
+/* Six keys in a row: five digit keys of at least 48 px and a Klaar column that is a little wider (a plain 1fr would let the
+   widest label, "Klaar", push the digit keys below 48 px) */
+.is-tight .keypad{grid-template-columns:repeat(5,minmax(48px,1fr)) minmax(54px,1.1fr)}
 .is-tight .key{font-size:1.4rem}
-.is-tight .key-ok{font-size:1.05rem}
+.is-tight .key-ok{font-size:.95rem;padding-left:2px;padding-right:2px}
+/* ... and the last few pixels: the longest stories take five lines on a narrow phone, and the picture is already at its smallest */
+.is-tight .screen.race{padding-top:4px;padding-bottom:6px}
+.is-tight .q{padding-top:4px;padding-bottom:4px}
+.is-tight .answer{min-height:44px;font-size:1.5rem}
 
 /* wide and low (a phone held sideways): a flatter keypad, everything must fit without scrolling */
 .is-wide.is-low{--right-min:352px}
@@ -594,9 +600,9 @@ canvas.scene{display:block;width:100%;height:auto;aspect-ratio:20/9;image-render
 
 /* ---------- very narrow screens (an old small phone, or a page zoomed in a lot) ---------- */
 @media (max-width:349px){
-  /* six keys of 48 px next to each other only fit with a thin gap and a little less room at the sides */
-  .is-tight .keypad{gap:3px}
-  .is-tight .screen.race{padding-left:8px;padding-right:8px}
+  /* five keys of 48 px and a Klaar key of 54 px next to each other only fit (in 308 px) with a thin gap and a little less room at the sides */
+  .is-tight .keypad{gap:2px}
+  .is-tight .screen.race{padding-left:6px;padding-right:6px}
 }
 @media (max-width:340px){
   .tools{gap:4px}
@@ -8196,7 +8202,11 @@ RR.UI = (function () {
       const rightMin = parseFloat(cs.getPropertyValue('--right-min')) || 272;
       const line = byId('race-line');
       const lineH = Math.max(48, line.offsetParent !== null ? line.offsetHeight : 0) + (parseFloat(getComputedStyle(line.parentElement).rowGap) || 0);   // the start card hides the line; keep the size steady
-      const maxW = Math.min(body.clientWidth - gap - rightMin - sz.bw, (body.clientHeight - lineH - sz.bh) * SCENE_RATIO);
+      // A classic scrollbar (Windows) only shows up when the screen is too low for everything; it takes room from the right
+      // column, never from the picture: size the picture as if it were not there, so it cannot jump when the bar appears.
+      const scr = byId('s-race');
+      const bar = Math.max(0, scr.offsetWidth - scr.clientWidth);
+      const maxW = Math.min(body.clientWidth + bar - gap - rightMin - sz.bw, (body.clientHeight - lineH - sz.bh) * SCENE_RATIO);
       w = chooseWidth(Math.min(maxW, SCENE_MAX_W), 0.8);
       body.style.setProperty('--scene-col', (w + sz.bw) + 'px');
     } else {
@@ -8234,10 +8244,10 @@ RR.UI = (function () {
     const w = window.innerWidth, hgt = window.innerHeight;
     S.wide = w >= 640 && w / hgt >= 1.1;
     S.short = hgt <= 520;                 // a phone held sideways: every screen gets the flat layout
-    S.low = S.wide && hgt <= 700;         // a laptop window or tablet with little height: the race screen gets the flat layout
+    S.low = S.wide && hgt <= 760;         // a laptop window or tablet with little height: the race screen gets the flat layout (the roomy one needs about 755 px for the longest story with a three-line tip)
     // a portrait phone with little height (a small screen, or the browser toolbars take their share); the narrower
-    // the phone, the more a long story wraps, so a 400 px wide phone needs the flat layout up to 800 px high
-    S.compact = !S.wide && (hgt <= 660 || (w <= 430 && hgt <= 800));
+    // the phone, the more a long story wraps, so a 400 px wide phone needs the flat layout up to about 810 px high
+    S.compact = !S.wide && hgt <= (w <= 430 ? 810 : w <= 520 ? 850 : 660);
     S.tight = S.compact && hgt <= 600 && w >= 320;   // even less height, and room for six keys of 48px side by side (a thin gap at 320 px)
     const root = document.documentElement;
     root.classList.toggle('is-wide', S.wide);
