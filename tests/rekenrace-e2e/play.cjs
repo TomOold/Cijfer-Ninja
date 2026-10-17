@@ -761,7 +761,7 @@ async function sJ(browser) {
   await p.goto(require('./lib.cjs').URL);
   await createPlayer(p, 'Sien', 'eekhoorn', 4);
   await spies(p);
-  t.check('music is off by default, sound effects on', (await S(p, () => JSON.stringify(RR.UI.state.store.settings()))) === JSON.stringify({ sound: true, music: false, restAfter: 3 }));
+  t.check('music is off by default, sound effects on', (await S(p, () => JSON.stringify(RR.UI.state.store.settings()))) === JSON.stringify({ sound: true, music: false, restAfter: 3, view: 'side' }));
   t.check('header buttons are labelled in Dutch with aria-pressed', (await S(p, () => [document.getElementById('btn-sound'), document.getElementById('btn-music')].map((b) => b.getAttribute('aria-label') + ':' + b.getAttribute('aria-pressed')).join('|'))) === 'Geluidseffecten:true|Muziek:false');
   await p.click('#btn-music');
   t.check('music button turns music on (aria-pressed true)', (await S(p, () => document.getElementById('btn-music').getAttribute('aria-pressed'))) === 'true' && (await S(p, () => RR.UI.state.store.settings().music)) === true);
@@ -2006,8 +2006,168 @@ async function sV(browser) {
   await c.ctx.close();
 }
 
+// ============================================================================
+// W: the optional behind-the-kart (pseudo-3D) view: the setting, a whole race, layout, reduced motion
+// ============================================================================
+const sceneKind = (page) => page.evaluate(() => RR.UI.state.sceneKind);
+const canvasStats = (page) => page.evaluate(() => {
+  const cv = document.querySelector('canvas.scene');
+  const tmp = document.createElement('canvas');   // (read a copy: reading the game's own canvas would warn about readbacks)
+  tmp.width = cv.width; tmp.height = cv.height;
+  const tc = tmp.getContext('2d', { willReadFrequently: true });
+  tc.drawImage(cv, 0, 0);
+  const d = tc.getImageData(0, 0, cv.width, cv.height).data;
+  const colours = new Set();
+  for (let i = 0; i < d.length; i += 4) colours.add((d[i] << 16) | (d[i + 1] << 8) | d[i + 2]);
+  return { w: cv.width, h: cv.height, colours: colours.size, sig: cv.toDataURL().length + ':' + cv.toDataURL().slice(-60) };
+});
+
+async function view3dLayout(t, p, label, introOnly) {
+  const issues = await layoutAudit(p, {});
+  t.check(label + ': no scroll, no overlaps, targets >= 48px, Klaar and the keypad inside the viewport', issues.length === 0, issues);
+  const ok = await p.evaluate(() => {
+    const b = document.querySelector('#keypad [data-action="ok"]');
+    if (!b) return false;
+    const r = b.getBoundingClientRect();
+    return r.width > 0 && r.left >= 0 && r.top >= 0 && r.right <= window.innerWidth && r.bottom <= window.innerHeight;
+  });
+  if (!introOnly) t.check(label + ': the Klaar button is visible', ok);
+}
+
+async function sW(browser) {
+  const t = makeT('W behind-the-kart view (3D)');
+
+  // ---- (a) the setting: default, label, switching, persistence, applied outside a race only
+  const c = await open(browser, { viewport: { width: 390, height: 844 }, mobile: true, touch: true });
+  const p = c.page;
+  await createPlayer(p, 'Bram', 'pad', 4);
+  await spies(p);
+  t.check('default: side view (setting "side", scene is RR.Scene)', (await S(p, () => RR.UI.state.store.settings().view)) === 'side' && (await sceneKind(p)) === 'side' && (await S(p, () => typeof RR.UI.state.scene.debugFrame)) === 'undefined');
+  const side = await canvasStats(p);
+  t.check('the logical canvas is 320x144 in the side view', side.w === 320 && side.h === 144, side);
+  await p.click('[data-action="parents"]');
+  await waitScreen(p, 'ouders');
+  t.check('Ouders: control "Aanzicht" with the options "Van opzij" and "Van achteren"', (await text(p, 'label[for="sel-view"]')) === 'Aanzicht' && JSON.stringify(await S(p, () => [...document.querySelectorAll('#sel-view option')].map((o) => o.textContent))) === JSON.stringify(['Van opzij', 'Van achteren']));
+  t.check('Ouders: "Van opzij" is selected by default', (await S(p, () => document.getElementById('sel-view').value)) === 'side');
+  t.check('Ouders: the Aanzicht select is a 48px target with an explanation', (await layoutAudit(p)).length === 0 && /volgende race/.test((await text(p, '#view-note')) || ''), await layoutAudit(p));
+  await p.selectOption('#sel-view', 'behind');
+  t.check('choosing "Van achteren" is stored in the settings', (await S(p, () => RR.UI.state.store.settings().view)) === 'behind');
+  t.check('...and written to localStorage', (await S(p, () => JSON.parse(localStorage.getItem('rekenrace:v1')).settings.view)) === 'behind');
+  await p.locator('#sel-view').scrollIntoViewIfNeeded();
+  await p.screenshot({ path: SHOTS + '/w-ouders-phone.png' });
+  await p.click('#btn-nav');
+  await waitScreen(p, 'menu');
+  t.check('back in the garage: the decorative scene is now the 3D view', (await sceneKind(p)) === 'behind' && (await S(p, () => typeof RR.UI.state.scene.debugFrame)) === 'function');
+  const garage3d = await canvasStats(p);
+  t.check('the garage canvas is still 320x144 and shows a real picture (many colours)', garage3d.w === 320 && garage3d.h === 144 && garage3d.colours > 12, garage3d);
+  t.check('the 3D picture is a different picture from the side view', garage3d.sig !== side.sig);
+  await p.screenshot({ path: SHOTS + '/w-garage-phone.png' });
+
+  // a whole race in 3D on a phone
+  await toIntro(p, { track: 1 });
+  t.check('race intro uses the 3D scene', (await sceneKind(p)) === 'behind');
+  await view3dLayout(t, p, 'phone 390x844, race start card', true);
+  await p.screenshot({ path: SHOTS + '/w-race-intro-phone.png' });
+  await startRace(p);
+  await waitAsk(p, 0);
+  await view3dLayout(t, p, 'phone 390x844, sum 1');
+  await p.screenshot({ path: SHOTS + '/w-race-phone.png' });
+  t.check('during the race there is no way to Ouders: no Terug/Menu button, no view control on screen', (await S(p, () => document.getElementById('btn-nav').hidden)) === true && (await S(p, () => !document.getElementById('sel-view'))));
+  // even if the stored setting changed under the race, the scene stays until the race is over
+  const before = await S(p, () => { window.__sceneRef = RR.UI.state.scene; RR.UI.state.store.setSetting('view', 'side'); return RR.UI.state.sceneKind; });
+  t.check('a setting change during a race does not swap the scene', before === 'behind');
+  const mid = await playRace(p, t, (i) => (i === 3 ? ['wrong', 'right'] : i === 6 ? ['wrong', 'wrong'] : ['right']), {
+    afterExplain: async () => { await view3dLayout(t, p, 'phone 390x844, explanation'); },
+  });
+  t.check('the whole race ran in the 3D view (scene object unchanged, kind still "behind")', (await S(p, () => window.__sceneRef === RR.UI.state.scene)) && (await sceneKind(p)) === 'behind');
+  t.check('3D race: 10 sums, finish screen with the place sentence', mid.length === 10 && PLACE_RE.test((await text(p, '#h-finish')) || ''), await text(p, '#s-finish'));
+  await p.screenshot({ path: SHOTS + '/w-finish-phone.png' });
+  const leave = await p.$('[data-action="finish-garage"]');
+  await leave.click();
+  await p.waitForFunction(() => RR.UI.state.screen !== 'finish', null, { timeout: 3000 });
+  await p.evaluate(() => RR.UI.show('menu'));
+  await waitScreen(p, 'menu');
+  t.check('after the race the garage follows the (now "side") setting again', (await sceneKind(p)) === 'side');
+  await noProblems(t, c, 'phone, 3D race');
+  await c.ctx.close();
+
+  // ---- (b) persistence over a reload, and a whole race on a laptop (keyboard) through every track's look
+  const c2 = await open(browser, { viewport: { width: 1366, height: 768 } });
+  const p2 = c2.page;
+  await createPlayer(p2, 'Eef', 'egel', 4);
+  await spies(p2);
+  await S(p2, () => RR.UI.state.store.setSetting('view', 'behind'));
+  await p2.reload();
+  await p2.waitForSelector('#s-spelers:not([hidden])');
+  t.check('after a reload the setting is still "behind" (and the chooser shows)', (await S(p2, () => RR.UI.state.store.settings().view)) === 'behind');
+  await p2.click('#s-spelers [data-action="pick-player"]');
+  await waitScreen(p2, 'menu');
+  t.check('after a reload the garage shows the 3D view', (await sceneKind(p2)) === 'behind');
+  await spies(p2);
+
+  // every track in the 3D view: right theme, real picture, nothing overflowing, no errors
+  const themes = await S(p2, () => RR.Tracks.map((x) => x.theme));
+  const bad = [];
+  await S(p2, () => { const st = RR.UI.state.store; for (let i = 1; i <= 7; i++) st.stamp(i, 2); RR.UI.show('menu'); });
+  for (let n = 1; n <= 8; n++) {
+    await toIntro(p2, { mode: 'free', track: n });
+    const st = await canvasStats(p2);
+    const th = await S(p2, () => RR.UI.state.scene.theme);
+    if (th !== themes[n - 1]) bad.push('track ' + n + ' theme ' + th);
+    if (st.colours < 15) bad.push('track ' + n + ' few colours ' + st.colours);
+    (await layoutAudit(p2)).forEach((f) => bad.push('track ' + n + ': ' + f));
+    if (n === 5) await p2.screenshot({ path: SHOTS + '/w-intro-laptop-canal.png' });
+    await p2.click('#btn-nav');
+    await waitScreen(p2, 'vrij');
+    await p2.click('#btn-nav');
+    await waitScreen(p2, 'menu');
+  }
+  t.check('all 8 tracks open in the 3D view with their own theme, a real picture and no layout problems (laptop 1366x768)', bad.length === 0, bad);
+
+  await toIntro(p2, { track: 2 });
+  await view3dLayout(t, p2, 'laptop 1366x768, race start card', true);
+  await startRace(p2);
+  await waitAsk(p2, 0);
+  await view3dLayout(t, p2, 'laptop 1366x768, sum 1');
+  await p2.screenshot({ path: SHOTS + '/w-race-laptop.png' });
+  await playRace(p2, t, (i) => (i === 5 ? ['wrong', 'right'] : ['right']), { keyboard: true });
+  t.check('laptop: the 3D race ends on the finish screen with a place sentence', PLACE_RE.test((await text(p2, '#h-finish')) || ''), await text(p2, '#s-finish'));
+  await p2.screenshot({ path: SHOTS + '/w-finish-laptop.png' });
+  const snds = await S(p2, () => window.__snd.length);
+  t.check('sounds are the normal ones (the view changes nothing else)', snds > 0);
+  await noProblems(t, c2, 'laptop, 3D race');
+  await c2.ctx.close();
+
+  // ---- (c) reduced motion in 3D: the glide is skipped, nothing drifts
+  const c3 = await open(browser, { viewport: { width: 1024, height: 768 }, reducedMotion: true });
+  const p3 = c3.page;
+  await createPlayer(p3, 'Oeke', 'uil', 4);
+  await S(p3, () => { const st = RR.UI.state.store; for (let i = 1; i <= 6; i++) st.stamp(i, 2); st.setSetting('view', 'behind'); RR.UI.show('menu'); });
+  await waitScreen(p3, 'menu');
+  t.check('reduced motion: 3D scene reports reducedMotion', (await sceneKind(p3)) === 'behind' && (await S(p3, () => RR.UI.state.scene.reducedMotion)) === true);
+  const still1 = await canvasStats(p3);
+  await p3.waitForTimeout(900);
+  const still2 = await canvasStats(p3);
+  t.check('reduced motion: the idle garage picture does not move', still1.sig === still2.sig);
+  await toIntro(p3, { track: 7 });
+  await startRace(p3);
+  const t0 = Date.now();
+  await waitAsk(p3, 0);
+  await spies(p3);
+  const q = await S(p3, () => RR.UI.state.race.questions[0].answer);
+  await typeKeys(p3, q);
+  await p3.keyboard.press('Enter');
+  await waitAsk(p3, 1);
+  t.check('reduced motion: the next sum follows after the short fixed pause, not a glide (< 1.4 s)', Date.now() - t0 < 1400 + 600, Date.now() - t0);
+  const pos = await S(p3, () => RR.UI.state.scene.positions());
+  t.check('reduced motion: the kart jumped to its new place at once', Object.values(pos).some((v) => v > 0.2), pos);
+  await view3dLayout(t, p3, 'reduced motion 3D race');
+  await noProblems(t, c3, 'reduced motion, 3D');
+  await c3.ctx.close();
+}
+
 // ---------- main ----------
-const ALL = { A: sA, B: sB, C: sC, D: sD, E: sE, F: sF, G: sG, H: sH, I: sI, J: sJ, K: sK, L: sL, M: sM, N: sN, O: sO, P: sP, Q: sQ, R: sR, S: sS, T: sT, U: sU, V: sV };
+const ALL = { A: sA, B: sB, C: sC, D: sD, E: sE, F: sF, G: sG, H: sH, I: sI, J: sJ, K: sK, L: sL, M: sM, N: sN, O: sO, P: sP, Q: sQ, R: sR, S: sS, T: sT, U: sU, V: sV, W: sW };
 
 (async () => {
   const want = process.argv.slice(2).map((x) => x.toUpperCase());
@@ -2018,8 +2178,8 @@ const ALL = { A: sA, B: sB, C: sC, D: sD, E: sE, F: sF, G: sG, H: sH, I: sI, J: 
     try { await ALL[k](browser); } catch (e) { const t = makeT(k + ' crashed'); t.check('scenario finished', false, String(e && e.stack || e).split('\n').slice(0, 6).join(' | ')); }
   };
   // Two waves: the timing checks of the first wave (glide length, "ignored while gliding") are sensitive to CPU load on a small machine.
-  await Promise.all(keys.filter((k) => !'PQRSTUV'.includes(k)).map(runOne));
-  await Promise.all(keys.filter((k) => 'PQRSTUV'.includes(k)).map(runOne));
+  await Promise.all(keys.filter((k) => !'PQRSTUVW'.includes(k)).map(runOne));
+  await Promise.all(keys.filter((k) => 'PQRSTUVW'.includes(k)).map(runOne));
   await browser.close();
   let fails = 0, total = 0;
   reports.sort((a, b) => a.name.localeCompare(b.name)).forEach((r) => {

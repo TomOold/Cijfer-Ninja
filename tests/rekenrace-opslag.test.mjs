@@ -71,7 +71,7 @@ const stored = (storage) => JSON.parse(storage.map.get(KEY));
 const cps = (s) => Array.from(s).length;
 
 // What a fresh settings object must look like.
-const DEFAULT_SETTINGS = { sound: true, music: false, restAfter: 3 };
+const DEFAULT_SETTINGS = { sound: true, music: false, restAfter: 3, view: "side" };
 
 // Structural invariants every stored document must satisfy, however it came to be.
 function checkDoc(doc) {
@@ -1082,11 +1082,11 @@ describe("stamps and nextTrack", () => {
 describe("settings", () => {
   test("defaults and validation", () => {
     const { store } = fresh();
-    assert.deepEqual(store.settings(), { sound: true, music: false, restAfter: 3 });
+    assert.deepEqual(store.settings(), { sound: true, music: false, restAfter: 3, view: "side" });
     assert.equal(store.setSetting("sound", false), true);
     assert.equal(store.setSetting("music", true), true);
     assert.equal(store.setSetting("restAfter", 0), true, "0 = off");
-    assert.deepEqual(store.settings(), { sound: false, music: true, restAfter: 0 });
+    assert.deepEqual(store.settings(), { sound: false, music: true, restAfter: 0, view: "side" });
     assert.equal(store.setSetting("restAfter", 10), true);
     assert.equal(store.setSetting("restAfter", "7"), true, "digit strings from a form are fine");
     assert.equal(store.settings().restAfter, 7);
@@ -1101,7 +1101,7 @@ describe("settings", () => {
     for (const name of ["volume", "", undefined, null, "Sound", "__proto__", "constructor"]) {
       assert.equal(store.setSetting(name, true), false, String(name));
     }
-    assert.deepEqual(store.settings(), { sound: false, music: true, restAfter: 7 }, "refused values change nothing");
+    assert.deepEqual(store.settings(), { sound: false, music: true, restAfter: 7, view: "side" }, "refused values change nothing");
   });
 
   test("settings() returns a copy", () => {
@@ -1120,10 +1120,62 @@ describe("settings", () => {
     store.select(a.id);
     store.setSetting("restAfter", 6);
     store.select(b.id);
-    assert.deepEqual(store.settings(), { sound: true, music: true, restAfter: 6 });
+    assert.deepEqual(store.settings(), { sound: true, music: true, restAfter: 6, view: "side" });
     store.removePlayer(a.id);
     store.removePlayer(b.id);
-    assert.deepEqual(store.settings(), { sound: true, music: true, restAfter: 6 }, "removing profiles keeps settings");
+    assert.deepEqual(store.settings(), { sound: true, music: true, restAfter: 6, view: "side" }, "removing profiles keeps settings");
+  });
+});
+
+describe("settings: view (Aanzicht)", () => {
+  test("defaults to the side view and accepts only the two known values", () => {
+    const { store } = fresh();
+    assert.equal(store.settings().view, "side");
+    assert.equal(store.setSetting("view", "behind"), true);
+    assert.equal(store.settings().view, "behind");
+    assert.equal(store.setSetting("view", "side"), true);
+    assert.equal(store.settings().view, "side");
+    store.setSetting("view", "behind");
+    for (const v of ["Behind", "SIDE", "", " side", "top", "3d", 0, 1, true, null, undefined, [], ["side"], {}, NaN]) {
+      assert.equal(store.setSetting("view", v), false, "view " + String(v));
+    }
+    assert.equal(store.settings().view, "behind", "refused values change nothing");
+  });
+
+  test("the view survives a reload and is global", () => {
+    const { storage, store } = fresh();
+    assert.equal(store.setSetting("view", "behind"), true);
+    assert.equal(stored(storage).settings.view, "behind", "written to storage");
+    const a = store.addPlayer({ name: "A", hero: "egel", grade: 3 }).player;
+    store.select(a.id);
+    const again = Store.create(storage);
+    assert.equal(again.settings().view, "behind");
+    again.select(null);
+    assert.equal(again.settings().view, "behind", "needs no player");
+  });
+
+  test("stored data without a view (older versions) loads with the side view and keeps the other settings", () => {
+    const old = { v: 1, counter: 0, current: null, settings: { sound: false, music: true, restAfter: 5 }, players: [] };
+    const { store } = fresh({ [KEY]: JSON.stringify(old) });
+    assert.deepEqual(store.settings(), { sound: false, music: true, restAfter: 5, view: "side" });
+  });
+
+  test("a bad stored view falls back to side without touching the other settings", () => {
+    for (const bad of ["top", 7, null, true, ["behind"], {}, "BEHIND"]) {
+      const doc = { v: 1, counter: 0, current: null, settings: { sound: false, music: true, restAfter: 5, view: bad }, players: [] };
+      const { store } = fresh({ [KEY]: JSON.stringify(doc) });
+      assert.deepEqual(store.settings(), { sound: false, music: true, restAfter: 5, view: "side" }, "stored " + JSON.stringify(bad));
+    }
+    const ok = { v: 1, counter: 0, current: null, settings: { sound: true, music: false, restAfter: 3, view: "behind" }, players: [] };
+    assert.equal(fresh({ [KEY]: JSON.stringify(ok) }).store.settings().view, "behind");
+  });
+
+  test("a refused view value does not write to storage", () => {
+    const { storage, store } = fresh();
+    store.setSetting("view", "behind");
+    const before = storage.map.get(KEY);
+    store.setSetting("view", "sideways");
+    assert.equal(storage.map.get(KEY), before);
   });
 });
 
@@ -1198,7 +1250,7 @@ describe("persistence", () => {
     const again = Store.create(storage);
     assert.deepEqual(again.players(), store.players());
     assert.deepEqual(again.current(), store.current());
-    assert.deepEqual(again.settings(), { sound: false, music: true, restAfter: 5 });
+    assert.deepEqual(again.settings(), { sound: false, music: true, restAfter: 5, view: "side" });
     for (const id of [eva.id, bo.id]) {
       assert.deepEqual(again.stamps(id), store.stamps(id));
       assert.deepEqual(again.openKeys(99, id), store.openKeys(99, id));
@@ -1243,7 +1295,7 @@ describe("persistence", () => {
       v: 1,
       counter: 2,
       current: eva.id,
-      settings: { sound: true, music: false, restAfter: 4 },
+      settings: { sound: true, music: false, restAfter: 4, view: "side" },
       players: [
         {
           id: eva.id, name: "Eva", hero: "egel", grade: 4,
@@ -1783,12 +1835,12 @@ describe("repairing stored documents", () => {
 
   test("settings: each bad value falls back to its own default", () => {
     const r = load((d) => { d.settings = { sound: "yes", music: 1, restAfter: 99 }; });
-    assert.deepEqual(r.out.settings, { sound: true, music: false, restAfter: 9 });
+    assert.deepEqual(r.out.settings, { sound: true, music: false, restAfter: 9, view: "side" });
     assert.deepEqual(load((d) => { d.settings = { sound: false, music: true, restAfter: "4" }; }).out.settings.sound, false);
     assert.equal(load((d) => { d.settings = { sound: false, music: true, restAfter: "4" }; }).out.settings.music, true);
     for (const bad of [null, [], "x", 5, undefined]) {
       const s = load((d) => { d.settings = bad; }).out.settings;
-      assert.deepEqual(s, { sound: true, music: false, restAfter: 9 });
+      assert.deepEqual(s, { sound: true, music: false, restAfter: 9, view: "side" });
     }
     assert.equal(load((d) => { d.settings = { restAfter: -1 }; }).store.settings().restAfter, 9);
   });

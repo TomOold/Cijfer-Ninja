@@ -27,8 +27,8 @@ teksten en muziek zijn nieuw gemaakt; er is niets overgenomen van een bestaand s
 3. **Vrije race:** kies zelf een baan en een soort som (door elkaar, optellen, aftrekken, tafels, delen,
    verhaalsommen), eventueel één tafel. Hier is geen stempel te halen; het is om te oefenen.
 4. **Ouders:** per speler zie je hoe het per soort som ging en welke sommen lastig waren. Je kunt de groep
-   aanpassen, geluid en muziek aan- of uitzetten, het rustmoment instellen en voortgang wissen of een speler
-   verwijderen (altijd met een tweede bevestiging).
+   aanpassen, geluid en muziek aan- of uitzetten, het rustmoment instellen, het **aanzicht** kiezen (van opzij of
+   van achteren, zie hieronder) en voortgang wissen of een speler verwijderen (altijd met een tweede bevestiging).
 
 ### Een race
 
@@ -41,6 +41,31 @@ drukt op *Klaar*. Er is geen klok: er beweegt niets terwijl je nadenkt.
 
 Een race kun je nooit verliezen en elke plaats telt als afgemaakt. Sommen die lastig waren komen later
 vanzelf een paar keer terug.
+
+### Het aanzicht: van opzij of van achteren
+
+Standaard zie je de race **van opzij**, zoals een zijaanzicht van een kartbaan. Op het ouderscherm staat onder
+*Instellingen* de keuze **Aanzicht**: *Van opzij* of *Van achteren*. Bij *Van achteren* kijk je mee over de
+schouder van je eigen kart, met de weg die zachtjes naar de horizon loopt (een rustige pseudo-3D-weg in de stijl
+van oude racespellen). De instelling geldt voor alle spelers op dit apparaat, wordt bewaard en gaat in zodra de
+garage of een nieuwe race opent: nooit midden in een race (vanuit een race kom je niet bij het ouderscherm). De
+sommen, het geluid en de regels zijn in beide aanzichten precies hetzelfde; ook de decoratieve baan in de garage
+volgt de keuze.
+
+Wat het is: dezelfde acht banen met hetzelfde karakter (tulpen, molens, strand, bos, grachten, haven, ijs,
+heuvels), maar nu als weg met bochten en heuvels die bewust heel zacht zijn (nooit een achtbaan), met huisjes,
+bomen, molens, kranen en lantaarns langs de kant, een startpoort met vlaggetjes en een geblokte finishboog.
+Dezelfde vier dieren zijn van achteren getekend. Karts van tegenstanders voor je zie je kleiner, ver weg of achter
+een heuvel; wie achter je rijdt zie je niet.
+
+Rustregels in dit aanzicht (gemeten tijdens de bouw, niet geschat): geen flits en geen stroboscoopeffect
+(de twee tinten van weg en gras liggen dicht bij elkaar in helderheid; de gemeten wisseling per gebied is meestal
+2 tot 3 keer per seconde of minder, de lichtste en donkerste tint van het hele beeld verschilt tijdens een glijbeweging
+hooguit ongeveer 0,02), geen cameratrilling, geen snelheidsstrepen of deeltjes, een glijbeweging van ongeveer 1 seconde
+zoals in het zijaanzicht, en alleen stilstaande of zeer trage beweging (wolken, molenwieken) terwijl je nadenkt. Hoge
+dichtbije voorwerpen (lantaarns, bomen, kranen) vervagen in vier stappen vlak voordat ze de rand van het beeld bereiken,
+zodat er niets groots snel langs de rand schiet. Bij "minder beweging" springt de kart direct naar zijn plek en
+staat alles stil. Een beeld kost ruim onder 4 ms.
 
 ## Rustregels (de afspraken waar dit spel zich aan houdt)
 
@@ -99,7 +124,10 @@ bijvoorbeeld splitsen, aanvullen tot een tiental of "tafel van 6 is tafel van 5 
 - **Eén bestand, geen bouwstap.** `rekenrace/index.html` bevat alle HTML, CSS en JavaScript. De rekenmodules
   zonder scherm (`RR.Rng`, `RR.Questions`, `RR.Heroes`/`Tracks`/`Race`, `RR.Store`) staan tussen
   `// ===PURE===` en `// ===ENDPURE===`, zodat Node ze kan testen; daarna volgen de schermmodules
-  (`RR.Sprites`, `RR.Scene`, `RR.Sound`) en de gebruikersinterface. Alle teksten staan in de constante `TXT`.
+  (`RR.Sprites`, `RR.Scene`, het aanzicht van achteren: `RR.SpritesRear`, `RR.Scene3D` en per baan een themablok
+  dat zich met `RR.Scene3D.registerTheme` aanmeldt, `RR.Sound`) en de gebruikersinterface. `RR.Scene3D` heeft precies
+  dezelfde functies als `RR.Scene`; de gebruikersinterface maakt het ene of het andere object volgens de instelling
+  `view` (`side` of `behind`, in `RR.Store`). Alle teksten staan in de constante `TXT`.
   Namen van spelers komen alleen via `textContent` op het scherm.
 - **Alles inline.** Omdat Vercel met `cleanUrls` zonder slash aan het eind werkt, mag de pagina geen
   relatieve bestanden laden. Pixelart wordt in code getekend, geluid in code gemaakt.
@@ -113,7 +141,11 @@ bijvoorbeeld splitsen, aanvullen tot een tiental of "tafel van 6 is tafel van 5 
 
 ## Bekende beperkingen
 
-- Getest in Chromium. Safari (iPhone, iPad) en Firefox zijn nog niet echt uitgeprobeerd.
+- Getest in Chromium. Safari (iPhone, iPad) en Firefox zijn nog niet echt uitgeprobeerd; dat geldt zeker voor het
+  aanzicht van achteren (canvas-pixels uitlezen en de tekentijd zijn daar niet gemeten).
+- In het aanzicht van achteren zie je tegenstanders achter je niet (ze zitten achter de camera); de voortgangsbalk
+  bovenin laat altijd iedereen zien. Voorwerpen langs de weg worden in grote stappen kleiner (niet vloeiend), en
+  het eigen kartje heeft geen aparte markering: het staat steeds op dezelfde plek, en in de balk is jouw kop omlijst.
 - Het geluid is gemeten (niveau, lengte, geen klikken) maar nog niet door een mens beluisterd.
 - Een lopende glijbeweging kan niet worden gepauzeerd; de pauze wacht tot de kart is aangekomen.
 - De terugknop van de browser verlaat de pagina; de voortgang blijft bewaard, een lopende race niet.
