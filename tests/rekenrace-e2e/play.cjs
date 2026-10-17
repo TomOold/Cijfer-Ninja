@@ -236,9 +236,14 @@ async function sB(browser) {
   await p.click('#keypad .key-del'); await p.click('#keypad .key-del'); await p.click('#keypad .key-del'); await p.click('#keypad .key-del');
   t.check('backspace on an empty field is harmless', (await text(p, '#answer-text')) === '');
   const seen = [];
-  // The first glide is held for 3 more seconds (the scene itself is untouched), so that the "ignored while gliding"
-  // check below does not depend on how fast this machine answers the four inputs.
-  await S(p, () => { const sc = RR.UI.state.scene; const orig = sc.advanceTo; sc.advanceTo = function () { sc.advanceTo = orig; return orig.apply(this, arguments).then(() => new Promise((res) => setTimeout(res, 3000))); }; });
+  // The first glide is held open by a gate that only this test opens (the scene itself is untouched: its animation runs
+  // as usual and the game waits for the promise it returns). So the "ignored while gliding" check below holds for as long
+  // as the four inputs take, however loaded the machine is, and it asserts on the phase variable, not on the clock.
+  await S(p, () => {
+    const sc = RR.UI.state.scene; const orig = sc.advanceTo;
+    const gate = window.__glideGate = { open: false, wake: null, release() { gate.open = true; if (gate.wake) gate.wake(); } };
+    sc.advanceTo = function () { sc.advanceTo = orig; return orig.apply(this, arguments).then(() => new Promise((res) => { if (gate.open) res(); else gate.wake = res; })); };
+  });
   for (let i = 0; i < 10; i++) {
     await waitAsk(p, i);
     const q = list[i];
@@ -257,6 +262,7 @@ async function sB(browser) {
       await p.keyboard.press('Backspace');
       const during = { shown: await text(p, '#answer-text'), want: String(q.answer), phase: (await state(p)).phase, fb: await text(p, '#feedback') };
       t.check('while gliding: digits, keypad, Enter and Backspace are ignored', during.shown === during.want && during.phase === 'gliding', during);
+      await S(p, () => window.__glideGate.release());
     }
   }
   await waitScreen(p, 'finish');
@@ -640,6 +646,24 @@ async function sH(browser) {
   await p.keyboard.press('Escape');
   t.check('Esc closes the pause dialog again', (await S(p, () => !document.getElementById('dlg-pause').open)));
   t.check('after closing the dialog the child can carry on typing', await (async () => { await p.keyboard.press('Digit6'); return (await text(p, '#answer-text')) === '6'; })());
+  // One stray Tab puts the focus on a keypad key. Typing the answer and Enter must still CHECK it (not press that key),
+  // and Space still presses the focused key.
+  await p.keyboard.press('Backspace');
+  await waitAsk(p, 0);        // (the keypad ignores a press for a moment after Start)
+  await p.keyboard.press('Tab');
+  const strayKey = await S(p, () => { const e = document.activeElement; return e && e.classList.contains('key') ? { d: e.dataset.d || e.dataset.action, ok: e.classList.contains('key-ok') } : null; });
+  t.check('one stray Tab: the focus is on a keypad key', !!strayKey && !strayKey.ok, strayKey);
+  // (which key the first Tab lands on depends on the layout: a digit key types its digit, the delete key types nothing)
+  const wantByKey = strayKey && /^[0-9]$/.test(strayKey.d) ? strayKey.d : '';
+  await p.keyboard.press('Space');
+  t.check('stray Tab: Space still presses the focused key', (await text(p, '#answer-text')) === wantByKey, { shown: await text(p, '#answer-text'), strayKey });
+  await p.keyboard.press('Backspace');
+  const stray = await S(p, () => ({ answer: RR.UI.state.race.q.answer, attempt: RR.UI.state.race.attempt }));
+  for (const ch of String(stray.answer)) await p.keyboard.press(ch);
+  t.check('stray Tab: the typed answer shows exactly what was typed', (await text(p, '#answer-text')) === String(stray.answer), await text(p, '#answer-text'));
+  await p.keyboard.press('Enter');
+  const strayAfter = await S(p, () => ({ phase: RR.UI.state.race.phase, attempt: RR.UI.state.race.attempt, input: RR.UI.state.race.input, fb: document.getElementById('feedback').innerText.trim() }));
+  t.check('stray Tab: Enter after the digits checks the answer (a right answer starts the glide, no digit is added)', strayAfter.attempt === stray.attempt + 1 && strayAfter.phase !== 'ask' && FIRST_FEEDBACK.includes(strayAfter.fb), strayAfter);
   await noProblems(t, c);
   await c.ctx.close();
 }
@@ -729,8 +753,12 @@ async function sI(browser) {
 // ============================================================================
 async function sJ(browser) {
   const t = makeT('J glide timing and sound');
-  const c = await open(browser, { viewport: { width: 1366, height: 768 } });
+  // The page runs on Playwright's fake clock (it flows like the real one until the test pauses it): the glide length is
+  // measured in animation time, stepped by the test, so a loaded machine cannot stretch it.
+  const c = await open(browser, { viewport: { width: 1366, height: 768 }, url: false });
   const p = c.page;
+  await p.clock.install();
+  await p.goto(require('./lib.cjs').URL);
   await createPlayer(p, 'Sien', 'eekhoorn', 4);
   await spies(p);
   t.check('music is off by default, sound effects on', (await S(p, () => JSON.stringify(RR.UI.state.store.settings()))) === JSON.stringify({ sound: true, music: false, restAfter: 3 }));
@@ -742,15 +770,31 @@ async function sJ(browser) {
   await startRace(p);
   const list = await S(p, () => window.__series[0].list);
   const times = [];
+  const phases = [];
   for (let i = 0; i < 3; i++) {
     await waitAsk(p, i);
     await typeKeypad(p, list[i].answer);
-    const t0 = Date.now();
+    // from here on the page's time only moves when this test moves it (the fake clock flows like the real one until now, so on a
+    // loaded machine the moment we aim at can already be past: aim further ahead until it is accepted)
+    for (let margin = 50; ; margin *= 4) {
+      try { await p.clock.pauseAt((await S(p, () => Date.now())) + margin); break; } catch (e) { if (margin > 5000 || !/past/.test(String(e))) throw e; }
+    }
     await clickOk(p);
-    await waitAsk(p, i + 1);
-    times.push(Date.now() - t0);
+    phases.push((await state(p)).phase);
+    let ms = 0;
+    while (ms < 4000) {
+      const st0 = await state(p);
+      if (st0.phase !== 'gliding') break;
+      await p.clock.runFor(25);
+      ms += 25;
+    }
+    const after = await state(p);
+    times.push(after.phase === 'ask' && after.index === i + 1 ? ms : -ms);
+    await p.clock.resume();
   }
-  t.check('the next sum appears when the glide ends (about 0.9 - 1.8 s, driven by the animation)', times.every((x) => x >= 800 && x <= 2200), times);
+  t.check('right answer: the kart is gliding at once and the next sum waits for the glide', phases.every((x) => x === 'gliding'), phases);
+  t.check('the next sum appears when the glide ends (about 0.9 - 1.8 s of animation time, driven by the animation)', times.every((x) => x >= 800 && x <= 2200), times);
+  t.note('glide lengths in animation time (ms): ' + times.join(', '));
   const motion = await S(p, () => ({ idle: RR.UI.state.scene.reducedMotion }));
   t.check('normal motion: scene is not in reduced mode', motion.idle === false);
   await S(p, () => { window.__raf = 0; const r = window.requestAnimationFrame; window.requestAnimationFrame = (f) => { window.__raf++; return r(f); }; });
@@ -1310,7 +1354,7 @@ async function sR(browser) {
 
   // EXPLORE-2: "Klaar" stays on screen on small phones
   const seed = JSON.stringify({ v: 1, counter: 2, current: null, settings: { sound: false, music: false, restAfter: 0 }, players: [{ id: 'p1', name: 'Gees', hero: 'egel', grade: 5, answers: {}, kinds: {}, stamps: {} }] });
-  const sizes = [[390, 844, 3], [360, 640, 4], [375, 553, 6], [360, 560, 6], [320, 568, 4], [844, 390, 6], [375, 667, 3]];
+  const sizes = [[390, 844, 3], [360, 640, 4], [375, 553, 6], [360, 560, 6], [320, 568, 6], [844, 390, 6], [375, 667, 4]];   // (round 4: the flat keypad now starts at 810 px high on a 430 px wide phone, and 320 px wide gets six thin columns)
   for (const [w, h, cols] of sizes) {
     const c = await open(browser, { viewport: { width: w, height: h }, reducedMotion: true, touch: true, mobile: true, url: false });
     const p = c.page;
@@ -1617,6 +1661,7 @@ async function sS(browser) {
     // (f) scripting switched off: the existing noscript sentence is the message, the note would only mislead
     v = await visit('/game.html', { js: false });
     t.check('scripting off: the "wordt gestart" note is not shown (the noscript sentence is)', v.page ? (await v.page.evaluate(() => getComputedStyle(document.getElementById('boot-note')).display)) === 'none' && /JavaScript nodig/.test(await v.page.evaluate(() => document.body.innerText)) : false);
+    t.check('scripting off: the sentence also says what to do when switching JavaScript on is not possible ("Of open het bestand in Safari of Chrome.")', v.page ? /Zet JavaScript aan in je browser om te spelen\. Of open het bestand in Safari of Chrome\./.test(await v.page.evaluate(() => document.body.innerText)) : false);
     await v.ctx.close();
 
     // (g) in the source: the early watch is a separate script before the game script, and the game script hides the note first
@@ -1829,8 +1874,140 @@ async function sT(browser) {
   }
 }
 
+// ---------- U: review round 3 (the whole race screen fits the window at every common size) ----------
+const layoutfit = require('./layoutfit.cjs');
+async function sU(browser) {
+  const t = makeT('U race screen fits without scrolling at common window sizes');
+  const smp = await layoutfit.samples(browser, 4);
+  const sums = smp.ten;
+  const stories = sums.filter((q) => q.text.indexOf('\n') >= 0);
+  t.check('ten real sums: the longest stories with their tips and explanations, the longest tips of the other kinds, ordinary stories', sums.length === 10 && stories.length >= 6, { n: sums.length, stories: stories.length });
+  t.note('longest story: ' + JSON.stringify(stories[0].text) + ' / tip: ' + JSON.stringify(stories[0].hint));
+  const sizes = layoutfit.SIZES;
+  const results = new Array(sizes.length);
+  let next = 0;
+  // four windows at a time: the sizes are independent and the machine has four cores
+  await Promise.all([0, 1, 2, 3].map(async () => {
+    while (next < sizes.length) { const k = next++; results[k] = await layoutfit.probe(browser, sizes[k], sums, { audit: true }); }
+  }));
+  sizes.forEach((vp, k) => {
+    const r = results[k];
+    t.check(`${r.size}: sum, tip and explanation fit without page scroll and with Klaar / Volgende on screen (${r.sums} sums, ${r.cls})`, r.ask === 0 && r.hint === 0 && r.explain === 0, { ask: r.ask, hint: r.hint, explain: r.explain, worstPx: r.worstPx, examples: r.examples });
+    t.check(`${r.size}: nothing outside the window, no overlaps, targets at least 48 px, no sideways scroll`, r.audit.length === 0, r.audit);
+    t.check(`${r.size}: the picture keeps its size from the question to the tip and stays readable, at least 190 px even when the explanation needs the room (${r.minScene}-${r.maxScene} px)`, r.jump === 0 && r.minScene >= 190, { jump: r.jump, min: r.minScene, max: r.maxScene });
+    t.check(`${r.size}: no console errors or network requests`, r.problems.length === 0, r.problems);
+  });
+
+  // Classic scrollbars (Windows): a window that is too low for everything gets a scrollbar. It takes room from the sum
+  // and the keypad, never from the picture: the picture must not change size when the bar appears.
+  const classic = await chromium.launch({ ignoreDefaultArgs: ['--hide-scrollbars'] });
+  for (const vp of [[700, 330], [644, 330]]) {
+    const c = await open(classic, { viewport: { width: vp[0], height: vp[1] } });
+    const p = c.page;
+    await S(p, () => { const st = RR.UI.state.store; const r = st.addPlayer({ name: 'Sien', hero: 'eekhoorn', grade: 5 }); st.select(r.player.id); RR.UI.show('menu'); });
+    await S(p, (q) => { RR.UI.state.scene.advanceTo = () => Promise.resolve(); RR.Questions.series = () => Array(10).fill(0).map((_, i) => Object.assign({}, q, { key: q.key + '#' + i })); }, sums[0]);
+    await p.click('#s-menu [data-to="vrij"]'); await p.click('[data-action="start-free"]'); await startRace(p);
+    await layoutfit.settle(p);
+    const probe = () => S(p, () => { const sr = document.getElementById('s-race'); return { bar: sr.offsetWidth - sr.clientWidth, scene: Math.round(document.querySelector('canvas.scene').getBoundingClientRect().width * 10) / 10 }; });
+    const withBar = await probe();
+    await p.addStyleTag({ content: '#s-race{overflow-y:hidden !important}' });
+    await S(p, () => RR.UI.fitScene());
+    await layoutfit.settle(p);
+    const noBar = await probe();
+    t.check(`${vp.join('x')} with classic scrollbars: the screen needs a scrollbar (${withBar.bar} px) and the picture keeps its size (${withBar.scene} px with it, ${noBar.scene} px without)`, withBar.bar > 0 && noBar.bar === 0 && Math.abs(withBar.scene - noBar.scene) < 0.5, { withBar, noBar });
+    await c.ctx.close();
+  }
+  await classic.close();
+}
+
+// ---------- V: review round 3 (the licence button on the finish screen respects the rest moment) ----------
+async function sV(browser) {
+  const t = makeT('V review round 3: the licence from the finish screen and the rest moment');
+  const c = await open(browser, { viewport: { width: 1024, height: 768 } });
+  const p = c.page;
+  await createPlayer(p, 'Tessa', 'uil', 4);
+  await spies(p);
+  // the glide itself is not what is tested here: skip it, so the 8th race takes a moment
+  await S(p, () => { RR.UI.state.scene.advanceTo = () => Promise.resolve(); });
+  const prepare = (rest) => S(p, (r) => {
+    const st = RR.UI.state.store;
+    st.resetProgress(st.current().id);
+    for (let i = 1; i <= 7; i++) st.stamp(i, 2);
+    st.setSetting('restAfter', r);
+    RR.UI.state.races = 0;
+    RR.UI.show('menu');
+  }, rest);
+  const raceEight = async () => {
+    await toIntro(p, { track: 8 });
+    await startRace(p);
+    for (let i = 0; i < 10; i++) {
+      await waitAsk(p, i);
+      const a = await S(p, (n) => RR.UI.state.race.questions[n].answer, i);
+      await typeKeys(p, a);
+      await p.keyboard.press('Enter');
+    }
+    await waitScreen(p, 'finish');
+  };
+
+  // (a) a rest moment is due after this one race: the licence button must not skip it
+  await prepare(1);
+  await raceEight();
+  t.check('8th stamp: the finish screen offers the licence ("Rekenrijbewijs bekijken")', (await text(p, '.stamp-got .btn')) === 'Rekenrijbewijs bekijken', await text(p, '.stamp-got'));
+  await p.click('.stamp-got .btn');
+  await p.waitForFunction(() => RR.UI.state.screen !== 'finish', null, { timeout: 3000 }).catch(() => {});
+  const restShown = (await state(p)).screen === 'rust' && /Tijd voor een pauze/.test((await text(p, '#h-rust')) || '');
+  t.check('rest after 1 race: the licence button shows the rest moment first', restShown, await state(p));
+  if (!restShown) { await c.ctx.close(); return; }
+  await p.click('text=Toch nog een race');
+  await waitScreen(p, 'menu');
+  t.check('"Toch nog een race" goes to the garage, the licence is one step away (Stempelkaart)', (await state(p)).races === 0);
+  await p.click('#s-menu [data-to="stempels"]');
+  await waitScreen(p, 'stempels');
+  await p.click('#s-stempels [data-to="rijbewijs"]');
+  await waitScreen(p, 'rijbewijs');
+  t.check('stamp card -> licence: the licence shows the player and all eight stamps', /Tessa/.test((await text(p, '#s-rijbewijs')) || '') && (await S(p, () => document.querySelectorAll('#s-rijbewijs .licence-stamps li').length)) === 8);
+
+  // (b) no rest moment due: the licence opens at once, and its way back is the stamp card, then the garage
+  await prepare(3);
+  await raceEight();
+  await p.click('.stamp-got .btn');
+  await waitScreen(p, 'rijbewijs');
+  t.check('no rest due: the licence button opens the licence', (await state(p)).screen === 'rijbewijs');
+  t.check('licence: the heading is focused and the way back is named', (await S(p, () => document.activeElement.id)) === 'h-rijbewijs' && (await text(p, '#s-rijbewijs [data-to="stempels"]')) === 'Terug naar de stempelkaart' && (await text(p, '#btn-nav')) === 'Terug');
+  await p.click('#s-rijbewijs [data-to="stempels"]');
+  await waitScreen(p, 'stempels');
+  await p.click('#btn-nav');
+  await waitScreen(p, 'menu');
+  t.check('licence -> Terug naar de stempelkaart -> Menu: back in the garage', (await state(p)).screen === 'menu');
+
+  // (c) the rest moment is switched off
+  await prepare(0);
+  await raceEight();
+  await p.click('.stamp-got .btn');
+  await waitScreen(p, 'rijbewijs');
+  t.check('rest moment off: the licence opens at once', (await state(p)).screen === 'rijbewijs');
+
+  // (d) a name that ends in punctuation reads right in the middle of a sentence (Ouders: question and quiet notice)
+  const lola = await S(p, () => RR.UI.state.store.addPlayer({ name: 'Lola!', hero: 'egel', grade: 3 }).player.id);
+  await S(p, () => { RR.UI.state.parentsFrom = 'menu'; RR.UI.show('ouders'); });
+  await p.click(`[data-action="ask-reset"][data-id="${lola}"]`);
+  const q1 = await text(p, '.confirm-text');
+  t.check('Ouders, wissen: "van Lola worden gewist", no "!" in the middle of the sentence', q1 === 'Weet je het zeker? Alle stempels en resultaten van Lola worden gewist.', q1);
+  await p.click('[data-action="confirm-yes"]');
+  const n1 = await text(p, '.notice');
+  t.check('Ouders, gewist: "De voortgang van Lola is gewist."', n1 === 'De voortgang van Lola is gewist.', n1);
+  await p.click(`[data-action="ask-remove"][data-id="${lola}"]`);
+  const q2 = await text(p, '.confirm-text');
+  t.check('Ouders, verwijderen: "Lola wordt helemaal verwijderd."', q2 === 'Weet je het zeker? Lola wordt helemaal verwijderd.', q2);
+  await p.click('[data-action="confirm-yes"]');
+  const n2 = await text(p, '.notice');
+  t.check('Ouders, verwijderd: "Lola is verwijderd."', n2 === 'Lola is verwijderd.', n2);
+  await noProblems(t, c);
+  await c.ctx.close();
+}
+
 // ---------- main ----------
-const ALL = { A: sA, B: sB, C: sC, D: sD, E: sE, F: sF, G: sG, H: sH, I: sI, J: sJ, K: sK, L: sL, M: sM, N: sN, O: sO, P: sP, Q: sQ, R: sR, S: sS, T: sT };
+const ALL = { A: sA, B: sB, C: sC, D: sD, E: sE, F: sF, G: sG, H: sH, I: sI, J: sJ, K: sK, L: sL, M: sM, N: sN, O: sO, P: sP, Q: sQ, R: sR, S: sS, T: sT, U: sU, V: sV };
 
 (async () => {
   const want = process.argv.slice(2).map((x) => x.toUpperCase());
@@ -1841,8 +2018,8 @@ const ALL = { A: sA, B: sB, C: sC, D: sD, E: sE, F: sF, G: sG, H: sH, I: sI, J: 
     try { await ALL[k](browser); } catch (e) { const t = makeT(k + ' crashed'); t.check('scenario finished', false, String(e && e.stack || e).split('\n').slice(0, 6).join(' | ')); }
   };
   // Two waves: the timing checks of the first wave (glide length, "ignored while gliding") are sensitive to CPU load on a small machine.
-  await Promise.all(keys.filter((k) => !'PQRST'.includes(k)).map(runOne));
-  await Promise.all(keys.filter((k) => 'PQRST'.includes(k)).map(runOne));
+  await Promise.all(keys.filter((k) => !'PQRSTUV'.includes(k)).map(runOne));
+  await Promise.all(keys.filter((k) => 'PQRSTUV'.includes(k)).map(runOne));
   await browser.close();
   let fails = 0, total = 0;
   reports.sort((a, b) => a.name.localeCompare(b.name)).forEach((r) => {
