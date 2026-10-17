@@ -6,10 +6,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Nummers Ninja (a Dutch-language fork of [febbhav/number-ninja](https://github.com/febbhav/number-ninja)) — a browser math game for Dutch primary-school kids (groep 4). Zero build step, zero npm dependencies (`package.json` declares none). The game is one self-contained `index.html` file; a small Vercel serverless backend persists player progress in Supabase.
 
+A second, separate game lives in `rekenrace/` (a calm 1990s-style math racing game, no backend) — see "Rekenrace" below.
+
 ## Commands
 
 ```bash
-npm test                  # node wbtest.js && node tests/backend.test.mjs — run before every deploy
+npm test                  # wbtest.js + backend tests + the three Rekenrace suites (race, opslag, sommen) — run before every deploy
 npm run test:legacy-admin # node admintest.js — legacy Cloudflare KV admin test, see "Legacy Cloudflare path" below
 node e2e.js                # Playwright end-to-end run (not wired into npm test — see caveat below)
 npx vercel deploy --prod --yes   # manual production deploy fallback (normally CI/CD via git push, see Deployment)
@@ -55,6 +57,15 @@ supabase/migrations/  single `players` table (name_key, display_name, pin_hash, 
 ### Deployment
 
 Vercel project is linked to `TomOold/Cijfer-Ninja`: pushes to any branch other than `main` create a Preview Deployment automatically; merging to `main` deploys to production (`main` is the only production branch). Region is pinned to `fra1` (Frankfurt) in both `vercel.json` and `README-DEPLOY.md` to stay close to the Supabase project (`eu-central-1`). A healthy `/api/player` GET returns `{"ok":true,"storage":"supabase"}`.
+
+### Rekenrace (separate sub-game in `rekenrace/`)
+
+An independent game: a calm 1990s-style Dutch math racing game for groep 3-6. It is deliberately the opposite of Nummers Ninja's gamification — no timers, scores, coins, streaks or reward loops. The calm-design rules (D1-D12) in `rekenrace/README.md` are binding when changing it; do not copy mechanics from the main game into it.
+
+- One self-contained file, `rekenrace/index.html`: zero build, zero dependencies, no network (a CSP `<meta>` enforces `connect-src 'none'`), no backend, no Supabase. It is served at `/rekenrace`; because Vercel runs with `cleanUrls` and no trailing slash, the page must not rely on relative sub-resources — keep everything inline.
+- Script layout: a single `const RR = {}` namespace. The DOM-free modules (`RR.Rng`, `RR.Questions`, `RR.Heroes`/`Tracks`/`Race`, `RR.Store`) sit between the `// ===PURE===` / `// ===ENDPURE===` fences, followed by the browser-only modules (`RR.Sprites`, `RR.Scene`, `RR.Sound`) and the UI. All UI copy is in the `TXT` constant; DOM is built with a small helper and user-supplied text (player names) only ever goes through `textContent`.
+- Tests: `tests/rekenrace-race|opslag|sommen.test.mjs` (Node's test runner, part of `npm test`) load the fenced block via `tests/helpers/rekenrace-laden.mjs`. The sums engine tests recompute every answer independently from the question text — keep that property when adding sum types. Browser behaviour is covered by a Playwright suite that is not part of `npm test` (Playwright is not a dependency); see `rekenrace/README.md`.
+- Persistence is `localStorage` only (key `rekenrace:v1`); storage may be blocked, in which case the game keeps working in memory.
 
 ### Content data
 

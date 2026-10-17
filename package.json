@@ -6,7 +6,7 @@
     "node": "22.x"
   },
   "scripts": {
-    "test": "node wbtest.js && node tests/backend.test.mjs",
+    "test": "node wbtest.js && node tests/backend.test.mjs && node --test tests/rekenrace-race.test.mjs tests/rekenrace-opslag.test.mjs tests/rekenrace-sommen.test.mjs",
     "test:legacy-admin": "node admintest.js"
   }
 }
