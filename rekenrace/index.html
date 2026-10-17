@@ -10,6 +10,37 @@
 <meta name="referrer" content="no-referrer">
 <title>Rekenrace</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' shape-rendering='crispEdges'%3E%3Crect width='16' height='16' fill='%231f7a82'/%3E%3Cpath fill='%23fbf6e9' d='M3 2h2v12H3z'/%3E%3Cpath fill='%23fbf6e9' d='M5 3h8v6H5z'/%3E%3Cpath fill='%23232c4a' d='M5 3h2v2H5zM9 3h2v2H9zM7 5h2v2H7zM11 5h2v2h-2zM5 7h2v2H5zM9 7h2v2H9z'/%3E%3C/svg%3E">
+<noscript><style>#boot-note{display:none}</style></noscript>
+<script>
+// Start-up watch. It runs before the game script, so even a syntax error in the game is caught.
+// While the game has not finished starting (data-boot is not "done") a script error is written into
+// the note under the title bar, so a page that stays empty always says why. Once the game is up,
+// errors are left to the console: a child never gets an error message on screen.
+(function () {
+  'use strict';
+  var shown = 0;
+  function report(message, line) {
+    if (document.documentElement.getAttribute('data-boot') === 'done' || shown >= 3) return;
+    var note = document.getElementById('boot-note');
+    if (!note) return;
+    shown++;
+    var text = String(message || 'onbekende fout').replace(/^Uncaught\s+/, '').slice(0, 240);
+    var p = document.createElement('p');
+    p.className = 'boot-error';
+    p.appendChild(document.createTextNode('Er ging iets mis: ' + text + (line ? ' (regel ' + line + ')' : '')));
+    note.appendChild(p);
+    note.hidden = false;
+  }
+  window.addEventListener('error', function (ev) {
+    if (ev && ev.target && ev.target.tagName) return;       // a failed image or other resource, not a script error
+    report(ev.message || (ev.error && ev.error.message), ev.lineno);
+  });
+  window.addEventListener('unhandledrejection', function (ev) {
+    var r = ev && ev.reason;
+    report(r && r.message ? r.message : r, 0);
+  });
+})();
+</script>
 <style>
 /* ---------- tokens ---------- */
 :root{
@@ -41,6 +72,7 @@
 /* ---------- base ---------- */
 *,*::before,*::after{box-sizing:border-box}
 html,body{height:100%;margin:0}
+html{overscroll-behavior:none}
 body{
   font-family:var(--font);
   font-size:18px;
@@ -62,6 +94,12 @@ img,svg,canvas.pix{display:block}
 .pix{image-rendering:-moz-crisp-edges;image-rendering:crisp-edges;image-rendering:pixelated}
 .sr-only,.vh{position:absolute !important;width:1px;height:1px;margin:-1px;padding:0;border:0;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap}
 .noscript{position:fixed;inset:auto 16px 16px;padding:12px 16px;background:var(--paper);border:2px solid var(--edge)}
+/* Plain HTML that the game script hides as its very first statement. It only stays in view when that script
+   did not run (a host that blocks scripts) or stopped on an error, so there is no delay or timer behind it. */
+.boot-note{flex:none;width:100%;max-width:34rem;margin:auto;padding:28px 20px;display:flex;flex-direction:column;gap:12px;text-align:center}
+.boot-start{font-size:1.4rem;font-weight:700}
+.boot-help{color:var(--muted)}
+.boot-error{padding:10px 14px;background:var(--note-bg);border:2px solid var(--pal-orange);text-align:left;font-size:.95rem;overflow-wrap:anywhere}
 :focus-visible{outline:3px solid var(--focus);outline-offset:3px}
 .screen-title:focus{outline:none}
 #q:focus{outline:none}
@@ -374,6 +412,10 @@ canvas.scene{display:block;width:100%;height:auto;aspect-ratio:20/9;image-render
 .is-wide .q{font-size:clamp(1.9rem,3.4vw,2.7rem)}
 .is-wide .q.q-long{font-size:clamp(1.5rem,2.8vw,2.1rem)}
 .is-wide .q.q-story{font-size:clamp(.95rem,1.35vw,1.15rem)}
+/* roomy screens (a tablet, a laptop): the stories and the tips are what the youngest readers have to read */
+.is-wide:not(.is-short) .q.q-story{font-size:clamp(1.1rem,1.5vw,1.3rem)}
+.is-wide:not(.is-short) .feedback{font-size:1.05rem}
+.is-wide:not(.is-short) .explain-text{font-size:1.1rem}
 .is-wide .keypad{--key-h:clamp(52px,8vh,64px)}
 
 /* a portrait phone with little height: three rows of four keys instead of four rows of three, so "Klaar" stays on screen */
@@ -489,6 +531,9 @@ canvas.scene{display:block;width:100%;height:auto;aspect-ratio:20/9;image-render
 .pl-head-img{width:48px;height:48px;flex:none}
 .pl-name{font-size:1.35rem;flex:1 1 auto;overflow-wrap:anywhere}
 .pl-grade{display:flex;align-items:center;gap:8px}
+.pl-edit{display:flex;flex-direction:column;gap:6px}
+.pl-edit .text-in{flex:1 1 11rem;min-width:0;max-width:260px}
+.pl-hero{display:flex;align-items:center;gap:8px}
 .pl-card h3,.settings h2,.about h2{font-size:1.05rem}
 .kinds{display:flex;flex-direction:column;gap:8px}
 .kinds li{display:flex;flex-direction:column;gap:3px}
@@ -559,10 +604,11 @@ canvas.scene{display:block;width:100%;height:auto;aspect-ratio:20/9;image-render
   html,body{height:auto;overflow:visible;background:#fff !important}
   .desk{display:block;height:auto;padding:0}
   .window{display:block;height:auto;max-width:none;max-height:none;border:0;outline:0;box-shadow:none;background:#fff;overflow:visible}
-  .titlebar,.no-print,#announce,.dialog,.noscript{display:none !important}
+  .titlebar,.no-print,#announce,.dialog,.noscript,.boot-note{display:none !important}
   .body{display:block;overflow:visible}
   .screen{display:none !important}
   #s-rijbewijs{display:block !important;overflow:visible;padding:0;animation:none}
+  #s-rijbewijs[hidden]{display:none !important}      /* an id beats [hidden]: without this every other screen would print an empty licence frame */
   .page-licence{max-width:none}
   .licence{margin:10px;-webkit-print-color-adjust:exact;print-color-adjust:exact;break-inside:avoid}
   .licence *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
@@ -601,8 +647,8 @@ canvas.scene{display:block;width:100%;height:auto;aspect-ratio:20/9;image-render
   <div class="window" id="window" data-screen="">
     <header class="titlebar" id="titlebar">
       <div class="brand">
-        <img class="pix brand-icon" id="brand-icon" alt="" width="20" height="20" draggable="false">
-        <span class="brand-name" data-txt="appName"></span>
+        <img class="pix brand-icon" id="brand-icon" alt="" width="20" height="20" draggable="false" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' shape-rendering='crispEdges'%3E%3Crect width='16' height='16' fill='%231f7a82'/%3E%3Cpath fill='%23fbf6e9' d='M3 2h2v12H3z'/%3E%3Cpath fill='%23fbf6e9' d='M5 3h8v6H5z'/%3E%3Cpath fill='%23232c4a' d='M5 3h2v2H5zM9 3h2v2H9zM7 5h2v2H7zM11 5h2v2h-2zM5 7h2v2H5zM9 7h2v2H9z'/%3E%3C/svg%3E">
+        <span class="brand-name" data-txt="appName">Rekenrace</span>
       </div>
       <div class="tools">
         <button type="button" class="tool" id="btn-sound" data-action="toggle-setting" data-setting="sound" data-sfx="" aria-pressed="true">
@@ -625,6 +671,10 @@ canvas.scene{display:block;width:100%;height:auto;aspect-ratio:20/9;image-render
       </div>
     </header>
     <main class="body" id="main">
+      <div class="boot-note" id="boot-note" role="status">
+        <p class="boot-start">Het spel wordt gestart...</p>
+        <p class="boot-help">Lukt dit niet? Open het bestand in Safari of Chrome. In een voorbeeldvenster draait het spel soms niet.</p>
+      </div>
       <section class="screen" id="s-spelers" hidden></section>
       <section class="screen" id="s-nieuw" hidden></section>
       <section class="screen" id="s-menu" hidden></section>
@@ -687,6 +737,7 @@ canvas.scene{display:block;width:100%;height:auto;aspect-ratio:20/9;image-render
 <noscript><p class="noscript">Rekenrace heeft JavaScript nodig. Zet JavaScript aan in je browser om te spelen.</p></noscript>
 
 <script>
+{ const bootNote = document.getElementById('boot-note'); if (bootNote) bootNote.hidden = true; }   // first statement: the start-up note is only for a script that never got here
 const RR = {};
 // ===PURE===
 // Seedable RNG shared by the pure modules. No DOM, no globals except RR.
@@ -1161,7 +1212,7 @@ RR.Questions = (function () {
     if (d === 2) M('Delen door 2 is halveren: de helft van ' + n + ' is ' + q + '.', 'Delen door twee is halveren.');
     if (d === 4) M('Halveer twee keer: de helft van ' + n + ' is ' + n / 2 + ', de helft daarvan is ' + q + '.', 'Halveer, en halveer dan nog een keer.');
     if (d === 8) M('Halveer drie keer: ' + n + ' wordt ' + n / 2 + ', dan ' + n / 4 + ' en dan ' + q + '.', 'Halveer drie keer.');
-    if (d === 5 && 2 * n <= MAXV) {
+    if (d === 5 && q > 10 && 2 * n <= MAXV) {      // up to 10 x 5 the table already does the job; doubling is a detour there
       M('Delen door 5 is verdubbelen en dan delen door 10: dubbel ' + n + ' is ' + 2 * n + ' en ' + 2 * n + ' : 10 = ' + q + '.', 'Delen door vijf: verdubbel eerst en deel dan door tien.');
     }
     if (d === 10) M('Delen door 10: haal een nul weg. ' + n + ' wordt ' + q + '.', 'Delen door tien: haal een nul weg.');
@@ -1238,15 +1289,23 @@ RR.Questions = (function () {
   }
 
   // Gap sum from the complete equation a OP b = c; `unk` ('a' | 'b') is hidden.
+  // The method text of a gap sum explains the "betekent" sum. Some methods only describe a step ("Je haalt
+  // alleen 1 tiental van 80 af.") without saying the result, and then the closing "Dus 80 - 70 = 10." seems to
+  // come from nowhere. So the result is stated before the closing line when the method has not done so.
+  function statesResult(how, eq, result) {
+    return new RegExp('= ' + result + '(?!\\d)').test(how) ? how : how + ' ' + eq + '.';
+  }
+
   function gapParts(op, a, b, c, unk, key) {
     const ans = unk === 'a' ? a : b;
     const sym = OPSYM[op], full = a + ' ' + sym + ' ' + b + ' = ' + c;
     const text = (unk === 'a' ? '?' : a) + ' ' + sym + ' ' + (unk === 'b' ? '?' : b) + ' = ' + c;
-    let hints, how, lead, formula, plain;
+    let hints, how, lead, formula, plain, baseEq;
     if (op === 'add') {
       const k = unk === 'a' ? b : a;                      // the known addend
       formula = c + '-' + k;
       lead = text + ' betekent ' + c + ' ' + MINUS + ' ' + k + '.';
+      baseEq = c + ' ' + MINUS + ' ' + k + ' = ' + ans;
       how = subHow(c, k, key);
       hints = ['Wat moet er bij ' + k + ' om ' + c + ' te krijgen?', 'Maak er een minsom van: ' + c + ' ' + MINUS + ' ' + k + '.',
         'Tel op vanaf ' + k + ' tot je bij ' + c + ' komt.'];
@@ -1254,6 +1313,7 @@ RR.Questions = (function () {
     } else if (op === 'sub' && unk === 'a') {
       formula = c + '+' + b;
       lead = text + ' betekent ' + c + ' + ' + b + '.';
+      baseEq = c + ' + ' + b + ' = ' + ans;
       how = addHow(c, b, key);
       hints = ['Je haalt ' + b + ' weg en houdt ' + c + ' over. Hoeveel was het eerst?', 'Maak er een plussom van: ' + c + ' + ' + b + '.',
         'Draai de som om: wat moet je met ' + c + ' doen om weer bij het begin te komen?'];
@@ -1261,6 +1321,7 @@ RR.Questions = (function () {
     } else if (op === 'sub') {
       formula = a + '-' + c;
       lead = text + ' betekent ' + a + ' ' + MINUS + ' ' + c + '.';
+      baseEq = a + ' ' + MINUS + ' ' + c + ' = ' + ans;
       how = subHow(a, c, key);
       hints = ['Hoeveel haal je weg van ' + a + ' om ' + c + ' over te houden?', 'Maak er een minsom van: ' + a + ' ' + MINUS + ' ' + c + '.',
         'Tel op vanaf ' + c + ' tot je bij ' + a + ' komt.'];
@@ -1269,6 +1330,7 @@ RR.Questions = (function () {
       const k = unk === 'a' ? b : a;                      // the known factor
       formula = c + '/' + k;
       lead = text + ' betekent ' + c + ' : ' + k + '.';
+      baseEq = c + ' : ' + k + ' = ' + ans;
       how = divHow(c, k, key);
       hints = ['Welk getal keer ' + k + ' is ' + c + '?', 'Delen is het omgekeerde van keer: ' + c + ' : ' + k + '.'];
       if (k <= 10 && c <= 10 * k) hints.push('Zeg de tafel van ' + k + ' op tot je bij ' + c + ' komt.');
@@ -1276,12 +1338,14 @@ RR.Questions = (function () {
     } else if (unk === 'a') {
       formula = c + '*' + b;
       lead = text + ' betekent ' + c + ' ' + TIMES + ' ' + b + '.';
+      baseEq = c + ' ' + TIMES + ' ' + b + ' = ' + ans;
       how = timesHow(c, b, key);
       hints = ['Maak er een keersom van: ' + c + ' ' + TIMES + ' ' + b + '.', 'Welk getal gedeeld door ' + b + ' geeft ' + c + '? Denk aan de keersom.'];
       plain = 'Maak er een keersom van: de uitkomst keer het getal dat je ziet.';
     } else {
       formula = a + '/' + c;
       lead = text + ': hoe vaak past ' + c + ' in ' + a + '?';
+      baseEq = a + ' : ' + c + ' = ' + ans;
       how = divHow(a, c, key);
       hints = ['Hoe vaak past ' + c + ' in ' + a + '?', 'Welk getal keer ' + c + ' is ' + a + '?', 'Maak er een deelsom van: ' + a + ' : ' + c + '.'];
       plain = 'Hoe vaak past de uitkomst in het getal dat je ziet?';
@@ -1289,7 +1353,7 @@ RR.Questions = (function () {
     return {
       text, ans, formula,
       hint: firstSafe(rotate(hints, key).concat(plain), ans, FB.gap),
-      explain: wrap(lead + ' ' + how, 'Dus ' + full + '.')
+      explain: wrap(lead + ' ' + statesResult(how, baseEq, ans), 'Dus ' + full + '.')
     };
   }
 
@@ -7756,6 +7820,7 @@ const TXT = {
     ok: ['Goed zo.', 'Dat klopt.', 'Juist.'],
     second: 'Goed, het is gelukt.',
     notYet: 'Nog niet helemaal.',
+    typeFirst: 'Typ eerst je antwoord.',
     answerIs: n => 'Het antwoord is ' + n + '.',
     spokenDivide: ' gedeeld door ',
     next: 'Volgende'
@@ -7822,6 +7887,10 @@ const TXT = {
     title: 'Ouders',
     intro: 'Hier zie je hoe het gaat en kun je het spel instellen. Er is geen account nodig: alles blijft op dit apparaat.',
     grade: 'Groep',
+    name: 'Naam',
+    rename: 'Naam opslaan',
+    renameDone: name => 'De naam is nu ' + sentenceName(name) + '.',
+    hero: 'Held',
     results: 'Resultaten',
     kindLine: (label, ok, total) => label + ': ' + ok + ' van ' + total + ' goed',
     kindNone: label => label + ': nog niet geoefend',
@@ -7843,7 +7912,7 @@ const TXT = {
     removeDone: name => name + ' is verwijderd.',
     noPlayers: 'Er zijn nog geen spelers.',
     about: 'Over dit spel',
-    aboutText: 'Rekenrace is een rustig rekenspel. Er zijn geen klokken, geen punten en geen reclame. Sommen die nog niet lukten komen later nog een keer terug. Een latere baan heeft moeilijkere sommen, ook bij een vrije race. Alles wat je speelt blijft op dit apparaat: er is geen account en er wordt niets via internet verstuurd.'
+    aboutText: 'Rekenrace is een rustig rekenspel. Er zijn geen klokken, geen punten en geen reclame. Sommen die nog niet lukten komen later nog een keer terug. Een latere baan heeft moeilijkere sommen, ook bij een vrije race. Alles wat je speelt blijft op dit apparaat, in deze browser: er is geen account en er wordt niets via internet verstuurd. Wis je de gegevens van de browser, dan is de voortgang ook weg.'
   }
 };
 
@@ -7887,6 +7956,7 @@ RR.UI = (function () {
     parentsFrom: 'menu',
     confirm: null,            // { kind: 'reset' | 'remove', id } while a parent confirms
     notice: '',
+    goodbyeFrom: 0,           // input debounce for the goodbye screen (performance.now())
     fitQueued: false
   };
 
@@ -8034,6 +8104,9 @@ RR.UI = (function () {
     SCREENS[id](byId('s-' + id));
     updateNav();
     focusHeading(id);
+    // First run on a computer: the name box is the only thing to do, so typing can start at once.
+    // (On a touch screen focusing it would only throw the keyboard over the heroes.)
+    if (id === 'nieuw' && !S.store.players().length && window.matchMedia && window.matchMedia('(pointer: fine)').matches) byId('in-name').focus({ preventScroll: true });
     queueFit();
   }
 
@@ -8205,7 +8278,7 @@ RR.UI = (function () {
       ])
     ]));
     const grades = [3, 4, 5, 6].map(g => h('div', { class: 'chip' }, [
-      h('input', { type: 'radio', name: 'grade', id: 'grade-' + g, value: g, class: 'vh', checked: g === 4 }),
+      h('input', { type: 'radio', name: 'grade', id: 'grade-' + g, value: g, class: 'vh' }),
       h('label', { for: 'grade-' + g }, TXT.spelers.group(g))
     ]));
     const form = h('form', { class: 'form', id: 'form-new', novalidate: true, 'data-form': 'new-player' }, [
@@ -8467,6 +8540,7 @@ RR.UI = (function () {
     R.q = q;
     R.attempt = 0;
     R.input = '';
+    R.emptyNote = false;
     const qEl = byId('q');
     renderQuestion(qEl, q.text);
     qEl.className = 'q' + (q.text.indexOf('\n') >= 0 ? ' q-story' : q.text.length > 14 ? ' q-long' : '');
@@ -8494,6 +8568,7 @@ RR.UI = (function () {
     const R = S.race;
     if (!R || R.phase !== 'ask' || R.input.length >= 5) return;
     R.input += d;
+    if (R.emptyNote) { R.emptyNote = false; setFeedback('', ''); }
     RR.Sound.play('key');
     renderAnswer(R);
   }
@@ -8508,7 +8583,12 @@ RR.UI = (function () {
 
   function submitAnswer() {
     const R = S.race;
-    if (!R || R.phase !== 'ask' || !R.input) return;
+    if (!R || R.phase !== 'ask') return;
+    if (!R.input) {
+      // Klaar with nothing typed: say what is missing, once, and never on top of a tip that is showing
+      if (R.attempt === 0 && !R.emptyNote) { R.emptyNote = true; setFeedback(TXT.race.typeFirst, ''); }
+      return;
+    }
     const q = R.q;
     R.attempt++;
     if (RR.Questions.check(q, R.input)) {
@@ -8690,6 +8770,7 @@ RR.UI = (function () {
   };
 
   SCREENS['tot-ziens'] = function (sec) {
+    S.goodbyeFrom = performance.now() + EXPLAIN_GUARD_MS;     // a second tap of a double tap on "Stoppen" lands on the button below it
     sec.replaceChildren(h('div', { class: 'page page-center' }, [
       kartImg(cur().hero, 4, 'rest-kart'),
       screenTitle('tot-ziens', TXT.totziens.title(cur().name)),
@@ -8786,12 +8867,24 @@ RR.UI = (function () {
         h('button', { type: 'button', class: 'btn', 'data-action': 'ask-remove', 'data-id': p.id }, TXT.ouders.remove)
       ]);
     }
+    const heroSelect = h('select', { class: 'select', id: 'hero-sel-' + p.id, 'data-change': 'hero', 'data-id': p.id },
+      HEROES.map(hero => h('option', { value: hero.id, selected: hero.id === p.hero }, hero.name)));
     return h('section', { class: 'panel pl-card', 'aria-labelledby': 'pl-' + p.id }, [
       h('div', { class: 'pl-head' }, [
         headImg(p.hero, 4, 'pl-head-img'),
         h('h2', { id: 'pl-' + p.id, class: 'pl-name' }, p.name),
         h('div', { class: 'pl-grade' }, [h('label', { for: 'grade-' + p.id }, TXT.ouders.grade), gradeSelect])
       ]),
+      // a typo in the name (it is printed on the licence) or another hero must not cost the stamps
+      h('form', { class: 'pl-edit', 'data-form': 'rename-player', 'data-id': p.id, novalidate: true }, [
+        h('div', { class: 'field-row' }, [
+          h('label', { for: 'name-' + p.id }, TXT.ouders.name),
+          h('input', { type: 'text', id: 'name-' + p.id, name: 'name', class: 'text-in', value: p.name, maxlength: RR.Store.LIMITS.nameLength, autocomplete: 'off', spellcheck: 'false', 'aria-describedby': 'err-rename-' + p.id }),
+          h('button', { type: 'submit', class: 'btn small', 'data-sfx': '' }, TXT.ouders.rename)
+        ]),
+        h('p', { class: 'field-error', id: 'err-rename-' + p.id, role: 'alert', hidden: true })
+      ]),
+      h('div', { class: 'pl-hero' }, [h('label', { for: 'hero-sel-' + p.id }, TXT.ouders.hero), heroSelect]),
       h('h3', null, TXT.ouders.results),
       kindBlock(p),
       h('p', { class: 'hint' }, TXT.ouders.kindNote),
@@ -8861,7 +8954,7 @@ RR.UI = (function () {
     'finish-again': () => leaveFinish('again'),
     'rest-stop': () => show('tot-ziens'),
     'rest-more': () => { S.races = 0; show('menu'); },
-    'restart': () => { S.store.select(null); newSitting(); show('spelers'); },
+    'restart': () => { if (performance.now() < S.goodbyeFrom) return; S.store.select(null); newSitting(); show('spelers'); },
     'print': () => window.print(),
     'toggle-setting': el => changeSetting(el.dataset.setting, el.getAttribute('aria-pressed') !== 'true'),
     'ask-reset': el => { S.confirm = { kind: 'reset', id: el.dataset.id }; rerender('ouders'); },
@@ -8888,12 +8981,34 @@ RR.UI = (function () {
     'setting': el => changeSetting(el.dataset.setting, el.checked),
     'rest': el => S.store.setSetting('restAfter', Number(el.value)),
     'grade': el => S.store.setGrade(el.dataset.id, Number(el.value)),
+    'hero': el => {
+      S.store.setHero(el.dataset.id, el.value);
+      rerender('ouders');         // the portrait in the card changes with it
+      const again = byId('hero-sel-' + el.dataset.id);
+      if (again) again.focus({ preventScroll: true });
+    },
     'free-track': el => { S.free.track = Number(el.value); },
     'free-focus': el => { S.free.focus = el.value; byId('fs-table').hidden = !usesTable(el.value); },
     'free-table': el => { S.free.table = Number(el.value); }
   };
 
-  const FORMS = { 'new-player': submitNewPlayer };
+  function submitRename(form) {
+    const id = form.dataset.id;
+    const input = form.elements.name;
+    const err = byId('err-rename-' + id);
+    const res = S.store.rename(id, input.value);
+    if (!res.ok) {
+      err.textContent = TXT.nieuw.errors[res.error] || TXT.nieuw.errors.other;
+      err.hidden = false;
+      input.setAttribute('aria-invalid', 'true');
+      input.focus();
+      return;
+    }
+    S.notice = TXT.ouders.renameDone(res.player.name);
+    rerender('ouders');
+  }
+
+  const FORMS = { 'new-player': submitNewPlayer, 'rename-player': submitRename };
 
   // The key a touch has just handled on lift, so the click that follows the same tap is not counted twice.
   let touchedKey = null;
@@ -9092,6 +9207,9 @@ RR.UI = (function () {
   // Hooks for the browser tests; the game itself never reads them.
   return { state: S, show: show, fitScene: fitScene };
 })();
+
+// Started without a crash: from here on the early script in the head keeps errors out of the picture.
+document.documentElement.setAttribute('data-boot', 'done');
 </script>
 </body>
 </html>

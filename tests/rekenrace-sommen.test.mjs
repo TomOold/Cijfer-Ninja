@@ -1278,3 +1278,37 @@ test("review: odd rng arguments never throw (a number is a seed, anything else m
   const r = rng(9);
   assert.notDeepEqual(Q.series({ grade: 4, level: 4 }, 10, r).map((q) => q.key), Q.series({ grade: 4, level: 4 }, 10, r).map((q) => q.key));
 });
+
+test("review: a gap sum explanation states the result of its own method before the closing line", () => {
+  // "80 - ? = 10 means 80 - 10. You only take away 1 ten. So 80 - 70 = 10." never said 80 - 10 = 70
+  const sub = Q.fromKey("gap:sub:80-?=10");
+  assert.ok(sub.explain.includes(`80 ${MIN} 10 = 70`), sub.explain);
+  assert.ok(sub.explain.endsWith(`Dus 80 ${MIN} 70 = 10.`), sub.explain);
+  let checked = 0;
+  for (let a = 1; a <= 45; a++) {
+    for (let b = 1; b <= 45; b++) {
+      for (const key of [`gap:add:${a}+?=${a + b}`, `gap:add:?+${b}=${a + b}`, a > b ? `gap:sub:${a}-?=${a - b}` : null, a > b ? `gap:sub:?-${b}=${a - b}` : null,
+        `gap:times:${a}x?=${a * b}`, `gap:times:?x${b}=${a * b}`, `gap:div:?:${b}=${a}`, a % b === 0 ? `gap:div:${a}:?=${a / b}` : null]) {
+        if (!key) continue;
+        const q = Q.fromKey(key);
+        if (!q) continue;
+        // (when the method itself ends with the closing equation there is no separate "Dus" line)
+        const cut = q.explain.lastIndexOf("Dus ");
+        const before = cut > 0 ? q.explain.slice(0, cut) : q.explain;
+        assert.ok(new RegExp(`= ${q.answer}(?![0-9])`).test(before), `${key}: the answer ${q.answer} is not stated before the closing line: ${q.explain}`);
+        assert.ok(q.explain.split("\n").length <= 3, `${key}: at most 3 lines: ${q.explain}`);
+        checked++;
+      }
+    }
+  }
+  assert.ok(checked > 8000, `checked ${checked}`);
+});
+
+test("review: dividing by 5 goes through the table up to 10 x 5 and only doubles for bigger quotients", () => {
+  for (let q = 1; q <= 10; q++) {
+    const x = Q.fromKey(`div:${5 * q}:5`);
+    assert.ok(!/verdubbel/.test(`${x.hint} ${x.explain}`), `div:${5 * q}:5 should not double: ${x.explain}`);
+    const g = Q.fromKey(`gap:times:5x?=${5 * q}`);
+    assert.ok(!/verdubbelen en dan delen/.test(g.explain), `5 × ? = ${5 * q}: ${g.explain}`);
+  }
+});
