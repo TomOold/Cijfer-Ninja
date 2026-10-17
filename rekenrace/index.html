@@ -413,9 +413,9 @@ canvas.scene{display:block;width:100%;height:auto;aspect-ratio:20/9;image-render
 .is-wide .q.q-long{font-size:clamp(1.5rem,2.8vw,2.1rem)}
 .is-wide .q.q-story{font-size:clamp(.95rem,1.35vw,1.15rem)}
 /* roomy screens (a tablet, a laptop): the stories and the tips are what the youngest readers have to read */
-.is-wide:not(.is-short) .q.q-story{font-size:clamp(1.1rem,1.5vw,1.3rem)}
-.is-wide:not(.is-short) .feedback{font-size:1.05rem}
-.is-wide:not(.is-short) .explain-text{font-size:1.1rem}
+.is-wide:not(.is-low) .q.q-story{font-size:clamp(1.1rem,1.5vw,1.3rem)}
+.is-wide:not(.is-low) .feedback{font-size:1.05rem}
+.is-wide:not(.is-low) .explain-text{font-size:1.1rem}
 .is-wide .keypad{--key-h:clamp(52px,8vh,64px)}
 
 /* a portrait phone with little height: three rows of four keys instead of four rows of three, so "Klaar" stays on screen */
@@ -425,28 +425,28 @@ canvas.scene{display:block;width:100%;height:auto;aspect-ratio:20/9;image-render
 .is-tight .key-ok{font-size:1.05rem}
 
 /* wide and low (a phone held sideways): a flatter keypad, everything must fit without scrolling */
-.is-wide.is-short{--right-min:352px}
-.is-wide.is-short .keypad{--key-h:48px}
-.is-wide.is-short .screen.race{padding:4px 12px 6px}
-.is-wide.is-short .race-line{min-height:48px}
-.is-wide.is-short .race-title{font-size:1.05rem}
-.is-wide.is-short .race-progress{font-size:.95rem}
-.is-wide.is-short .keypad{grid-template-columns:repeat(6,1fr);gap:6px}
-.is-wide.is-short .key{font-size:1.4rem}
-.is-wide.is-short .key-ok{font-size:1.05rem}
-.is-wide.is-short .q{min-height:3.2rem;font-size:clamp(1.5rem,5vw,2rem)}
-.is-wide.is-short .q.q-long{font-size:1.4rem}
-.is-wide.is-short .q.q-story{font-size:.95rem;line-height:1.25;min-height:3.2rem}
-.is-wide.is-short .answer{min-height:44px;font-size:1.6rem}
-.is-wide.is-short .feedback{min-height:2.4rem;font-size:.9rem;padding:2px 8px}
-.is-wide.is-short .race-right{row-gap:4px}
-.is-wide.is-short .explain{padding:8px 12px;gap:4px}
-.is-wide.is-short .explain-answer{font-size:1.1rem}
-.is-wide.is-short .explain-text{font-size:.9rem;gap:2px}
-.is-wide.is-short .explain .btn{min-height:48px;padding-top:4px;padding-bottom:4px}
-.is-wide.is-short .intro{gap:8px;padding:10px 14px}
-.is-wide.is-short .intro-title{font-size:1.25rem}
-.is-wide.is-short .intro-blurb{font-size:.95rem}
+.is-wide.is-low{--right-min:352px}
+.is-wide.is-low .keypad{--key-h:48px}
+.is-wide.is-low .screen.race{padding:4px 12px 6px}
+.is-wide.is-low .race-line{min-height:48px}
+.is-wide.is-low .race-title{font-size:1.05rem}
+.is-wide.is-low .race-progress{font-size:.95rem}
+.is-wide.is-low .keypad{grid-template-columns:repeat(6,1fr);gap:6px}
+.is-wide.is-low .key{font-size:1.4rem}
+.is-wide.is-low .key-ok{font-size:1.05rem}
+.is-wide.is-low .q{min-height:3.2rem;font-size:clamp(1.5rem,5vw,2rem)}
+.is-wide.is-low .q.q-long{font-size:1.4rem}
+.is-wide.is-low .q.q-story{font-size:.95rem;line-height:1.25;min-height:3.2rem}
+.is-wide.is-low .answer{min-height:44px;font-size:1.6rem}
+.is-wide.is-low .feedback{min-height:2.4rem;font-size:.9rem;padding:2px 8px}
+.is-wide.is-low .race-right{row-gap:4px}
+.is-wide.is-low .explain{padding:8px 12px;gap:4px}
+.is-wide.is-low .explain-answer{font-size:1.1rem}
+.is-wide.is-low .explain-text{font-size:.9rem;gap:2px}
+.is-wide.is-low .explain .btn{min-height:48px;padding-top:4px;padding-bottom:4px}
+.is-wide.is-low .intro{gap:8px;padding:10px 14px}
+.is-wide.is-low .intro-title{font-size:1.25rem}
+.is-wide.is-low .intro-blurb{font-size:.95rem}
 
 /* ---------- wide and low screens: garage and finish a bit more compact ---------- */
 .is-wide.is-short .screen{--pad:8px;padding:var(--pad) 14px}
@@ -734,7 +734,7 @@ canvas.scene{display:block;width:100%;height:auto;aspect-ratio:20/9;image-render
   </div>
 </dialog>
 
-<noscript><p class="noscript">Rekenrace heeft JavaScript nodig. Zet JavaScript aan in je browser om te spelen.</p></noscript>
+<noscript><p class="noscript">Rekenrace heeft JavaScript nodig. Zet JavaScript aan in je browser om te spelen. Of open het bestand in Safari of Chrome.</p></noscript>
 
 <script>
 { const bootNote = document.getElementById('boot-note'); if (bootNote) bootNote.hidden = true; }   // first statement: the start-up note is only for a script that never got here
@@ -7877,7 +7877,7 @@ const TXT = {
   rijbewijs: {
     title: 'Rekenrijbewijs',
     holder: 'Dit rijbewijs is van',
-    sentence: name => name + ' heeft alle acht de banen van Rekenrace gereden.',
+    sentence: name => sentenceName(name) + ' heeft alle acht de banen van Rekenrace gereden.',
     date: d => 'Datum: ' + d,
     print: 'Afdrukken',
     back: 'Terug naar de stempelkaart'
@@ -7903,13 +7903,13 @@ const TXT = {
     restN: n => n + (n === 1 ? ' race' : ' races'),
     reset: 'Voortgang wissen',
     remove: 'Speler verwijderen',
-    confirmReset: name => 'Weet je het zeker? Alle stempels en resultaten van ' + name + ' worden gewist.',
-    confirmRemove: name => 'Weet je het zeker? ' + name + ' wordt helemaal verwijderd.',
+    confirmReset: name => 'Weet je het zeker? Alle stempels en resultaten van ' + sentenceName(name) + ' worden gewist.',
+    confirmRemove: name => 'Weet je het zeker? ' + sentenceName(name) + ' wordt helemaal verwijderd.',
     yesReset: 'Ja, wis de voortgang',
     yesRemove: 'Ja, verwijder de speler',
     cancel: 'Annuleren',
-    resetDone: name => 'De voortgang van ' + name + ' is gewist.',
-    removeDone: name => name + ' is verwijderd.',
+    resetDone: name => 'De voortgang van ' + sentenceName(name) + ' is gewist.',
+    removeDone: name => sentenceName(name) + ' is verwijderd.',
     noPlayers: 'Er zijn nog geen spelers.',
     about: 'Over dit spel',
     aboutText: 'Rekenrace is een rustig rekenspel. Er zijn geen klokken, geen punten en geen reclame. Sommen die nog niet lukten komen later nog een keer terug. Een latere baan heeft moeilijkere sommen, ook bij een vrije race. Alles wat je speelt blijft op dit apparaat, in deze browser: er is geen account en er wordt niets via internet verstuurd. Wis je de gegevens van de browser, dan is de voortgang ook weg.'
@@ -8167,7 +8167,7 @@ RR.UI = (function () {
   // Sizes the one scene canvas for the screen it is in. The CSS and this function share three things:
   //   --scene-col  (race, wide layout) set here: the width of the left grid column, i.e. the picture plus its border;
   //   --left-w     (garage, wide layout) set here: the same for the garage's left column;
-  //   --right-min  read here (declared in :root, wider under .is-wide.is-short): the least room the right column needs.
+  //   --right-min  read here (declared in :root, wider under .is-wide.is-low): the least room the right column needs.
   // The picture is always a whole multiple of 320 device pixels when that leaves at least minFill of the space
   // (chooseWidth), and the slot is then pinned to the picture's height so nothing below it jumps.
   function fitScene() {
@@ -8224,12 +8224,16 @@ RR.UI = (function () {
   function applyLayoutClasses() {
     const w = window.innerWidth, hgt = window.innerHeight;
     S.wide = w >= 640 && w / hgt >= 1.1;
-    S.short = hgt <= 520;
-    S.compact = !S.wide && hgt <= 660;    // a portrait phone with little height (small screen or browser toolbars)
+    S.short = hgt <= 520;                 // a phone held sideways: every screen gets the flat layout
+    S.low = S.wide && hgt <= 700;         // a laptop window or tablet with little height: the race screen gets the flat layout
+    // a portrait phone with little height (a small screen, or the browser toolbars take their share); the narrower
+    // the phone, the more a long story wraps, so a 400 px wide phone needs the flat layout up to 800 px high
+    S.compact = !S.wide && (hgt <= 660 || (w <= 430 && hgt <= 800));
     S.tight = S.compact && hgt <= 600 && w >= 350;   // even less height, and room for six keys of 48px side by side
     const root = document.documentElement;
     root.classList.toggle('is-wide', S.wide);
     root.classList.toggle('is-short', S.short);
+    root.classList.toggle('is-low', S.low);
     root.classList.toggle('is-compact', S.compact);
     root.classList.toggle('is-tight', S.tight);
   }
@@ -8729,7 +8733,7 @@ RR.UI = (function () {
             h('div', { class: 'stamp-text' }, [
               h('p', null, F.isNewStamp ? TXT.finish.stampNew(F.track.name) : TXT.finish.stampHad(F.track.name)),
               F.completesCard ? h('p', null, TXT.finish.licenceReady) : null,
-              F.completesCard ? h('button', { type: 'button', class: 'btn quiet', 'data-action': 'to', 'data-to': 'rijbewijs' }, TXT.stempels.licence) : null
+              F.completesCard ? h('button', { type: 'button', class: 'btn quiet', 'data-action': 'finish-licence', 'data-to': 'rijbewijs' }, TXT.stempels.licence) : null
             ])
           ]) : null,
           F.missed.length ? h('div', { class: 'panel practise' }, [
@@ -8747,13 +8751,15 @@ RR.UI = (function () {
     sec.replaceChildren(h('div', { class: 'page' }, kids));
   };
 
+  // Every way out of the finish screen passes the rest moment first: back to the garage, another race, or the licence.
+  // `next` is 'again' or the id of the screen to open (the licence button names its own, 'rijbewijs').
   function leaveFinish(next) {
     const rest = S.store.settings().restAfter;
     if (rest > 0 && S.races >= rest) { show('rust'); return; }
     if (next === 'again') {
       enterRace(S.finish.cfg);
     } else {
-      show('menu');
+      show(next);
     }
   }
 
@@ -8952,6 +8958,7 @@ RR.UI = (function () {
     'next': () => nextAfterExplain(),
     'finish-garage': () => leaveFinish('menu'),
     'finish-again': () => leaveFinish('again'),
+    'finish-licence': el => leaveFinish(el.dataset.to),
     'rest-stop': () => show('tot-ziens'),
     'rest-more': () => { S.races = 0; show('menu'); },
     'restart': () => { if (performance.now() < S.goodbyeFrom) return; S.store.select(null); newSitting(); show('spelers'); },
@@ -9079,6 +9086,7 @@ RR.UI = (function () {
     // A held Enter must not check, skip an explanation or press a focused button again and again.
     if (ev.key === 'Enter' && ev.repeat) { ev.preventDefault(); return; }
     const onControl = !!ev.target.closest('button, a, input, select, textarea');
+    const onPlainKey = !!ev.target.closest('.key:not(.key-ok)');   // a digit or delete key that has keyboard focus (after a stray Tab)
     if (ev.key === 'Escape') {
       if (R.phase !== 'intro') { ev.preventDefault(); openPause(); }
       return;
@@ -9086,7 +9094,7 @@ RR.UI = (function () {
     if (R.phase === 'ask') {
       if (/^[0-9]$/.test(ev.key)) { ev.preventDefault(); if (!ev.repeat) pressDigit(ev.key); }
       else if (ev.key === 'Backspace') { ev.preventDefault(); pressDel(); }
-      else if (ev.key === 'Enter' && !onControl) { ev.preventDefault(); submitAnswer(); }
+      else if (ev.key === 'Enter' && (!onControl || onPlainKey)) { ev.preventDefault(); submitAnswer(); }   // Space still presses the focused key
     } else if (R.phase === 'explain' && ev.key === 'Enter' && !onControl) {
       ev.preventDefault();
       nextAfterExplain();
