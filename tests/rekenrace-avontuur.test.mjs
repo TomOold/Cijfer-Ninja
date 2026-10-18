@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { laadRR } from './helpers/rekenrace-laden.mjs';
-const RR=laadRR(),W=RR.World,J=RR.Journey;
+const RR=laadRR("rekenracev2"),W=RR.World,J=RR.Journey;
 function memory(seed={}){const map=new Map(Object.entries(seed));return {map,getItem:k=>map.get(k)??null,setItem:(k,v)=>map.set(k,v),persistent:()=>true};}
 function player(store,name='Lotte'){const p=store.profiles.addPlayer({name,grade:4,hero:'egel'}).player;store.profiles.select(p.id);return p;}
 function arrive(run){run.position=W.nodes[J.target(run)].slice();assert.equal(J.arrive(run),true);}
@@ -79,4 +79,17 @@ test('Een tweede tab kan nieuwere voortgang niet overschrijven',()=>{
 });
 test('Ongeldige of inconsistente tochtdata wordt geweigerd',()=>{
  const r=J.create('dorp',4,'mix',[],42);assert.ok(J.restore(r));for(const patch of [{index:10},{stops:3},{phase:'question',index:9},{grade:99},{questions:[{}]},{outcomes:['first']}])assert.equal(J.restore({...r,...patch}),null);
+});
+
+test('Oorspronkelijke race en V2 kunnen op dezelfde oorsprong onafhankelijk bewaren',()=>{
+ const original=laadRR(),mem=memory(),old=original.Store.create(mem);
+ const p=old.addPlayer({name:'Samen',hero:'egel',grade:4}).player;old.select(p.id);
+ const raw=mem.getItem(original.Store.KEY),adventure=RR.AdventureStore.create(mem);
+ assert.equal(adventure.current().name,'Samen');adventure.setPref('car','gold');
+ adventure.saveRun(J.create('dorp',4,'mix',[],21));
+ assert.equal(mem.getItem(original.Store.KEY),raw);
+ const v2=mem.getItem(RR.AdventureStore.KEY);old.stamp(1,2);old.recordAnswer('times:7x8','times','first');
+ assert.equal(mem.getItem(RR.AdventureStore.KEY),v2);
+ assert.equal(original.Store.create(mem).stamps()[1].place,2);
+ const restored=RR.AdventureStore.create(mem);assert.deepEqual(restored.profiles.stamps(),{});assert.equal(restored.loadRun().chapter,'dorp');
 });

@@ -2,7 +2,7 @@
    RR_URL can target the branch preview. Isolated browser profiles never change server data. */
 const {chromium,firefox,webkit}=require('playwright');
 const fs=require('fs'),path=require('path'),os=require('os'),assert=require('node:assert/strict');
-const URL=process.env.RR_URL||'http://127.0.0.1:8765/rekenrace/';
+const URL=process.env.RR_URL||'http://127.0.0.1:8765/rekenracev2/';
 const SHOTS=process.env.RR_SHOTS||path.join(os.tmpdir(),'rekenrace-avontuur-shots');fs.mkdirSync(SHOTS,{recursive:true});
 function installedOptions(type){
  if(fs.existsSync(type.executablePath()))return {};

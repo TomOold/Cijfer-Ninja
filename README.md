@@ -16,9 +16,16 @@ Een volledig Nederlandstalig en speels rekenavontuur voor kinderen vanaf groep 4
 ## Ook in deze repo: Rekenrace
 
 In de map [`rekenrace/`](rekenrace/README.md) staat een tweede, aparte game: **Rekenrace**, een rustig
-rijavontuur in getekende cd-romstijl voor groep 4–5. Zelf rijden, drie bewoners helpen met elk drie
-sommen en terugkeren naar het plein. Geen timers, punten of beloningstrucs, geen account en geen server nodig. Het is één bestand (`rekenrace/index.html`) en draait online op `/rekenrace`.
+racespel in jaren-90-stijl voor groep 3 tot 6. Geen timers, punten of beloningstrucs, geen account en
+geen server nodig. Het is één bestand (`rekenrace/index.html`) en draait online op `/rekenrace`.
 Het is een eigen spel en staat los van Nummers Ninja.
+
+## Daarnaast: Rekenrace V2
+
+Het nieuwe [rijavontuur](rekenracev2/README.md) staat apart op **`/rekenracev2`**.
+Je rijdt zelf door Dorpsronde, Molenpolder en Havenrit en helpt bewoners met sommen.
+De oorspronkelijke game op **`/rekenrace`** blijft bestaan. Beide games bewaren hun
+voortgang onafhankelijk; V2 leest bij eerste gebruik een kopie van de oude spelers in.
 
 ## Lokaal openen
 
