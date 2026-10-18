@@ -1,152 +1,98 @@
-# Rekenrace
+# Rekenrace — kleine tochten, grote ontdekkingen
 
-Een rustig rekenspel in jaren-90-stijl voor kinderen van groep 3 tot en met 6. Vier dieren racen in hun
-kartje door een Nederlands landschap; elk goed antwoord brengt je kart een stukje vooruit. Zoals de
-rekenspellen op cd-rom van vroeger: een vriendelijk venster, pixelart, een zacht deuntje, en geen enkele
-haast.
-
-Het is een **eigen spel**, los van Nummers Ninja in de hoofdmap van deze repo. Alle dieren, namen, tekeningen,
-teksten en muziek zijn nieuw gemaakt; er is niets overgenomen van een bestaand spel.
+Een zelfstandig, rustig rijavontuur in de sfeer van een getekende jarennegentig-cd-rom. Voor kinderen van groep 4–5, op laptop en tablet. Het kind rijdt zelf, helpt drie bewoners met elk drie sommen en keert terug naar het plein. Er is geen wedstrijdpositie.
 
 ## Spelen
 
-- **Online:** open `/rekenrace` op de Vercel-site van dit project.
-- **Zelf openen:** het hele spel is één bestand, `rekenrace/index.html`. Download het en open het in je
-  browser (Safari, Chrome, Firefox, Edge). Er is geen server, account of internet nodig.
-- **Op een telefoon of tablet:** open het via een gewone browser. Een bestandsvoorbeeld in een app voert
-  vaak geen scripts uit; je ziet dan een lege titelbalk. Het spel laat in dat geval een melding zien
-  ("Lukt dit niet? Open het bestand in Safari of Chrome").
+Open `/rekenrace` op de site, of download `rekenrace/index.html` en open dat bestand in een gewone browser. Alles zit in de pagina: tekeningen, sommen, rekenhulp en geluid. Na het laden is geen netwerk nodig. Een bestandsvoorbeeld in een andere app voert soms geen JavaScript uit; open dan het bestand in Safari, Firefox, Chrome of Edge.
 
-### Wat je kunt doen
+1. Maak of kies een lokale speler. Alle vier de dieren en drie autokleuren zijn direct beschikbaar.
+2. Kies **Dorpsronde**, **Molenpolder** of **Havenrit**. De Dorpsronde is de eerste beoordelingsversie; de andere gebieden gebruiken dezelfde besturing en rekenregels.
+3. Rijd met de pijltjestoetsen of de richtingstoetsen in beeld. Op de tablet en met de muis kun je ook op de weg tikken. Het autootje volgt een veilige route. Via **Bekijk de kaart** kun je naar de volgende stop rijden, ook zonder precieze stuurbewegingen.
+4. Bij de volgende bewoner stopt de wereld. Kies **Samen rekenen**. Vul je antwoord in en kies **Nakijken**; cijfers, Backspace en Enter werken ook op het toetsenbord. Met Tab en Enter blijven de knoppen bedienbaar.
+5. Een fout antwoord geeft een hint en een tweede poging. Daarna volgt zo nodig uitleg met het antwoord. Na iedere som kies je zelf de volgende stap; na drie sommen kies je **Doorrijden**.
+6. Na drie stops rijd je terug naar het plein. Daarna staat **Stoppen** vooraan. Er begint niets vanzelf.
 
-1. **Speler kiezen of maken:** naam (maximaal 12 tekens), een dier en de groep (3 t/m 6). Er kunnen tot
-   8 spelers op één apparaat; de drie dieren die je niet kiest, racen tegen je.
-2. **Kampioenschap:** acht banen in vaste volgorde (Tulpenveld, Molenpolder, Strand en duinen, Dennenbos,
-   Grachtenstad, Haven, IJsbaan, Heuvelland), elk iets moeilijker. Elke baan die je afmaakt geeft een
-   stempel, ongeacht je plaats. Met alle acht stempels is er een printbaar **Rekenrijbewijs**.
-3. **Vrije race:** kies zelf een baan en een soort som (door elkaar, optellen, aftrekken, tafels, delen,
-   verhaalsommen), eventueel één tafel. Hier is geen stempel te halen; het is om te oefenen.
-4. **Ouders:** per speler zie je hoe het per soort som ging en welke sommen lastig waren. Je kunt de groep
-   aanpassen, geluid en muziek aan- of uitzetten, het rustmoment instellen, het **aanzicht** kiezen (van opzij of
-   van achteren, zie hieronder) en voortgang wissen of een speler verwijderen (altijd met een tweede bevestiging).
+**Pauze**, Escape, een verborgen tab of een venster dat de focus verliest zet het spel stil. Bij hervatten van een opgeslagen tocht begint het rijden bij het laatst bereikte controlepunt. Een lopende som, invoer en tweede poging blijven bewaard. Er wordt nooit dubbel een antwoord geregistreerd door herladen.
 
-### Een race
+De wereld heeft geen schade, brandstoftekort of gevaar. Aan de wegrand glijdt de auto mee met de weg. **Terug naar de weg** zet hem bij het laatst bereikte controlepunt.
 
-Een race is altijd **precies 10 sommen**. Je tikt het antwoord met het cijferpaneel (of je toetsenbord) en
-drukt op *Klaar*. Er is geen klok: er beweegt niets terwijl je nadenkt.
+## Rekenen en instellingen
 
-- Goed in één keer: je kart glijdt vooruit.
-- Fout: je krijgt een **hint** en mag nog één keer proberen.
-- Nog een keer fout: je ziet het antwoord met **uitleg hoe je erop komt**, en gaat verder wanneer jij wilt.
+Ouders kunnen per speler het rekenniveau en het onderwerp kiezen: door elkaar, optellen, aftrekken, tafels of delen. Wijzigingen gelden vanaf een nieuwe tocht. Bestaande profielen uit groep 3 of 6 blijven bewaard; voor een nieuw avontuur kiest de ouder expliciet groep 4 of 5.
 
-Een race kun je nooit verliezen en elke plaats telt als afgemaakt. Sommen die lastig waren komen later
-vanzelf een paar keer terug.
+- Groep 4: plus en min tot 100, tafels tot en met 10 en bijpassende deelsommen.
+- Groep 5: plus en min tot 1.000, tafels tot en met 10 en bijpassende deelsommen.
+- Geen negatieve antwoorden, breuken, komma's of resten.
+- Een landschap verandert het rekenniveau nooit. Per tocht zijn er precies negen gewone sommen, geen memory of andere minigames.
+- Hooguit twee passende eerdere oefensommen komen terug in een nieuwe tocht. Een som uit een hoger niveau komt niet in een lagere reeks terecht.
+- Het ouderscherm laat het aantal geoefende sommen per onderwerp zien, hoeveel antwoorden zelfstandig of na een tip lukten en welke sommen nog oefening vragen. Dit is geen toetsuitslag of beheersingsmeting.
 
-### Het aanzicht: van opzij of van achteren
+Muziek staat standaard uit. Geluid en muziek kunnen uit. Minder beweging volgt de systeeminstelling en schakelt de vloeiende camera uit. De illustraties bewegen niet tijdens het rekenen.
 
-Standaard zie je de race **van opzij**, zoals een zijaanzicht van een kartbaan. Op het ouderscherm staat onder
-*Instellingen* de keuze **Aanzicht**: *Van opzij* of *Van achteren*. Bij *Van achteren* kijk je mee over de
-schouder van je eigen kart, met de weg die zachtjes naar de horizon loopt (een rustige pseudo-3D-weg in de stijl
-van oude racespellen). De instelling geldt voor alle spelers op dit apparaat, wordt bewaard en gaat in zodra de
-garage of een nieuwe race opent: nooit midden in een race (vanuit een race kom je niet bij het ouderscherm). De
-sommen, het geluid en de regels zijn in beide aanzichten precies hetzelfde; ook de decoratieve baan in de garage
-volgt de keuze.
+## Rustafspraken
 
-Wat het is: dezelfde acht banen met hetzelfde karakter (tulpen, molens, strand, bos, grachten, haven, ijs,
-heuvels), maar nu als weg met bochten en heuvels die bewust heel zacht zijn (nooit een achtbaan), met huisjes,
-bomen, molens, kranen en lantaarns langs de kant, een startpoort met vlaggetjes en een geblokte finishboog.
-Dezelfde vier dieren zijn van achteren getekend. Karts van tegenstanders voor je zie je kleiner, ver weg of achter
-een heuvel; wie achter je rijdt zie je niet.
+Deze afspraken gelden ook bij verdere ontwikkeling:
 
-Rustregels in dit aanzicht (gemeten tijdens de bouw, niet geschat): geen flits en geen stroboscoopeffect
-(de twee tinten van weg en gras liggen dicht bij elkaar in helderheid; de gemeten wisseling per gebied is meestal
-2 tot 3 keer per seconde of minder, de lichtste en donkerste tint van het hele beeld verschilt tijdens een glijbeweging
-hooguit ongeveer 0,02), geen cameratrilling, geen snelheidsstrepen of deeltjes, een glijbeweging van ongeveer 1 seconde
-zoals in het zijaanzicht, en alleen stilstaande of zeer trage beweging (wolken, molenwieken) terwijl je nadenkt. Hoge
-dichtbije voorwerpen (lantaarns, bomen, kranen) vervagen in vier stappen vlak voordat ze de rand van het beeld bereiken,
-zodat er niets groots snel langs de rand schiet. Bij "minder beweging" springt de kart direct naar zijn plek en
-staat alles stil. Een beeld kost ruim onder 4 ms.
-
-## Rustregels (de afspraken waar dit spel zich aan houdt)
-
-Dit spel is bewust het tegenovergestelde van een spel dat je vast wil houden. De regels hieronder zijn
-bindend bij elke wijziging.
-
-| | Regel |
+| | Afspraak |
 |---|---|
-| D1 | Geen tijdsdruk: geen timers, aftellers of snelheidsbonussen. Alleen animaties gebruiken tijd. |
-| D2 | Geen puntentelling: geen punten, munten, ervaring, combo's of reeksen. Alleen feiten als "Som 4 van 10" en "7 van 10 goed in één keer". |
-| D3 | Geen willekeurige beloningen: één stempel per baan, één rijbewijs aan het eind. Geen winkel of loot. |
-| D4 | Geen flitsen, schudden, confetti of plotselinge beweging. Bij "minder beweging" in het besturingssysteem staat alle beweging stil of springt kort. |
-| D5 | Rustige teksten: kort, warm en feitelijk. Een fout antwoord is "Nog niet helemaal." met een tip, nooit "FOUT!" of rood. |
-| D6 | Zacht geluid, nooit voor de eerste klik, altijd uit te zetten. Muziek staat standaard uit. |
-| D7 | Natuurlijke stopmomenten: een race heeft een einde, daarna start er niets vanzelf. Na een aantal races (standaard 3, in te stellen van 1 tot 10 of uit) stelt het spel een pauze voor, met "Stoppen" als hoofdknop. Geen dagelijkse reeksen, meldingen of ranglijsten. |
-| D8 | Falen blokkeert nooit: geen levens, geen game over; elke plaats geeft een stempel. |
-| D9 | Privé en offline: geen netwerkverkeer, geen account, geen advertenties, geen externe lettertypen. |
-| D10 | Eerlijke voortgang: lineair en zichtbaar, geen verborgen systemen. |
-| D11 | Rustige uitslag: "Je bent als tweede over de finish gekomen." Geen verliezersgeluid of rood. |
-| D12 | Het tempo is van het kind: na een goed antwoord verschijnt de volgende som als de kart is aangekomen; na een fout antwoord blijft de uitleg staan tot het kind op *Volgende* drukt. |
+| D1 | Geen timers, aftellers, snelheidsbonussen of tijdsdruk. |
+| D2 | Geen punten, munten, XP, combo's of reeksen. Alleen feitelijke oefenvoortgang. |
+| D3 | Geen winkel, lootboxen of willekeurige beloningen. Alle dieren, auto's en gebieden zijn beschikbaar. |
+| D4 | Geen flitsen, confetti, cameratrilling of plotselinge effecten. Minder beweging respecteren. |
+| D5 | Korte, vriendelijke en feitelijke tekst; fouten leiden tot hulp. |
+| D6 | Zacht geluid, pas na een handeling; muziek standaard uit en alles uit te zetten. |
+| D7 | Natuurlijke stop na negen sommen. Niets start automatisch. Na het ingestelde aantal tochten een pauze voorstellen. |
+| D8 | Geen schade, levens, game over of voortgang die door een fout wordt geblokkeerd. |
+| D9 | Lokale spelers zonder account, advertenties, analytics, externe lettertypen of netwerkverkeer vanuit het spel. |
+| D10 | Voortgang is zichtbaar en voorspelbaar: geholpen bewoners en bezochte gebieden. |
+| D11 | Geen ranglijst, wedstrijdpositie of verliesgeluid. |
+| D12 | Het kind kiest na iedere uitleg de volgende stap. De hele wereld staat stil tijdens rekenen en pauze. |
 
-Wat bewust wél mag, zodat een latere controle het niet als overtreding ziet: een korte invoerpauze van
-ongeveer een halve seconde na het starten of na een uitleg (tegen per ongeluk dubbel tikken), en een vaste
-pauze van 0,6 seconde in plaats van de glijbeweging als "minder beweging" aanstaat. Dat is geen tijdsdruk:
-er gaat niets verloren en niets loopt af.
+Een korte invoerbewaking na een schermwisseling voorkomt dat een dubbele tik onbedoeld het volgende scherm bedient. Dat is geen tijdsdruk: er loopt niets af en niets gaat verloren.
 
-Het spel past de sommen wel aan: sommen die niet lukten komen later nog een paar keer terug, en de
-moeilijkheid hangt af van de groep en de baan. Dat staat ook op het ouderscherm onder "Over dit spel".
+## Opslag en compatibiliteit
 
-## Wat wordt er opgeslagen
+De nieuwe sleutel is `rekenrace:v2`. Daarin staan de door de bestaande `RR.Store` opgeschoonde spelersprofielen, rekenhistorie, oude stempels, globale instellingen, voorkeuren per speler, één lopende tocht per speler en afgeronde gebieden.
 
-Alleen in de browser van het apparaat (`localStorage`, sleutel `rekenrace:v1`): de gekozen naam, dier en
-groep, de antwoordgeschiedenis per som, de stempels en de instellingen. Er is geen e-mailadres en er gaat
-niets over het netwerk: een beveiligingsregel in de pagina (CSP) laat de browser zelf elke verbinding
-blokkeren. Als opslaan niet kan (bijvoorbeeld in een privévenster) blijft het spel gewoon werken, maar
-verdwijnt de voortgang zodra het venster dicht gaat; het spel zegt dat dan.
+Bij eerste gebruik zonder V2-opslag worden bestaande V1-profielen ingelezen. De oorspronkelijke sleutel `rekenrace:v1` wordt **nooit gewijzigd**. Oude stempels blijven zichtbaar in het ouderscherm; ze worden geen dorpsopdrachten. Antwoordregistratie en de fase van de tocht gaan in één lokale opslaghandeling weg. Bij herladen wordt de som uit zijn vaste sleutel gereconstrueerd en de opgeslagen voortgang gecontroleerd.
 
-## De sommen
+Bij onbeschikbare opslag kan het spel in geheugen verder. Een zichtbare melding waarschuwt dat sluiten gegevens kan verliezen. Beschadigde of onbekende V2-data wordt niet overschreven. Als een tweede tab nieuwere gegevens opslaat, stopt deze tab en vraagt hij de pagina opnieuw te laden.
 
-De sommen volgen de Nederlandse rekenmethode. Een delen-som schrijf je met een dubbele punt (`56 : 8`),
-alle getallen blijven onder 10.000, er zijn geen komma's, breuken, resten of negatieve uitkomsten.
+Voortgang reist niet mee naar een ander apparaat of van een Preview-domein naar het productiedomein. Wissen in het ouderscherm betreft het nieuwe avontuur; het oorspronkelijke V1-bestand blijft als migratiebron intact.
 
-| Soort | Voorbeeld |
-|---|---|
-| Optellen / Aftrekken | `47 + 36 = ?`, `83 − 47 = ?` |
-| Tafels / Delen | `7 × 8 = ?`, `56 : 8 = ?` |
-| Gaatjessommen | `24 + ? = 51`, `7 × ? = 56` |
-| Verhaalsommen | korte opgaven over tulpen, schelpen, fietsen en boten, soms met twee stappen |
+## Techniek en illustraties
 
-De moeilijkheid per groep (3 t/m 6) en baan (1 t/m 8) staat in de tabel `PROFILE` in `RR.Questions`.
-Elke som heeft een hint (verklapt het antwoord nooit) en een uitleg (laat de methode en het antwoord zien,
-bijvoorbeeld splitsen, aanvullen tot een tiental of "tafel van 6 is tafel van 5 en nog 1 keer erbij").
+De runtime blijft één zelfstandige `rekenrace/index.html`, zonder framework, server of bouwstap. CSP blokkeert verbindingen (`connect-src 'none'`); beeld komt uit ingebedde data-URL's. Alleen gewone HTML-knoppen en velden bedienen het spel; de wereld wordt op canvas getekend.
 
-## Voor wie eraan werkt
+De pure modules staan binnen de bestaande `// ===PURE===`-markeringen:
 
-- **Eén bestand, geen bouwstap.** `rekenrace/index.html` bevat alle HTML, CSS en JavaScript. De rekenmodules
-  zonder scherm (`RR.Rng`, `RR.Questions`, `RR.Heroes`/`Tracks`/`Race`, `RR.Store`) staan tussen
-  `// ===PURE===` en `// ===ENDPURE===`, zodat Node ze kan testen; daarna volgen de schermmodules
-  (`RR.Sprites`, `RR.Scene`, het aanzicht van achteren: `RR.SpritesRear`, `RR.Scene3D` en per baan een themablok
-  dat zich met `RR.Scene3D.registerTheme` aanmeldt, `RR.Sound`) en de gebruikersinterface. `RR.Scene3D` heeft precies
-  dezelfde functies als `RR.Scene`; de gebruikersinterface maakt het ene of het andere object volgens de instelling
-  `view` (`side` of `behind`, in `RR.Store`). Alle teksten staan in de constante `TXT`.
-  Namen van spelers komen alleen via `textContent` op het scherm.
-- **Alles inline.** Omdat Vercel met `cleanUrls` zonder slash aan het eind werkt, mag de pagina geen
-  relatieve bestanden laden. Pixelart wordt in code getekend, geluid in code gemaakt.
-- **Tests** (onderdeel van `npm test`): `tests/rekenrace-race.test.mjs`, `tests/rekenrace-opslag.test.mjs`
-  en `tests/rekenrace-sommen.test.mjs`. De sommentest rekent elk antwoord onafhankelijk na uit de tekst
-  van de som; houd dat zo bij nieuwe soorten sommen.
-- **Browsertests** (niet in `npm test`, want Playwright is geen afhankelijkheid): zie `tests/rekenrace-e2e/`.
-  Ze spelen het spel echt door in Chromium: spelers, een race met goede en foute antwoorden, rustmoment,
-  rijbewijs, ouderscherm, opstartmelding, en de lay-out op telefoon, tablet en laptop.
-  Starten: `NODE_PATH=$(npm root -g) node tests/rekenrace-e2e/play.cjs` (ongeveer 2 minuten).
+- `RR.Rng`, `RR.Questions`, `RR.Heroes` en de historische `RR.Tracks`/`RR.Race`/`RR.Store` blijven voor compatibiliteit en de onafhankelijke tests behouden. Het avontuur gebruikt de oude raceberekening niet.
+- `RR.World`: wegennetwerk, projectie op wegranden, genormaliseerde beweging en kortste tikroutes.
+- `RR.Chapters`, `RR.Lesson`, `RR.Journey`: ontmoetingen, passende rekenreeksen en expliciete toestanden `intro`, `driving`, `conversation`, `question`, `explanation`, `stopDone`, `complete`.
+- `RR.AdventureStore`: V2-migratie, lokale voorkeuren, hervatten en atomair vastleggen van antwoorden.
 
-## Bekende beperkingen
+Daarna volgen de bestaande geluidsmodule, `RR.Assets`, de nieuwe `RR.Scene` en `RR.UI`. Gebruik voor namen altijd `textContent`; voeg nooit spelersnamen aan HTML-templates toe.
 
-- Getest in Chromium. Safari (iPhone, iPad) en Firefox zijn nog niet echt uitgeprobeerd; dat geldt zeker voor het
-  aanzicht van achteren (canvas-pixels uitlezen en de tekentijd zijn daar niet gemeten).
-- In het aanzicht van achteren zie je tegenstanders achter je niet (ze zitten achter de camera); de voortgangsbalk
-  bovenin laat altijd iedereen zien. Voorwerpen langs de weg worden in grote stappen kleiner (niet vloeiend), en
-  het eigen kartje heeft geen aparte markering: het staat steeds op dezelfde plek, en in de balk is jouw kop omlijst.
-- Het geluid is gemeten (niveau, lengte, geen klikken) maar nog niet door een mens beluisterd.
-- Een lopende glijbeweging kan niet worden gepauzeerd; de pauze wacht tot de kart is aangekomen.
-- De terugknop van de browser verlaat de pagina; de voortgang blijft bewaard, een lopende race niet.
-- Op zeer kleine schermen (320 px breed) kan een lange verhaalsom net uit beeld scrollen.
+De originele illustraties zijn voor dit project gegenereerd. Geen beeld, geluid, personage of tekst uit Redcat is overgenomen. De bewerkbare atlasbestanden staan onder `art/`:
+
+- `dieren-autootjes.webp`: 8 kolommen × 4 rijen van 224 × 224 pixels, per dier acht rijrichtingen; rechts, rechtsonder, onder, linksonder, links, linksboven, boven, rechtsboven.
+- `dorpsdecor.webp`: decoratlas; uitsnedes staan in `RR.Assets`.
+
+Na een wijziging aan een atlas: `npm run rekenrace:art`. Dat vernieuwt alleen het ingebedde beeldblok. Kleuren van de auto worden lokaal op de zeegroene carrosserie toegepast; het dier behoudt zijn eigen kleur.
+
+## Controleren
+
+```sh
+npm test
+# Met Playwright beschikbaar en een lokale server op poort 8765:
+npm run test:rekenrace:browser
+# Andere oorsprong (bijvoorbeeld een toegankelijke branch-preview):
+RR_URL=https://voorbeeld.vercel.app/rekenrace npm run test:rekenrace:browser
+```
+
+`npm test` bevat de bestaande Nummers Ninja- en backendtests, de historische pure Rekenrace-tests en `tests/rekenrace-avontuur.test.mjs`. De nieuwe tests controleren antwoorden onafhankelijk van de generator, weggrenzen, routes, alle negen vragen, foutafhandeling, migratie, hervatten, opslagfalen en meerdere tabs.
+
+`tests/rekenrace-e2e/avontuur.cjs` is de actuele browsersuite. Ze speelt een volledige tocht in Chromium, Firefox en WebKit, met verschillende dieren, groep 4/5, toetsenbediening, tikken, herladen en stilliggend beeld tijdens rekenen. Schermafbeeldingen gaan naar een tijdelijke map. Oudere bestanden in die testmap horen bij de historische race-interface en zijn geen acceptatietests voor het avontuur.
+
+Een WebKit-test met een tabletformaat vervangt geen speeltest op een echte iPad. Voor productie beoordelen een ouder en kind de besturing, leesbaarheid en het rustige tempo op hun eigen apparaten. Publicatie gaat via een featurebranch en Preview; samenvoegen naar `main` is een aparte productiestap.

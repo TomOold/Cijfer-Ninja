@@ -16,8 +16,8 @@ Een volledig Nederlandstalig en speels rekenavontuur voor kinderen vanaf groep 4
 ## Ook in deze repo: Rekenrace
 
 In de map [`rekenrace/`](rekenrace/README.md) staat een tweede, aparte game: **Rekenrace**, een rustig
-racespel in jaren-90-stijl voor groep 3 tot 6. Geen timers, punten of beloningstrucs, geen account en
-geen server nodig. Het is één bestand (`rekenrace/index.html`) en draait online op `/rekenrace`.
+rijavontuur in getekende cd-romstijl voor groep 4–5. Zelf rijden, drie bewoners helpen met elk drie
+sommen en terugkeren naar het plein. Geen timers, punten of beloningstrucs, geen account en geen server nodig. Het is één bestand (`rekenrace/index.html`) en draait online op `/rekenrace`.
 Het is een eigen spel en staat los van Nummers Ninja.
 
 ## Lokaal openen
