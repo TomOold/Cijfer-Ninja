@@ -67,6 +67,16 @@ An independent game: a calm 1990s-style Dutch math racing game for groep 3-6. It
 - Tests: `tests/rekenrace-race|opslag|sommen.test.mjs` (Node's test runner, part of `npm test`) load the fenced block via `tests/helpers/rekenrace-laden.mjs`. The sums engine tests recompute every answer independently from the question text — keep that property when adding sum types. Browser behaviour is covered by a Playwright suite that is not part of `npm test` (Playwright is not a dependency); see `rekenrace/README.md`.
 - Persistence is `localStorage` only (key `rekenrace:v1`); storage may be blocked, in which case the game keeps working in memory.
 
+### Rekenrace V2 (independent adventure in `rekenracev2/`)
+
+The self-driven illustrated adventure is served at `/rekenracev2`. The original `/rekenrace` and all its files remain unchanged from main. Never replace one game with the other.
+
+- V2 is a standalone HTML page without runtime dependencies or network calls. Source artwork lives in `rekenracev2/art/`; `npm run rekenrace:art` updates the embedded atlas block in `rekenracev2/index.html` only.
+- V2 keeps the calm rules in `rekenracev2/README.md`: no timers, ranks, damage, currencies or reward loops. Three resident stops with three sums each, then return to the square. Pause or calculating freezes all motion. Keyboard, D-pad, tap routes and the map all work.
+- Pure modules: retained question/legacy modules, `RR.World`, `RR.Chapters`, `RR.Lesson`, `RR.Journey`, `RR.AdventureStore`. Browser modules: `RR.Sound`, `RR.Assets`, `RR.Scene`, `RR.UI`. User names always use `textContent`.
+- V2 writes only `rekenrace:v2`. On first use it copies profiles from `rekenrace:v1` without modifying V1. Subsequent progress is independent. Save each answer and journey phase atomically; refuse to overwrite corrupt/future V2 data or newer data saved by another tab.
+- `tests/helpers/rekenrace-laden.mjs` loads the original by default. Adventure tests use `laadRR("rekenracev2")`. Browser tests: `npm run test:rekenrace:browser`, default route `/rekenracev2`; `RR_URL` can target the preview. The original browser scripts still target `/rekenrace`.
+
 ### Content data
 
 - `characters.json` is meant to be hand-edited to add shop avatars: drop an image into `images/`, add its filename (in-game name is the filename without extension). Optional per-character price override via `{"file": ..., "cost": ...}`.

@@ -20,6 +20,13 @@ racespel in jaren-90-stijl voor groep 3 tot 6. Geen timers, punten of beloningst
 geen server nodig. Het is één bestand (`rekenrace/index.html`) en draait online op `/rekenrace`.
 Het is een eigen spel en staat los van Nummers Ninja.
 
+## Daarnaast: Rekenrace V2
+
+Het nieuwe [rijavontuur](rekenracev2/README.md) staat apart op **`/rekenracev2`**.
+Je rijdt zelf door Dorpsronde, Molenpolder en Havenrit en helpt bewoners met sommen.
+De oorspronkelijke game op **`/rekenrace`** blijft bestaan. Beide games bewaren hun
+voortgang onafhankelijk; V2 leest bij eerste gebruik een kopie van de oude spelers in.
+
 ## Lokaal openen
 
 Je kunt `index.html` direct openen om de interface te bekijken. De productieversie
