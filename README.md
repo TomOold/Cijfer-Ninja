@@ -13,6 +13,13 @@ Een volledig Nederlandstalig en speels rekenavontuur voor kinderen vanaf groep 4
 - **Hulpknop:** een kind kan een lastige som markeren en zonder straf doorgaan.
 - **Voortgangsrapport:** ouders of leerkrachten zien sterke punten, oefenpunten en gemarkeerde sommen.
 
+## Ook in deze repo: Rekenrace
+
+In de map [`rekenrace/`](rekenrace/README.md) staat een tweede, aparte game: **Rekenrace**, een rustig
+racespel in jaren-90-stijl voor groep 3 tot 6. Geen timers, punten of beloningstrucs, geen account en
+geen server nodig. Het is één bestand (`rekenrace/index.html`) en draait online op `/rekenrace`.
+Het is een eigen spel en staat los van Nummers Ninja.
+
 ## Lokaal openen
 
 Je kunt `index.html` direct openen om de interface te bekijken. De productieversie
